@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
         'auth.session' => \App\Http\Middleware\AuthSession::class,
         'role' => \App\Http\Middleware\Role::class,
+        'set.locale' => \App\Http\Middleware\SetLocaleFromRoute::class,
     ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
