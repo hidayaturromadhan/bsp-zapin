@@ -11,6 +11,7 @@ use App\Services\NewsAutoTranslator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Spatie\PdfToImage\Pdf;
 
 class GcgCategoryController extends Controller
 {
@@ -32,7 +33,7 @@ class GcgCategoryController extends Controller
         return view('admin.gcg.create');
     }
 
-    // ── STORE ──────────────────────────────────────────────────────────────
+    // ── STORE CATEGORY ─────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -58,7 +59,6 @@ class GcgCategoryController extends Controller
                 'description'     => $descId,
             ]);
 
-            // Auto-translate ke EN via DeepL
             $nameEn = $this->translator->translateText($nameId);
             $descEn = $this->translator->translateText($descId);
             $slugEn = $this->uniqueSlug(Str::slug($nameEn), null);
@@ -72,20 +72,25 @@ class GcgCategoryController extends Controller
             ]);
         });
 
-        return redirect()->route('admin.gcg.index')
+        return redirect()
+            ->route('admin.gcg.index')
             ->with('success', 'Kategori GCG berhasil ditambahkan.');
     }
 
     // ── EDIT ───────────────────────────────────────────────────────────────
     public function edit(GcgCategory $gcg)
     {
-        $gcg->load(['translations', 'documents.translations']);
+        $gcg->load([
+            'translations',
+            'documents.translations',
+        ]);
+
         $translationId = $gcg->translations->firstWhere('locale', 'id');
 
         return view('admin.gcg.edit', compact('gcg', 'translationId'));
     }
 
-    // ── UPDATE ─────────────────────────────────────────────────────────────
+    // ── UPDATE CATEGORY ────────────────────────────────────────────────────
     public function update(Request $request, GcgCategory $gcg)
     {
         $request->validate([
@@ -99,58 +104,75 @@ class GcgCategoryController extends Controller
                 'is_active' => $request->boolean('is_active', true),
             ]);
 
-            $nameId  = $request->input('name');
-            $descId  = $request->input('description', '');
+            $nameId = $request->input('name');
+            $descId = $request->input('description', '');
 
-            // Ambil ID row translation yang ada agar row itu sendiri dikecualikan
-            // dari pengecekan slug (supaya tidak dianggap duplikat dengan dirinya sendiri)
             $transId = $gcg->translations()->where('locale', 'id')->first();
             $slugId  = $this->uniqueSlug(Str::slug($nameId), $transId?->id);
 
             $gcg->translations()->updateOrCreate(
                 ['locale' => 'id'],
-                ['name' => $nameId, 'slug' => $slugId, 'description' => $descId]
+                [
+                    'name'        => $nameId,
+                    'slug'        => $slugId,
+                    'description' => $descId,
+                ]
             );
 
-            // Re-translate EN otomatis
-            $nameEn  = $this->translator->translateText($nameId);
-            $descEn  = $this->translator->translateText($descId);
+            $nameEn = $this->translator->translateText($nameId);
+            $descEn = $this->translator->translateText($descId);
 
             $transEn = $gcg->translations()->where('locale', 'en')->first();
             $slugEn  = $this->uniqueSlug(Str::slug($nameEn), $transEn?->id);
 
             $gcg->translations()->updateOrCreate(
                 ['locale' => 'en'],
-                ['name' => $nameEn, 'slug' => $slugEn, 'description' => $descEn]
+                [
+                    'name'        => $nameEn,
+                    'slug'        => $slugEn,
+                    'description' => $descEn,
+                ]
             );
         });
 
-        return redirect()->route('admin.gcg.edit', $gcg)
+        return redirect()
+            ->route('admin.gcg.edit', $gcg)
             ->with('success', 'Kategori GCG berhasil diperbarui.');
     }
 
-    // ── DESTROY ────────────────────────────────────────────────────────────
+    // ── DESTROY CATEGORY ───────────────────────────────────────────────────
     public function destroy(GcgCategory $gcg)
     {
+        $gcg->load('documents');
+
         foreach ($gcg->documents as $doc) {
-            $fullPath = public_path('documents/gcg/' . $doc->file_path);
-            if (file_exists($fullPath)) {
-                unlink($fullPath);
+            $pdfPath = public_path('documents/gcg/' . $doc->file_path);
+            if ($doc->cover) {
+                $coverPath = public_path('images/gcg/' . $doc->cover);
+                if (file_exists($coverPath)) {
+                    unlink($coverPath);
+                }
+            }
+
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
             }
         }
 
         $gcg->delete();
 
-        return redirect()->route('admin.gcg.index')
+        return redirect()
+            ->route('admin.gcg.index')
             ->with('success', 'Kategori GCG berhasil dihapus.');
     }
 
-    // ── STORE DOKUMEN ──────────────────────────────────────────────────────
+    // ── STORE DOCUMENT ─────────────────────────────────────────────────────
     public function storeDocument(Request $request, GcgCategory $gcg)
     {
         $request->validate([
             'title'     => 'required|string|max:255',
             'file'      => 'required|file|max:20480',
+            'cover'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
         ]);
 
@@ -158,8 +180,8 @@ class GcgCategoryController extends Controller
             $file         = $request->file('file');
             $extension    = strtolower($file->getClientOriginalExtension());
             $fileName     = Str::uuid() . '.' . $extension;
-            $originalName = $file->getClientOriginalName(); // ambil sebelum move
-            $fileSize     = $file->getSize();               // ambil sebelum move
+            $originalName = $file->getClientOriginalName();
+            $fileSize     = $file->getSize();
 
             $destDir = public_path('documents/gcg');
             if (! is_dir($destDir)) {
@@ -167,9 +189,46 @@ class GcgCategoryController extends Controller
             }
             $file->move($destDir, $fileName);
 
+            $pdfPath = public_path('documents/gcg/' . $fileName);
+
+            $coverName = null;
+
+            // Cover manual
+            if ($request->hasFile('cover')) {
+                $coverFile = $request->file('cover');
+                $coverExt  = strtolower($coverFile->getClientOriginalExtension());
+                $coverName = Str::uuid() . '.' . $coverExt;
+
+                $coverDir = public_path('images/gcg');
+                if (! is_dir($coverDir)) {
+                    mkdir($coverDir, 0755, true);
+                }
+
+                $coverFile->move($coverDir, $coverName);
+            } else {
+                // Auto generate dari PDF page 1
+                try {
+                    $coverDir = public_path('images/gcg');
+                    if (! is_dir($coverDir)) {
+                        mkdir($coverDir, 0755, true);
+                    }
+
+                    $coverName = Str::uuid() . '.jpg';
+                    $coverPath = public_path('images/gcg/' . $coverName);
+
+                    $pdf = new Pdf($pdfPath);
+                    $pdf->setPage(1)
+                        ->setOutputFormat('jpg')
+                        ->saveImage($coverPath);
+                } catch (\Throwable $e) {
+                    $coverName = null;
+                }
+            }
+
             $document = GcgDocument::create([
                 'gcg_category_id' => $gcg->id,
                 'file_path'       => $fileName,
+                'cover'           => $coverName,
                 'file_name'       => $originalName,
                 'file_type'       => $extension,
                 'file_size'       => $fileSize,
@@ -192,15 +251,17 @@ class GcgCategoryController extends Controller
             ]);
         });
 
-        return redirect()->route('admin.gcg.edit', $gcg)
+        return redirect()
+            ->route('admin.gcg.edit', $gcg)
             ->with('success', 'Dokumen berhasil diupload.');
     }
 
-    // ── UPDATE DOKUMEN ─────────────────────────────────────────────────────
+    // ── UPDATE DOCUMENT ────────────────────────────────────────────────────
     public function updateDocument(Request $request, GcgCategory $gcg, GcgDocument $document)
     {
         $request->validate([
             'title'     => 'required|string|max:255',
+            'cover'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
         ]);
 
@@ -209,31 +270,28 @@ class GcgCategoryController extends Controller
                 'is_active' => $request->boolean('is_active', true),
             ]);
 
-            if ($request->hasFile('file')) {
-                $request->validate(['file' => 'file|max:20480']);
+            if ($request->hasFile('cover')) {
+                $oldCoverPath = $document->cover
+                    ? public_path('images/gcg/' . $document->cover)
+                    : null;
 
-                $oldPath = public_path('documents/gcg/' . $document->file_path);
-                if (file_exists($oldPath)) {
-                    unlink($oldPath);
+                if ($oldCoverPath && file_exists($oldCoverPath)) {
+                    unlink($oldCoverPath);
                 }
 
-                $file         = $request->file('file');
-                $extension    = strtolower($file->getClientOriginalExtension());
-                $fileName     = Str::uuid() . '.' . $extension;
-                $originalName = $file->getClientOriginalName(); // ambil sebelum move
-                $fileSize     = $file->getSize();               // ambil sebelum move
+                $coverFile = $request->file('cover');
+                $coverExt  = strtolower($coverFile->getClientOriginalExtension());
+                $coverName = Str::uuid() . '.' . $coverExt;
 
-                $destDir = public_path('documents/gcg');
-                if (! is_dir($destDir)) {
-                    mkdir($destDir, 0755, true);
+                $coverDir = public_path('images/gcg');
+                if (! is_dir($coverDir)) {
+                    mkdir($coverDir, 0755, true);
                 }
-                $file->move($destDir, $fileName);
+
+                $coverFile->move($coverDir, $coverName);
 
                 $document->update([
-                    'file_path' => $fileName,
-                    'file_name' => $originalName,
-                    'file_type' => $extension,
-                    'file_size' => $fileSize,
+                    'cover' => $coverName,
                 ]);
             }
 
@@ -244,34 +302,41 @@ class GcgCategoryController extends Controller
                 ['locale' => 'id'],
                 ['title' => $titleId]
             );
+
             $document->translations()->updateOrCreate(
                 ['locale' => 'en'],
                 ['title' => $titleEn]
             );
         });
 
-        return redirect()->route('admin.gcg.edit', $gcg)
+        return redirect()
+            ->route('admin.gcg.edit', $gcg)
             ->with('success', 'Dokumen berhasil diperbarui.');
     }
 
-    // ── DESTROY DOKUMEN ────────────────────────────────────────────────────
+    // ── DESTROY DOCUMENT ───────────────────────────────────────────────────
     public function destroyDocument(GcgCategory $gcg, GcgDocument $document)
     {
-        $fullPath = public_path('documents/gcg/' . $document->file_path);
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
+        $pdfPath = public_path('documents/gcg/' . $document->file_path);
+        if (file_exists($pdfPath)) {
+            unlink($pdfPath);
+        }
+
+        if ($document->cover) {
+            $coverPath = public_path('images/gcg/' . $document->cover);
+            if (file_exists($coverPath)) {
+                unlink($coverPath);
+            }
         }
 
         $document->delete();
 
-        return redirect()->route('admin.gcg.edit', $gcg)
+        return redirect()
+            ->route('admin.gcg.edit', $gcg)
             ->with('success', 'Dokumen berhasil dihapus.');
     }
 
-    // ── HELPER: UNIQUE SLUG ────────────────────────────────────────────────
-    // $ignoreTranslationId = primary key (id) dari row gcg_category_translations
-    // yang sedang diupdate — row ini dikecualikan dari pengecekan agar tidak
-    // dianggap duplikat dengan dirinya sendiri.
+    // ── HELPER UNIQUE SLUG ─────────────────────────────────────────────────
     private function uniqueSlug(string $slug, ?int $ignoreTranslationId): string
     {
         $original = $slug;
@@ -284,7 +349,9 @@ class GcgCategoryController extends Controller
                 $query->where('id', '!=', $ignoreTranslationId);
             }
 
-            if (! $query->exists()) break;
+            if (! $query->exists()) {
+                break;
+            }
 
             $slug = $original . '-' . $i++;
         }

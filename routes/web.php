@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\GcgController;
 use App\Http\Controllers\Web\NewsController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProfileController;
+use App\Http\Controllers\Admin\GcgHighlightItemController;
 use App\Models\News;
 use App\Models\Page;
 use Illuminate\Support\Facades\Route;
@@ -102,6 +103,25 @@ Route::middleware(['auth.session', 'role:admin'])
             Route::put('/{gcg}/documents/{document}', [GcgCategoryController::class, 'updateDocument'])->name('documents.update');
             Route::delete('/{gcg}/documents/{document}', [GcgCategoryController::class, 'destroyDocument'])->name('documents.destroy');
         });
+
+        // ── GCG HIGHLIGHT ITEMS ─────────────────────────────────────────
+        Route::get('/gcg-highlight-items', [GcgHighlightItemController::class, 'index'])
+            ->name('gcg-highlight-items.index');
+
+        Route::get('/gcg-highlight-items/create', [GcgHighlightItemController::class, 'create'])
+            ->name('gcg-highlight-items.create');
+
+        Route::post('/gcg-highlight-items', [GcgHighlightItemController::class, 'store'])
+            ->name('gcg-highlight-items.store');
+
+        Route::get('/gcg-highlight-items/{gcgHighlightItem}/edit', [GcgHighlightItemController::class, 'edit'])
+            ->name('gcg-highlight-items.edit');
+
+        Route::put('/gcg-highlight-items/{gcgHighlightItem}', [GcgHighlightItemController::class, 'update'])
+            ->name('gcg-highlight-items.update');
+
+        Route::delete('/gcg-highlight-items/{gcgHighlightItem}', [GcgHighlightItemController::class, 'destroy'])
+            ->name('gcg-highlight-items.destroy');
     });
 
 /*

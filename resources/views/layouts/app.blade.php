@@ -91,6 +91,10 @@
     <meta name="twitter:title" content="{{ $metaTitle }}">
     <meta name="twitter:description" content="{{ $metaDescription }}">
     <meta name="twitter:image" content="{{ $metaImage }}">
+    <meta name="twitter:image" content="{{ $metaImage }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
     <link rel="canonical" href="{{ $currentUrl }}">
     <link rel="alternate" hreflang="id" href="{{ $hrefLangId }}">
     <link rel="alternate" hreflang="en" href="{{ $hrefLangEn }}">

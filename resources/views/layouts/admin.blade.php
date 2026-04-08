@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
     <title>Admin — {{ config('app.name', 'BSP Zapin') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -759,7 +762,6 @@
     </div>
 
     <div class="a-topbar-center">
-        {{-- Mobile burger --}}
         <button class="a-topbar-btn a-topbar-btn--ghost" id="aSidebarToggle" aria-label="Toggle sidebar" style="display:none; padding:0 10px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -843,13 +845,26 @@
                 </a>
                 
                 <a href="{{ route('admin.gcg.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                     </div>
                     <span class="a-nav-item-text">GCG</span>
+                </a>
+
+                <a href="{{ route('admin.gcg-highlight-items.index') }}"
+                   class="a-nav-item {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 12h12"/>
+                            <path d="M9 7h6"/>
+                            <path d="M9 17h6"/>
+                            <rect x="3" y="4" width="18" height="16" rx="3"/>
+                        </svg>
+                    </div>
+                    <span class="a-nav-item-text">GCG Highlight</span>
                 </a>
 
                 <a href="{{ route('admin.sliders.index') }}"

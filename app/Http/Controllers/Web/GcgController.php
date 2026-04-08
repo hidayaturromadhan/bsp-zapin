@@ -6,20 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Models\GcgCategory;
 use App\Models\GcgCategoryTranslation;
 use App\Models\GcgDocument;
+use App\Models\GcgHighlightItem;
 
 class GcgController extends Controller
 {
     // ── INDEX ──────────────────────────────────────────────────────────────
     public function index(string $locale)
     {
-        $categories = GcgCategory::with(['translations', 'activeDocuments'])
+        $highlightItems = GcgHighlightItem::query()
             ->where('is_active', true)
+            ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
 
-        // ❌ SUDAH DIHAPUS: redirect ke kategori pertama
+        $documents = GcgDocument::with([
+                'translations',
+                'category.translations',
+            ])
+            ->where('is_active', true)
+            ->latest('id')
+            ->get();
 
-        return view('web.gcg.index', compact('categories', 'locale'));
+        return view('web.gcg.index', compact(
+            'locale',
+            'highlightItems',
+            'documents'
+        ));
     }
 
     // ── SHOW ───────────────────────────────────────────────────────────────
@@ -29,7 +41,6 @@ class GcgController extends Controller
             ->where('locale', $locale)
             ->first();
 
-        // fallback jika slug tidak ditemukan di locale
         if (! $translation) {
             $translation = GcgCategoryTranslation::where('slug', $slug)->first();
         }
@@ -48,11 +59,18 @@ class GcgController extends Controller
             ->orderBy('id')
             ->get();
 
+        $highlightItems = GcgHighlightItem::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
         return view('web.gcg.show', compact(
             'category',
             'allCategories',
             'locale',
-            'translation'
+            'translation',
+            'highlightItems'
         ));
     }
 
