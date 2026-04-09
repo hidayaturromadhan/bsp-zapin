@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
+@section('body_class', 'page-home')
+
 @section('content')
 @php
     $locale = $locale ?? (in_array(request()->segment(1), ['id', 'en']) ? request()->segment(1) : 'id');
 
-    $youtubeEmbedUrl = 'https://www.youtube-nocookie.com/embed/7-TghrJvi9c';
+    $youtubeEmbedUrl = 'https://www.youtube-nocookie.com/embed/7-TghrJvi9c?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1';
 
     $latestNews = $latestNews ?? collect();
     $featuredNews = $featuredNews ?? collect();
@@ -18,10 +20,26 @@
 @endphp
 
 <style>
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .n-main {
+        overflow-x: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
     .home-wrap {
+        --home-content-max: 1280px;
+        --home-section-gutter: clamp(16px, 2.4vw, 28px);
         display: flex;
         flex-direction: column;
         gap: 64px;
+        padding-bottom: 64px;
     }
 
     /* ── SECTION ── */
@@ -29,6 +47,9 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
+        width: min(calc(100% - (var(--home-section-gutter) * 2)), var(--home-content-max));
+        margin-inline: auto;
+        padding: 0;
     }
 
     .home-section-head {
@@ -140,91 +161,193 @@
         transform: translateY(-1px);
     }
 
-    /* ── SLIDER (full-width, no margin) ── */
+    /* ══════════════════════════════════════════
+       SLIDER — FULL BLEED
+       Teknik: negative margin sebesar padding .n-main (28px)
+       agar slider menembus batas container kiri & kanan.
+       overflow-x: clip pada .n-main mencegah scrollbar
+       tanpa memblokir posisi sticky/fixed.
+    ══════════════════════════════════════════ */
+    .home-slider-section {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 0 !important;
+        overflow: hidden;
+        opacity: 1 !important;
+        transform: none !important;
+        margin-top: 0;
+    }
+
     .bspz-slider-wrap {
-        margin: 0 -28px;
         position: relative;
+        width: 100%;
+        overflow: hidden;
     }
 
     .bspz-slider {
         position: relative;
+        width: 100%;
+        background: #dfe7db;
+        overflow: hidden;
     }
 
     .bspz-slider__viewport {
+        width: 100%;
         overflow: hidden;
         background: #dfe7db;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .bspz-slider__viewport:active {
+        cursor: grabbing;
     }
 
     .bspz-slider__track {
         display: flex;
-        transition: transform 500ms cubic-bezier(.4,0,.2,1);
+        transition: transform 520ms cubic-bezier(.4,0,.2,1);
         will-change: transform;
+    }
+
+    .bspz-slider__track.is-dragging {
+        transition: none;
     }
 
     .bspz-slider__slide {
         min-width: 100%;
+        width: 100%;
         position: relative;
         overflow: hidden;
+        isolation: isolate;
     }
 
     .bspz-slider__img {
         display: block;
         width: 100%;
-        height: clamp(260px, 52vw, 640px);
+        height: clamp(420px, calc(100vh - 66px), 860px);
         object-fit: cover;
-        object-position: center;
+        object-position: center center;
+        pointer-events: none;
+        -webkit-user-drag: none;
     }
 
-    .bspz-slider__nav {
+    .bspz-slider__overlay {
         position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        border: 0;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        cursor: pointer;
-        background: rgba(0,0,0,.32);
-        backdrop-filter: blur(6px);
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgba(8,18,5,.78) 0%, rgba(8,18,5,.45) 32%, rgba(8,18,5,.12) 58%, rgba(8,18,5,.10) 100%),
+            linear-gradient(0deg, rgba(8,18,5,.30) 0%, rgba(8,18,5,0) 42%);
+        z-index: 1;
+        opacity: 0;
+        transition: opacity .3s ease;
+    }
+
+    .bspz-slider__slide--has-content .bspz-slider__overlay {
+        opacity: 1;
+    }
+
+    .bspz-slider__content {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        max-width: 1280px;
+        margin: 0 auto;
+        width: 100%;
+        padding: 0 56px;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .3s ease;
+    }
+
+    .bspz-slider__slide--has-content .bspz-slider__content {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .bspz-slider__content-inner {
+        max-width: min(680px, 90%);
         color: #fff;
-        font-size: 26px;
-        line-height: 48px;
-        text-align: center;
-        user-select: none;
-        z-index: 3;
-        transition: background .14s ease;
     }
 
-    .bspz-slider__nav--prev { left: 20px; }
-    .bspz-slider__nav--next { right: 20px; }
-
-    .bspz-slider__nav:hover {
-        background: rgba(0,0,0,.52);
+    .bspz-slider__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.86);
     }
+
+    .bspz-slider__eyebrow::before {
+        content: '';
+        width: 32px;
+        height: 2px;
+        border-radius: 999px;
+        background: #d4a843;
+        flex-shrink: 0;
+    }
+
+    .bspz-slider__title {
+        margin: 0;
+        font-size: clamp(28px, 4.8vw, 54px);
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -.04em;
+        text-shadow: 0 8px 30px rgba(0,0,0,.28);
+        max-width: 760px;
+    }
+
+    .bspz-slider__subtitle {
+        margin: 14px 0 0;
+        max-width: 620px;
+        font-size: 15px;
+        line-height: 1.8;
+        color: rgba(255,255,255,.86);
+        text-shadow: 0 4px 16px rgba(0,0,0,.22);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
 
     .bspz-slider__dots {
         position: absolute;
-        bottom: 18px;
         left: 50%;
+        bottom: 24px;
         transform: translateX(-50%);
         display: flex;
+        align-items: center;
         gap: 8px;
-        z-index: 3;
+        z-index: 5;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.10);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .bspz-slider__dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 999px;
         border: 0;
         cursor: pointer;
-        background: rgba(255,255,255,.45);
-        transition: width .2s ease, background .2s ease;
+        background: rgba(255,255,255,.42);
+        transition: width .22s ease, background .22s ease, transform .22s ease;
     }
 
     .bspz-slider__dot.is-active {
+        width: 28px;
         background: #fff;
-        width: 24px;
+        transform: translateY(-1px);
     }
 
     /* ── OVERVIEW ── */
@@ -340,7 +463,7 @@
         border: 0;
     }
 
-    /* ── NEWS GRID (auto-center) ── */
+    /* ── NEWS GRID ── */
     .home-card-grid {
         --cols: 3;
         display: grid;
@@ -525,64 +648,140 @@
         border: 1px solid rgba(255,255,255,.18);
     }
 
-    /* ── PARTNER MARQUEE ── */
-    .home-partner-marquee-outer {
-        overflow: hidden;
-        position: relative;
-    }
-
-    .home-partner-marquee-outer::before,
-    .home-partner-marquee-outer::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 60px;
-        z-index: 2;
-        pointer-events: none;
-    }
-
-    .home-partner-marquee-outer::before { left: 0; background: linear-gradient(to right, #fff, transparent); }
-    .home-partner-marquee-outer::after  { right: 0; background: linear-gradient(to left, #fff, transparent); }
-
-    .home-relations-card--dark .home-partner-marquee-outer::before { background: linear-gradient(to right, #0d2905, transparent); }
-    .home-relations-card--dark .home-partner-marquee-outer::after  { background: linear-gradient(to left, #0d2905, transparent); }
-
-    .home-partner-marquee {
+    /* ── MARQUEE ── */
+    .home-partner-preview-wrap {
         display: flex;
-        gap: 14px;
-        width: max-content;
-        animation: marquee-scroll 28s linear infinite;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
     }
 
-    .home-partner-marquee:hover {
-        animation-play-state: paused;
+    .home-partner-preview {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 18px;
+        width: 100%;
+        max-width: 1000px;
+        padding: 8px 0 4px;
+        margin: 0 auto;
+        overflow: visible;
     }
 
-    @keyframes marquee-scroll {
-        0%   { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
+    .home-partner-preview.is-centered,
+    .home-partner-preview.has-more {
+        justify-content: center;
+    }
+
+    .home-partner-more-wrap {
+        display: flex;
+        justify-content: center;
+    }
+
+    .home-partner-more {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 999px;
+        border: 1px solid #d7e6d2;
+        background: #f8fbf7;
+        color: #173f08;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .01em;
+        cursor: pointer;
+        transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .home-partner-more:hover {
+        background: #eef5eb;
+        border-color: #bfd7b8;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(15,23,42,.08);
+    }
+
+    .home-partner-more__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: rgba(23,63,8,.08);
+        font-size: 14px;
+        line-height: 1;
+        transition: transform .22s ease;
+    }
+
+    .home-relations-card--dark .home-partner-more {
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.14);
+        color: #fff;
+    }
+
+    .home-relations-card--dark .home-partner-more:hover {
+        background: rgba(255,255,255,.14);
+        border-color: rgba(255,255,255,.22);
+        box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    }
+
+    .home-relations-card--dark .home-partner-more__icon {
+        background: rgba(255,255,255,.12);
+    }
+
+    .home-partner-expand {
+        display: grid;
+        grid-template-rows: 0fr;
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: grid-template-rows .34s ease, opacity .26s ease, transform .26s ease, margin-top .26s ease;
+        margin-top: 0;
+    }
+
+    .home-partner-expand.is-open {
+        grid-template-rows: 1fr;
+        opacity: 1;
+        transform: translateY(0);
+        margin-top: 2px;
+    }
+
+    .home-partner-expand-inner {
+        min-height: 0;
+        overflow: hidden;
+        padding-top: 2px;
     }
 
     .home-partner-item {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 160px;
         min-width: 160px;
         height: 100px;
         padding: 14px 20px;
         border-radius: 14px;
         text-decoration: none;
         flex-shrink: 0;
+        position: relative;
+        overflow: visible;
         background: #f8fbf7;
         border: 1px solid #e7eee3;
-        transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+        box-shadow: 0 1px 0 rgba(255,255,255,.7) inset;
+        transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease, background .18s ease;
+        cursor: default;
     }
+
+    a.home-partner-item { cursor: pointer; }
 
     .home-partner-item:hover {
         border-color: #b8d6b0;
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(15,23,42,.08);
+        background: #fbfdfb;
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(15,23,42,.10);
     }
 
     .home-relations-card--dark .home-partner-item {
@@ -601,6 +800,7 @@
         max-height: 54px;
         object-fit: contain;
         display: block;
+        margin: 0 auto;
     }
 
     .home-partner-logo--boxed {
@@ -609,11 +809,15 @@
         padding: 6px 8px;
     }
 
-    /* static grid fallback for few items */
     .home-partner-grid-static {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 18px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 8px 0 4px;
     }
 
     /* ── EMPTY STATE ── */
@@ -645,19 +849,64 @@
     }
 
     .home-empty-text {
-        margin: 0;
+        margin: 0 auto;
         font-size: 14px;
         color: #6b7280;
         line-height: 1.75;
         max-width: 400px;
-        margin: 0 auto;
     }
+
+    /* ── SCROLL REVEAL ── */
+    .home-section {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1);
+    }
+
+    .home-section.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+        /* ===== BADGE ===== */
+    .bspz-slider__badge {
+        display: inline-block;
+        padding: 6px 12px;
+        margin-bottom: 16px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        backdrop-filter: blur(6px);
+        color: rgba(255,255,255,.9);
+    }
+
+    /* ===== TITLE IMPROVE ===== */
+    .bspz-slider__title {
+        margin: 0;
+        font-size: clamp(30px, 5vw, 56px);
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -.04em;
+        text-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    /* ===== GOLD LINE ===== */
+    .bspz-slider__line {
+        width: 60px;
+        height: 3px;
+        margin-top: 18px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d4a843, #f2c94c);
+    }
+
+    /* Slider tidak punya class .home-section sehingga tidak terkena reveal */
 
     /* ── RESPONSIVE ── */
     @media (max-width: 1100px) {
-        .home-card-grid:not(.cols-1):not(.cols-2) {
-            --cols: 2;
-        }
+        .home-card-grid:not(.cols-1):not(.cols-2) { --cols: 2; }
     }
 
     @media (max-width: 860px) {
@@ -670,13 +919,26 @@
             max-height: 360px;
         }
 
-        .bspz-slider-wrap {
-            margin: 0 -18px;
+        .bspz-slider__content {
+            padding: 0 28px;
+        }
+
+        .bspz-slider__img {
+            height: clamp(360px, calc(100vh - 66px), 720px);
         }
     }
 
     @media (max-width: 680px) {
-        .home-wrap { gap: 48px; }
+        .home-wrap {
+            gap: 48px;
+            --home-section-gutter: 16px;
+        }
+
+        .home-slider-section {
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            margin-right: calc(50% - 50vw);
+        }
 
         .home-card-grid,
         .home-card-grid.cols-2 {
@@ -689,26 +951,62 @@
         }
 
         .home-partner-item {
+            width: 130px;
             min-width: 130px;
             height: 88px;
         }
+
+        .home-partner-preview {
+            gap: 14px;
+            padding: 6px 0 2px;
+        }
+
+        .home-partner-grid-static {
+            gap: 14px;
+        }
+
+        .bspz-slider__img {
+            height: clamp(300px, calc(100vh - 58px), 560px);
+        }
+
+        .bspz-slider__content {
+            padding: 0 20px;
+            align-items: flex-end;
+        }
+
+        .bspz-slider__content-inner {
+            max-width: 100%;
+            padding-bottom: 62px;
+        }
+
+        .bspz-slider__title {
+            font-size: 26px;
+            line-height: 1.14;
+        }
+
+        .bspz-slider__subtitle {
+            font-size: 13.5px;
+            line-height: 1.7;
+            -webkit-line-clamp: 2;
+        }
+
+        .bspz-slider__dots {
+            bottom: 14px;
+            padding: 7px 10px;
+        }
+
+        .bspz-slider__dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        .bspz-slider__dot.is-active {
+            width: 22px;
+        }
+
     }
 
     @media (max-width: 480px) {
-        .bspz-slider-wrap {
-            margin: 0 -14px;
-        }
-
-        .bspz-slider__nav {
-            width: 38px;
-            height: 38px;
-            line-height: 38px;
-            font-size: 22px;
-        }
-
-        .bspz-slider__nav--prev { left: 10px; }
-        .bspz-slider__nav--next { right: 10px; }
-
         .home-overview-card {
             padding: 22px 18px;
         }
@@ -717,65 +1015,109 @@
 
 <div class="home-wrap">
 
-    {{-- SLIDER (full width) --}}
+    {{-- ════════════════════════════════════
+         SLIDER — FULL BLEED
+         Tidak menggunakan class "home-section" agar
+         tidak terkena reveal animation (opacity: 0 / translateY).
+         Full bleed dicapai dengan margin-left/right negatif
+         sebesar padding .n-main (28px desktop, 16px mobile).
+    ════════════════════════════════════ --}}
     @if($sliders->count())
-        <div class="bspz-slider-wrap">
-            <section class="bspz-slider" data-autoplay="true" data-interval="5000">
-                <div class="bspz-slider__viewport">
-                    <div class="bspz-slider__track">
-                        @foreach($sliders as $index => $s)
-                            <article class="bspz-slider__slide" aria-hidden="{{ $index === 0 ? 'false' : 'true' }}">
-                                @if($s->link_url)
-                                    <a href="{{ $s->link_url }}">
-                                        <img src="{{ asset($s->image_path) }}" alt="Slider {{ $index + 1 }}" class="bspz-slider__img" loading="{{ $index === 0 ? 'eager' : 'lazy' }}">
-                                    </a>
-                                @else
-                                    <img src="{{ asset($s->image_path) }}" alt="Slider {{ $index + 1 }}" class="bspz-slider__img" loading="{{ $index === 0 ? 'eager' : 'lazy' }}">
-                                @endif
-                            </article>
-                        @endforeach
-                    </div>
-                </div>
+        <div class="home-slider-section">
+            <div class="bspz-slider-wrap">
+                <section class="bspz-slider" data-autoplay="true" data-interval="5000">
+                    <div class="bspz-slider__viewport">
+                        <div class="bspz-slider__track">
+                            @foreach($sliders as $index => $s)
+                                @php
+                                    $hasContent = filled($s->title);
+                                @endphp
+                                <article
+                                    class="bspz-slider__slide {{ $hasContent ? 'bspz-slider__slide--has-content' : '' }}"
+                                    aria-hidden="{{ $index === 0 ? 'false' : 'true' }}"
+                                >
+                                    <img
+                                        src="{{ asset($s->image_path) }}"
+                                        alt="{{ $s->title ?: 'Slider ' . ($index + 1) }}"
+                                        class="bspz-slider__img"
+                                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                        draggable="false"
+                                    >
 
-                @if($sliders->count() > 1)
-                    <button type="button" class="bspz-slider__nav bspz-slider__nav--prev" aria-label="Sebelumnya">‹</button>
-                    <button type="button" class="bspz-slider__nav bspz-slider__nav--next" aria-label="Berikutnya">›</button>
-                    <div class="bspz-slider__dots" role="tablist" aria-label="Pagination Slider">
-                        @foreach($sliders as $index => $s)
-                            <button type="button"
-                                class="bspz-slider__dot {{ $index === 0 ? 'is-active' : '' }}"
-                                aria-label="Slide {{ $index + 1 }}"
-                                aria-current="{{ $index === 0 ? 'true' : 'false' }}"
-                                data-slide="{{ $index }}">
-                            </button>
-                        @endforeach
+                                    {{-- overlay hanya kalau ada text --}}
+                                    @if($hasContent)
+                                        <div class="bspz-slider__overlay"></div>
+                                    @endif
+
+                                    {{-- CONTENT --}}
+                                    @if($hasContent)
+                                        <div class="bspz-slider__content">
+                                            <div class="bspz-slider__content-inner">
+
+                                                {{-- PREMIUM BADGE --}}
+                                                <div class="bspz-slider__badge">
+                                                    {{ $locale === 'id' ? 'BSP Zapin' : 'BSP Zapin' }}
+                                                </div>
+
+                                                {{-- TITLE --}}
+                                                <h2 class="bspz-slider__title">
+                                                    {{ $s->title }}
+                                                </h2>
+
+                                                {{-- DECORATIVE LINE --}}
+                                                <div class="bspz-slider__line"></div>
+
+                                            </div>
+                                        </div>
+                                    @endif
+                                </article>
+                            @endforeach
+                        </div>
                     </div>
-                @endif
-            </section>
+
+                    @if($sliders->count() > 1)
+                        <div class="bspz-slider__dots" role="tablist" aria-label="Pagination Slider">
+                            @foreach($sliders as $index => $s)
+                                <button
+                                    type="button"
+                                    class="bspz-slider__dot {{ $index === 0 ? 'is-active' : '' }}"
+                                    aria-label="Slide {{ $index + 1 }}"
+                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}"
+                                    data-slide="{{ $index }}">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+            </div>
         </div>
 
         <script>
         (function () {
             function initBspzSlider(slider) {
-                var track = slider.querySelector('.bspz-slider__track');
-                var slides = Array.from(slider.querySelectorAll('.bspz-slider__slide'));
-                var dots = Array.from(slider.querySelectorAll('.bspz-slider__dot'));
-                var prevBtn = slider.querySelector('.bspz-slider__nav--prev');
-                var nextBtn = slider.querySelector('.bspz-slider__nav--next');
+                var track    = slider.querySelector('.bspz-slider__track');
+                var slides   = Array.from(slider.querySelectorAll('.bspz-slider__slide'));
+                var dots     = Array.from(slider.querySelectorAll('.bspz-slider__dot'));
+                var viewport = slider.querySelector('.bspz-slider__viewport');
                 if (!track || !slides.length) return;
 
-                var index = 0, timer = null;
+                var index    = 0;
+                var timer    = null;
                 var autoplay = slider.getAttribute('data-autoplay') === 'true';
                 var interval = Number(slider.getAttribute('data-interval') || 5000);
 
                 function goTo(i) {
                     index = (i + slides.length) % slides.length;
                     track.style.transform = 'translateX(-' + (index * 100) + '%)';
-                    slides.forEach(function(s, idx) { s.setAttribute('aria-hidden', idx === index ? 'false' : 'true'); });
-                    dots.forEach(function(d, idx) {
-                        var a = idx === index;
-                        d.classList.toggle('is-active', a);
-                        d.setAttribute('aria-current', a ? 'true' : 'false');
+
+                    slides.forEach(function (s, idx) {
+                        s.setAttribute('aria-hidden', idx === index ? 'false' : 'true');
+                    });
+
+                    dots.forEach(function (d, idx) {
+                        var active = idx === index;
+                        d.classList.toggle('is-active', active);
+                        d.setAttribute('aria-current', active ? 'true' : 'false');
                     });
                 }
 
@@ -788,55 +1130,118 @@
                     timer = setInterval(next, interval);
                 }
 
-                function stop() { if (timer) { clearInterval(timer); timer = null; } }
+                function stop() {
+                    if (timer) { clearInterval(timer); timer = null; }
+                }
 
-                if (nextBtn) nextBtn.addEventListener('click', function() { next(); start(); });
-                if (prevBtn) prevBtn.addEventListener('click', function() { prev(); start(); });
-
-                dots.forEach(function(dot) {
-                    dot.addEventListener('click', function() {
+                dots.forEach(function (dot) {
+                    dot.addEventListener('click', function () {
                         goTo(Number(dot.getAttribute('data-slide') || 0));
                         start();
                     });
                 });
 
-                var vp = slider.querySelector('.bspz-slider__viewport');
-                if (vp) {
-                    vp.addEventListener('mouseenter', stop);
-                    vp.addEventListener('mouseleave', start);
+                if (viewport) {
+                    viewport.addEventListener('mouseenter', stop);
+                    viewport.addEventListener('mouseleave', start);
                 }
 
-                var startX = 0;
-                vp.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
-                vp.addEventListener('touchend', function(e) {
-                    var diff = startX - e.changedTouches[0].clientX;
-                    if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); start(); }
-                }, { passive: true });
+                var touchStartX = 0;
+                var touchStartY = 0;
+
+                if (viewport) {
+                    viewport.addEventListener('touchstart', function (e) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                    }, { passive: true });
+
+                    viewport.addEventListener('touchend', function (e) {
+                        var dx = touchStartX - e.changedTouches[0].clientX;
+                        var dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
+                        if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
+                            dx > 0 ? next() : prev();
+                            start();
+                        }
+                    }, { passive: true });
+                }
+
+                var dragStartX   = 0;
+                var isDragging   = false;
+                var dragMoved    = false;
+                var dragThreshold = 8;
+
+                if (viewport) {
+                    viewport.addEventListener('mousedown', function (e) {
+                        if (e.button !== 0) return;
+                        dragStartX  = e.clientX;
+                        isDragging  = true;
+                        dragMoved   = false;
+                        stop();
+                        track.classList.add('is-dragging');
+                    });
+
+                    window.addEventListener('mousemove', function (e) {
+                        if (!isDragging) return;
+                        var dx = e.clientX - dragStartX;
+                        if (Math.abs(dx) > dragThreshold) dragMoved = true;
+
+                        if (dragMoved) {
+                            var baseOffset = -(index * 100);
+                            var percentDelta = (dx / viewport.offsetWidth) * 100;
+                            track.style.transform = 'translateX(' + (baseOffset + percentDelta) + '%)';
+                        }
+                    });
+
+                    window.addEventListener('mouseup', function (e) {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        track.classList.remove('is-dragging');
+
+                        var dx = e.clientX - dragStartX;
+                        if (dragMoved && Math.abs(dx) > 60) {
+                            dx < 0 ? next() : prev();
+                        } else {
+                            goTo(index);
+                        }
+                        start();
+                    });
+
+                    viewport.addEventListener('click', function (e) {
+                        if (dragMoved) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }, true);
+                }
 
                 goTo(0);
                 start();
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.bspz-slider').forEach(initBspzSlider);
             });
         })();
         </script>
     @else
-        <section class="home-empty">
-            <div class="home-empty-icon">🖼️</div>
-            <h2 class="home-empty-title">
-                {{ $locale === 'id' ? 'Belum ada slider' : 'No slider available yet' }}
-            </h2>
-            <p class="home-empty-text">
-                {{ $locale === 'id'
-                    ? 'Silakan tambahkan slider dari panel admin.'
-                    : 'Please add sliders from the admin panel.' }}
-            </p>
+        <section class="home-section">
+            <div class="home-empty">
+                <div class="home-empty-icon">🖼️</div>
+                <h2 class="home-empty-title">
+                    {{ $locale === 'id' ? 'Belum ada slider' : 'No slider available yet' }}
+                </h2>
+                <p class="home-empty-text">
+                    {{ $locale === 'id'
+                        ? 'Silakan tambahkan slider dari panel admin.'
+                        : 'Please add sliders from the admin panel.' }}
+                </p>
+            </div>
         </section>
     @endif
 
-    {{-- COMPANY OVERVIEW --}}
+    {{-- ════════════════════════════════════
+         COMPANY OVERVIEW
+    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-overview">
             <div class="home-overview-media-card">
@@ -867,7 +1272,9 @@
         </div>
     </section>
 
-    {{-- VIDEO --}}
+    {{-- ════════════════════════════════════
+         VIDEO
+    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-section-copy">
             <div class="home-section-eyebrow">
@@ -879,7 +1286,7 @@
         </div>
         <div class="home-video-box">
             <div class="home-video-embed">
-                <iframe
+                <iframe id="homeYoutubePlayer"
                     src="{{ $youtubeEmbedUrl }}"
                     title="BSP Zapin YouTube Video"
                     loading="lazy"
@@ -890,7 +1297,9 @@
         </div>
     </section>
 
-    {{-- LATEST NEWS --}}
+    {{-- ════════════════════════════════════
+         LATEST NEWS
+    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-section-head">
             <div class="home-section-copy">
@@ -913,9 +1322,7 @@
 
         @php $latestCount = $latestNews->count(); @endphp
         @if($latestCount)
-            @php
-                $latestColClass = $latestCount === 1 ? 'cols-1' : ($latestCount === 2 ? 'cols-2' : '');
-            @endphp
+            @php $latestColClass = $latestCount === 1 ? 'cols-1' : ($latestCount === 2 ? 'cols-2' : ''); @endphp
             <div class="home-card-grid {{ $latestColClass }}">
                 @foreach($latestNews as $news)
                     @php
@@ -964,7 +1371,9 @@
         @endif
     </section>
 
-    {{-- FEATURED NEWS --}}
+    {{-- ════════════════════════════════════
+         FEATURED NEWS
+    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-section-head">
             <div class="home-section-copy">
@@ -984,9 +1393,7 @@
 
         @php $featuredCount = $featuredNews->count(); @endphp
         @if($featuredCount)
-            @php
-                $featuredColClass = $featuredCount === 1 ? 'cols-1' : ($featuredCount === 2 ? 'cols-2' : '');
-            @endphp
+            @php $featuredColClass = $featuredCount === 1 ? 'cols-1' : ($featuredCount === 2 ? 'cols-2' : ''); @endphp
             <div class="home-card-grid {{ $featuredColClass }}">
                 @foreach($featuredNews as $news)
                     @php
@@ -1033,7 +1440,9 @@
         @endif
     </section>
 
-    {{-- PARTNERS --}}
+    {{-- ════════════════════════════════════
+         PARTNERS
+    ════════════════════════════════════ --}}
     <section class="home-section home-relations">
         <div class="home-section-copy">
             <div class="home-section-eyebrow">
@@ -1064,23 +1473,26 @@
             <div class="home-relations-stack">
 
                 @if($hasBusinessPartners)
-                @php $useMarqueeBusiness = $businessPartners->count() > 4; @endphp
-                <div class="home-relations-card home-relations-card--dark">
-                    <div class="home-relations-head">
-                        <div class="home-relations-copy">
-                            <h3>{{ $locale === 'id' ? 'Mitra Bisnis' : 'Business Partners' }}</h3>
-                            <p>{{ $locale === 'id' ? 'Jaringan kemitraan strategis yang mendukung penguatan operasional dan pengembangan bisnis perusahaan.' : 'Strategic partnership networks that support operational strength and business growth.' }}</p>
+                    @php
+                        $businessPreviewCount = 4;
+                        $businessPreviewItems = $businessPartners->take($businessPreviewCount);
+                        $businessRemainingItems = $businessPartners->slice($businessPreviewCount)->values();
+                        $businessHasMore = $businessRemainingItems->count() > 0;
+                    @endphp
+                    <div class="home-relations-card home-relations-card--dark">
+                        <div class="home-relations-head">
+                            <div class="home-relations-copy">
+                                <h3>{{ $locale === 'id' ? 'Mitra Bisnis' : 'Business Partners' }}</h3>
+                                <p>{{ $locale === 'id' ? 'Jaringan kemitraan strategis yang mendukung penguatan operasional dan pengembangan bisnis perusahaan.' : 'Strategic partnership networks that support operational strength and business growth.' }}</p>
+                            </div>
+                            <div class="home-relations-badge home-relations-badge--partner">
+                                {{ $businessPartners->count() }} {{ $locale === 'id' ? 'Mitra' : 'Partners' }}
+                            </div>
                         </div>
-                        <div class="home-relations-badge home-relations-badge--partner">
-                            {{ $businessPartners->count() }} {{ $locale === 'id' ? 'Mitra' : 'Partners' }}
-                        </div>
-                    </div>
 
-                    @if($useMarqueeBusiness)
-                        @php $doubledBusiness = $businessPartners->merge($businessPartners); @endphp
-                        <div class="home-partner-marquee-outer">
-                            <div class="home-partner-marquee" style="animation-direction: reverse; animation-duration: 32s;">
-                                @foreach($doubledBusiness as $partner)
+                        <div class="home-partner-preview-wrap">
+                            <div class="home-partner-preview {{ $businessHasMore ? 'has-more' : 'is-centered' }}">
+                                @foreach($businessPreviewItems as $partner)
                                     @if($partner->website_url)
                                         <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
                                             <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
@@ -1092,43 +1504,65 @@
                                     @endif
                                 @endforeach
                             </div>
-                        </div>
-                    @else
-                        <div class="home-partner-grid-static">
-                            @foreach($businessPartners as $partner)
-                                @if($partner->website_url)
-                                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
-                                    </a>
-                                @else
-                                    <div class="home-partner-item" title="{{ $partner->name }}">
-                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+
+                            @if($businessHasMore)
+                                <div class="home-partner-more-wrap">
+                                    <button
+                                        type="button"
+                                        class="home-partner-more"
+                                        data-toggle-expand
+                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
+                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}"
+                                        aria-expanded="false"
+                                    >
+                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}</span>
+                                        <span class="home-partner-more__icon">+</span>
+                                    </button>
+                                </div>
+
+                                <div class="home-partner-expand" data-expand-panel>
+                                    <div class="home-partner-expand-inner">
+                                        <div class="home-partner-grid-static">
+                                            @foreach($businessRemainingItems as $partner)
+                                                @if($partner->website_url)
+                                                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
+                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                                    </a>
+                                                @else
+                                                    <div class="home-partner-item" title="{{ $partner->name }}">
+                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
                                     </div>
-                                @endif
-                            @endforeach
+                                </div>
+                            @endif
                         </div>
-                    @endif
-                </div>
+                    </div>
                 @endif
 
                 @if($hasCustomers)
-                @php $useMarqueeCustomer = $customerPartners->count() > 4; @endphp
-                <div class="home-relations-card">
-                    <div class="home-relations-head">
-                        <div class="home-relations-copy">
-                            <h3>{{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}</h3>
-                            <p>{{ $locale === 'id' ? 'Perusahaan dan institusi yang telah mempercayakan kerja sama kepada BSP Zapin.' : 'Companies and institutions that have entrusted their collaboration with BSP Zapin.' }}</p>
+                    @php
+                        $customerPreviewCount = 5;
+                        $customerPreviewItems = $customerPartners->take($customerPreviewCount);
+                        $customerRemainingItems = $customerPartners->slice($customerPreviewCount)->values();
+                        $customerHasMore = $customerRemainingItems->count() > 0;
+                    @endphp
+                    <div class="home-relations-card">
+                        <div class="home-relations-head">
+                            <div class="home-relations-copy">
+                                <h3>{{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}</h3>
+                                <p>{{ $locale === 'id' ? 'Perusahaan dan institusi yang telah mempercayakan kerja sama kepada BSP Zapin.' : 'Companies and institutions that have entrusted their collaboration with BSP Zapin.' }}</p>
+                            </div>
+                            <div class="home-relations-badge home-relations-badge--customer">
+                                {{ $customerPartners->count() }} {{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}
+                            </div>
                         </div>
-                        <div class="home-relations-badge home-relations-badge--customer">
-                            {{ $customerPartners->count() }} {{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}
-                        </div>
-                    </div>
 
-                    @if($useMarqueeCustomer)
-                        @php $doubledCustomers = $customerPartners->merge($customerPartners); @endphp
-                        <div class="home-partner-marquee-outer">
-                            <div class="home-partner-marquee" style="--count: {{ $customerPartners->count() }}">
-                                @foreach($doubledCustomers as $partner)
+                        <div class="home-partner-preview-wrap">
+                            <div class="home-partner-preview {{ $customerHasMore ? 'has-more' : 'is-centered' }}">
+                                @foreach($customerPreviewItems as $partner)
                                     @if($partner->website_url)
                                         <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
                                             <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
@@ -1140,28 +1574,125 @@
                                     @endif
                                 @endforeach
                             </div>
-                        </div>
-                    @else
-                        <div class="home-partner-grid-static">
-                            @foreach($customerPartners as $partner)
-                                @if($partner->website_url)
-                                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
-                                    </a>
-                                @else
-                                    <div class="home-partner-item" title="{{ $partner->name }}">
-                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-                @endif
 
+                            @if($customerHasMore)
+                                <div class="home-partner-more-wrap">
+                                    <button
+                                        type="button"
+                                        class="home-partner-more"
+                                        data-toggle-expand
+                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
+                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}"
+                                        aria-expanded="false"
+                                    >
+                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}</span>
+                                        <span class="home-partner-more__icon">+</span>
+                                    </button>
+                                </div>
+
+                                <div class="home-partner-expand" data-expand-panel>
+                                    <div class="home-partner-expand-inner">
+                                        <div class="home-partner-grid-static">
+                                            @foreach($customerRemainingItems as $partner)
+                                                @if($partner->website_url)
+                                                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
+                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                                    </a>
+                                                @else
+                                                    <div class="home-partner-item" title="{{ $partner->name }}">
+                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         @endif
     </section>
 
 </div>
+
+{{-- ════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════ --}}
+<script>
+(function () {
+
+    function initPartnerExpand() {
+        document.querySelectorAll('[data-toggle-expand]').forEach(function (button) {
+            var panel = button.closest('.home-partner-preview-wrap')?.querySelector('[data-expand-panel]');
+            if (!panel) return;
+
+            var label = button.querySelector('.home-partner-more__label');
+            var icon = button.querySelector('.home-partner-more__icon');
+
+            button.addEventListener('click', function () {
+                var isOpen = panel.classList.toggle('is-open');
+                button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+                if (label) {
+                    label.textContent = isOpen
+                        ? (button.getAttribute('data-open-text') || 'Show Less')
+                        : (button.getAttribute('data-close-text') || 'View All');
+                }
+
+                if (icon) {
+                    icon.textContent = isOpen ? '−' : '+';
+                    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            });
+        });
+    }
+
+    function initReveal() {
+        var sections = document.querySelectorAll('.home-section');
+        if (!('IntersectionObserver' in window)) {
+            sections.forEach(function (s) { s.classList.add('is-visible'); });
+            return;
+        }
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.08,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        sections.forEach(function (s) { observer.observe(s); });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initPartnerExpand();
+        initReveal();
+    });
+
+})();
+</script>
 @endsection
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+var homeYoutubePlayer;
+function onYouTubeIframeAPIReady() {
+    homeYoutubePlayer = new YT.Player('homeYoutubePlayer', {
+        events: {
+            onReady: function (event) {
+                try {
+                    event.target.mute();
+                    event.target.playVideo();
+                    event.target.setPlaybackQuality('hd1080');
+                } catch (e) {}
+            }
+        }
+    });
+}
+</script>

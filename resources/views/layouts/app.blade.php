@@ -21,54 +21,104 @@
 
             if ($routeName === 'page.show' && !empty($routeParams['slug'])) {
                 $slug = $routeParams['slug'];
-                $page = \App\Models\Page::query()->with('translations')->where('is_active', true)
-                    ->whereHas('translations', function ($q) use ($locale, $slug) { $q->where('locale', $locale)->where('slug', $slug); })->first();
+                $page = \App\Models\Page::query()
+                    ->with('translations')
+                    ->where('is_active', true)
+                    ->whereHas('translations', function ($q) use ($locale, $slug) {
+                        $q->where('locale', $locale)->where('slug', $slug);
+                    })->first();
+
                 if (! $page && $locale === 'en') {
-                    $page = \App\Models\Page::query()->with('translations')->where('is_active', true)
-                        ->whereHas('translations', function ($q) use ($slug) { $q->where('locale', 'id')->where('slug', $slug); })->first();
+                    $page = \App\Models\Page::query()
+                        ->with('translations')
+                        ->where('is_active', true)
+                        ->whereHas('translations', function ($q) use ($slug) {
+                            $q->where('locale', 'id')->where('slug', $slug);
+                        })->first();
                 }
+
                 if ($page) {
-                    $translation = method_exists($page, 'getTranslationByLocale') ? $page->getTranslationByLocale($targetLocale)
+                    $translation = method_exists($page, 'getTranslationByLocale')
+                        ? $page->getTranslationByLocale($targetLocale)
                         : ($page->translations->firstWhere('locale', $targetLocale) ?? $page->translations->firstWhere('locale', 'id'));
-                    if ($translation?->slug) return route('page.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+
+                    if ($translation?->slug) {
+                        return route('page.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+                    }
                 }
+
                 return route('web.home', ['locale' => $targetLocale]);
             }
 
             if ($routeName === 'profil.show' && !empty($routeParams['slug'])) {
                 $slug = $routeParams['slug'];
-                $page = \App\Models\Page::query()->with('translations')->where('is_active', true)->where('menu_group', 'profil')
-                    ->whereHas('translations', function ($q) use ($locale, $slug) { $q->where('locale', $locale)->where('slug', $slug); })->first();
+                $page = \App\Models\Page::query()
+                    ->with('translations')
+                    ->where('is_active', true)
+                    ->where('menu_group', 'profil')
+                    ->whereHas('translations', function ($q) use ($locale, $slug) {
+                        $q->where('locale', $locale)->where('slug', $slug);
+                    })->first();
+
                 if (! $page && $locale === 'en') {
-                    $page = \App\Models\Page::query()->with('translations')->where('is_active', true)->where('menu_group', 'profil')
-                        ->whereHas('translations', function ($q) use ($slug) { $q->where('locale', 'id')->where('slug', $slug); })->first();
+                    $page = \App\Models\Page::query()
+                        ->with('translations')
+                        ->where('is_active', true)
+                        ->where('menu_group', 'profil')
+                        ->whereHas('translations', function ($q) use ($slug) {
+                            $q->where('locale', 'id')->where('slug', $slug);
+                        })->first();
                 }
+
                 if ($page) {
-                    $translation = method_exists($page, 'getTranslationByLocale') ? $page->getTranslationByLocale($targetLocale)
+                    $translation = method_exists($page, 'getTranslationByLocale')
+                        ? $page->getTranslationByLocale($targetLocale)
                         : ($page->translations->firstWhere('locale', $targetLocale) ?? $page->translations->firstWhere('locale', 'id'));
-                    if ($translation?->slug) return route('profil.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+
+                    if ($translation?->slug) {
+                        return route('profil.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+                    }
                 }
+
                 return route('profil.index', ['locale' => $targetLocale]);
             }
 
             if ($routeName === 'news.show' && !empty($routeParams['slug'])) {
                 $slug = $routeParams['slug'];
-                $news = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-                    ->whereHas('translations', function ($q) use ($locale, $slug) { $q->where('locale', $locale)->where('slug', $slug); })->first();
+                $news = \App\Models\News::query()
+                    ->with('translations')
+                    ->where('is_visible', true)
+                    ->where('status', 'published')
+                    ->whereHas('translations', function ($q) use ($locale, $slug) {
+                        $q->where('locale', $locale)->where('slug', $slug);
+                    })->first();
+
                 if (! $news && $locale === 'en') {
-                    $news = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-                        ->whereHas('translations', function ($q) use ($slug) { $q->where('locale', 'id')->where('slug', $slug); })->first();
+                    $news = \App\Models\News::query()
+                        ->with('translations')
+                        ->where('is_visible', true)
+                        ->where('status', 'published')
+                        ->whereHas('translations', function ($q) use ($slug) {
+                            $q->where('locale', 'id')->where('slug', $slug);
+                        })->first();
                 }
+
                 if ($news) {
-                    $translation = method_exists($news, 'getTranslationByLocale') ? $news->getTranslationByLocale($targetLocale)
+                    $translation = method_exists($news, 'getTranslationByLocale')
+                        ? $news->getTranslationByLocale($targetLocale)
                         : ($news->translations->firstWhere('locale', $targetLocale) ?? $news->translations->firstWhere('locale', 'id'));
-                    if ($translation?->slug) return route('news.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+
+                    if ($translation?->slug) {
+                        return route('news.show', ['locale' => $targetLocale, 'slug' => $translation->slug]);
+                    }
                 }
+
                 return route('media_publikasi.index', ['locale' => $targetLocale]);
             }
 
-            if (in_array($routeName, ['profil.index', 'media_publikasi.index', 'tjsl.index', 'wbs.index'], true))
+            if (in_array($routeName, ['profil.index', 'media_publikasi.index', 'tjsl.index', 'wbs.index'], true)) {
                 return route($routeName, array_merge($routeParams, ['locale' => $targetLocale]));
+            }
 
             return route('web.home', ['locale' => $targetLocale]);
         };
@@ -91,7 +141,6 @@
     <meta name="twitter:title" content="{{ $metaTitle }}">
     <meta name="twitter:description" content="{{ $metaDescription }}">
     <meta name="twitter:image" content="{{ $metaImage }}">
-    <meta name="twitter:image" content="{{ $metaImage }}">
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
@@ -103,7 +152,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="@yield('body_class')">
 
 @php
     $locale = in_array(request()->segment(1), ['id', 'en']) ? request()->segment(1) : 'id';
@@ -116,51 +165,91 @@
     $currentNews = null;
 
     if ($currentRouteName === 'page.show' && !empty($routeParams['slug'])) {
-        $currentPage = \App\Models\Page::query()->with('translations')->where('is_active', true)
-            ->whereHas('translations', function ($q) use ($locale, $routeParams) { $q->where('locale', $locale)->where('slug', $routeParams['slug']); })->first();
+        $currentPage = \App\Models\Page::query()
+            ->with('translations')
+            ->where('is_active', true)
+            ->whereHas('translations', function ($q) use ($locale, $routeParams) {
+                $q->where('locale', $locale)->where('slug', $routeParams['slug']);
+            })->first();
+
         if (! $currentPage && $locale === 'en') {
-            $currentPage = \App\Models\Page::query()->with('translations')->where('is_active', true)
-                ->whereHas('translations', function ($q) use ($routeParams) { $q->where('locale', 'id')->where('slug', $routeParams['slug']); })->first();
+            $currentPage = \App\Models\Page::query()
+                ->with('translations')
+                ->where('is_active', true)
+                ->whereHas('translations', function ($q) use ($routeParams) {
+                    $q->where('locale', 'id')->where('slug', $routeParams['slug']);
+                })->first();
         }
     }
 
     if ($currentRouteName === 'news.show' && !empty($routeParams['slug'])) {
-        $currentNews = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-            ->whereHas('translations', function ($q) use ($locale, $routeParams) { $q->where('locale', $locale)->where('slug', $routeParams['slug']); })->first();
+        $currentNews = \App\Models\News::query()
+            ->with('translations')
+            ->where('is_visible', true)
+            ->where('status', 'published')
+            ->whereHas('translations', function ($q) use ($locale, $routeParams) {
+                $q->where('locale', $locale)->where('slug', $routeParams['slug']);
+            })->first();
+
         if (! $currentNews && $locale === 'en') {
-            $currentNews = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-                ->whereHas('translations', function ($q) use ($routeParams) { $q->where('locale', 'id')->where('slug', $routeParams['slug']); })->first();
+            $currentNews = \App\Models\News::query()
+                ->with('translations')
+                ->where('is_visible', true)
+                ->where('status', 'published')
+                ->whereHas('translations', function ($q) use ($routeParams) {
+                    $q->where('locale', 'id')->where('slug', $routeParams['slug']);
+                })->first();
         }
     }
 
-    $normalizeUrl = function (?string $url) { return rtrim((string) $url, '/'); };
+    $normalizeUrl = function (?string $url) {
+        return rtrim((string) $url, '/');
+    };
 
     $menuPointsToCurrentEntity = function ($menuItem) use ($currentPage, $currentNews) {
-        if ($currentPage && ((isset($menuItem->type) && $menuItem->type === 'page' && (int)($menuItem->page_id ?? 0) === (int)$currentPage->id) || ((int)($menuItem->page_id ?? 0) === (int)$currentPage->id))) return true;
-        if ($currentNews && ((isset($menuItem->type) && $menuItem->type === 'news' && (int)($menuItem->news_id ?? 0) === (int)$currentNews->id) || ((int)($menuItem->news_id ?? 0) === (int)$currentNews->id))) return true;
+        if ($currentPage && (
+            (isset($menuItem->type) && $menuItem->type === 'page' && (int)($menuItem->page_id ?? 0) === (int)$currentPage->id)
+            || ((int)($menuItem->page_id ?? 0) === (int)$currentPage->id)
+        )) return true;
+
+        if ($currentNews && (
+            (isset($menuItem->type) && $menuItem->type === 'news' && (int)($menuItem->news_id ?? 0) === (int)$currentNews->id)
+            || ((int)($menuItem->news_id ?? 0) === (int)$currentNews->id)
+        )) return true;
+
         return false;
     };
 
     $routeMatchesMenu = function ($menuItem, string $locale) use ($currentRouteName, $routeParams, $normalizeUrl, $currentUrl, $menuPointsToCurrentEntity) {
         if ($menuPointsToCurrentEntity($menuItem)) return true;
+
         $menuUrl = function_exists('menu_url') ? menu_url($menuItem, $locale) : '#';
         $menuUrl = $normalizeUrl($menuUrl);
+
         if ($menuUrl !== '' && $menuUrl === $currentUrl) return true;
         if (! $currentRouteName) return false;
+
         if ($currentRouteName === 'web.home') return $menuUrl === $normalizeUrl(route('web.home', ['locale' => $locale]));
         if ($currentRouteName === 'profil.index') return $menuUrl === $normalizeUrl(route('profil.index', ['locale' => $locale]));
         if ($currentRouteName === 'media_publikasi.index') return $menuUrl === $normalizeUrl(route('media_publikasi.index', ['locale' => $locale]));
         if ($currentRouteName === 'tjsl.index') return $menuUrl === $normalizeUrl(route('tjsl.index', ['locale' => $locale]));
         if ($currentRouteName === 'wbs.index') return $menuUrl === $normalizeUrl(route('wbs.index', ['locale' => $locale]));
-        if ($currentRouteName === 'profil.show' && isset($routeParams['slug'])) return $menuUrl === $normalizeUrl(route('profil.show', ['locale' => $locale, 'slug' => $routeParams['slug']]));
+        if ($currentRouteName === 'profil.show' && isset($routeParams['slug'])) {
+            return $menuUrl === $normalizeUrl(route('profil.show', ['locale' => $locale, 'slug' => $routeParams['slug']]));
+        }
+
         return false;
     };
 
     $isMenuActive = function ($menuItem, string $locale) use ($routeMatchesMenu) {
         if ($routeMatchesMenu($menuItem, $locale)) return true;
+
         if (!empty($menuItem->children) && $menuItem->children->count()) {
-            foreach ($menuItem->children as $child) { if ($routeMatchesMenu($child, $locale)) return true; }
+            foreach ($menuItem->children as $child) {
+                if ($routeMatchesMenu($child, $locale)) return true;
+            }
         }
+
         return false;
     };
 
@@ -170,45 +259,81 @@
 
         if ($currentRouteName === 'page.show') {
             $slug = $routeParams['slug'] ?? null;
+
             if ($slug) {
-                $page = \App\Models\Page::query()->with('translations')->where('is_active', true)
-                    ->whereHas('translations', function ($q) use ($locale, $slug) { $q->where('locale', $locale)->where('slug', $slug); })->first();
+                $page = \App\Models\Page::query()
+                    ->with('translations')
+                    ->where('is_active', true)
+                    ->whereHas('translations', function ($q) use ($locale, $slug) {
+                        $q->where('locale', $locale)->where('slug', $slug);
+                    })->first();
+
                 if (! $page && $locale === 'en') {
-                    $page = \App\Models\Page::query()->with('translations')->where('is_active', true)
-                        ->whereHas('translations', function ($q) use ($slug) { $q->where('locale', 'id')->where('slug', $slug); })->first();
+                    $page = \App\Models\Page::query()
+                        ->with('translations')
+                        ->where('is_active', true)
+                        ->whereHas('translations', function ($q) use ($slug) {
+                            $q->where('locale', 'id')->where('slug', $slug);
+                        })->first();
                 }
+
                 if ($page) {
-                    $t = method_exists($page, 'getTranslationByLocale') ? $page->getTranslationByLocale($targetLocale)
+                    $t = method_exists($page, 'getTranslationByLocale')
+                        ? $page->getTranslationByLocale($targetLocale)
                         : ($page->translations->firstWhere('locale', $targetLocale) ?? $page->translations->firstWhere('locale', 'id'));
-                    if ($t?->slug) return route('page.show', ['locale' => $targetLocale, 'slug' => $t->slug]);
+
+                    if ($t?->slug) {
+                        return route('page.show', ['locale' => $targetLocale, 'slug' => $t->slug]);
+                    }
                 }
             }
+
             return route('web.home', ['locale' => $targetLocale]);
         }
 
         if ($currentRouteName === 'news.show') {
             $slug = $routeParams['slug'] ?? null;
+
             if ($slug) {
-                $news = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-                    ->whereHas('translations', function ($q) use ($locale, $slug) { $q->where('locale', $locale)->where('slug', $slug); })->first();
+                $news = \App\Models\News::query()
+                    ->with('translations')
+                    ->where('is_visible', true)
+                    ->where('status', 'published')
+                    ->whereHas('translations', function ($q) use ($locale, $slug) {
+                        $q->where('locale', $locale)->where('slug', $slug);
+                    })->first();
+
                 if (! $news && $locale === 'en') {
-                    $news = \App\Models\News::query()->with('translations')->where('is_visible', true)->where('status', 'published')
-                        ->whereHas('translations', function ($q) use ($slug) { $q->where('locale', 'id')->where('slug', $slug); })->first();
+                    $news = \App\Models\News::query()
+                        ->with('translations')
+                        ->where('is_visible', true)
+                        ->where('status', 'published')
+                        ->whereHas('translations', function ($q) use ($slug) {
+                            $q->where('locale', 'id')->where('slug', $slug);
+                        })->first();
                 }
+
                 if ($news) {
-                    $t = method_exists($news, 'getTranslationByLocale') ? $news->getTranslationByLocale($targetLocale)
+                    $t = method_exists($news, 'getTranslationByLocale')
+                        ? $news->getTranslationByLocale($targetLocale)
                         : ($news->translations->firstWhere('locale', $targetLocale) ?? $news->translations->firstWhere('locale', 'id'));
-                    if ($t?->slug) return route('news.show', ['locale' => $targetLocale, 'slug' => $t->slug]);
+
+                    if ($t?->slug) {
+                        return route('news.show', ['locale' => $targetLocale, 'slug' => $t->slug]);
+                    }
                 }
             }
+
             return route('media_publikasi.index', ['locale' => $targetLocale]);
         }
 
-        if (in_array($currentRouteName, ['profil.index', 'media_publikasi.index', 'tjsl.index', 'wbs.index'], true))
+        if (in_array($currentRouteName, ['profil.index', 'media_publikasi.index', 'tjsl.index', 'wbs.index'], true)) {
             return route($currentRouteName, array_merge($routeParams, ['locale' => $targetLocale]));
+        }
 
-        if ($currentRouteName === 'profil.show')
+        if ($currentRouteName === 'profil.show') {
             return route('profil.show', array_merge($routeParams, ['locale' => $targetLocale]));
+        }
 
         return route('web.home', ['locale' => $targetLocale]);
     };
@@ -241,7 +366,6 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
 
     body {
@@ -252,28 +376,191 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+        padding-top: var(--nav-h);
+    }
+
+    body.n-drawer-open {
+        overflow: hidden;
     }
 
     a { color: inherit; text-decoration: none; }
     :focus-visible { outline: 2px solid var(--g500); outline-offset: 2px; }
 
     /* ══════════════════════════════════════
+       PAGE LOADER
+    ══════════════════════════════════════ */
+    #bspLoader {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+        z-index: 9999;
+        pointer-events: none;
+        transition: opacity .5s var(--ease), transform .5s var(--ease);
+    }
+
+    #bspLoader.is-hidden {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.82);
+    }
+
+    .bsp-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255, 255, 255, .88);
+        backdrop-filter: blur(20px) saturate(1.8);
+        -webkit-backdrop-filter: blur(20px) saturate(1.8);
+        border: 1px solid rgba(200, 230, 201, .65);
+        border-radius: 28px;
+        padding: 36px 44px 30px;
+        box-shadow:
+            0 12px 40px rgba(23, 63, 8, .13),
+            0 2px 8px rgba(0,0,0,.07),
+            inset 0 1px 0 rgba(255,255,255,.8);
+        min-width: 210px;
+    }
+
+    .bsp-rings {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin-bottom: 22px;
+        flex-shrink: 0;
+    }
+
+    .bsp-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2.5px solid transparent;
+    }
+
+    .bsp-ring-1 {
+        border-top-color: var(--g500);
+        border-right-color: rgba(47,125,50,.18);
+        animation: bsp-cw 1.1s linear infinite;
+    }
+
+    .bsp-ring-2 {
+        inset: 11px;
+        border-bottom-color: var(--gold-lt);
+        border-left-color: rgba(212,168,67,.18);
+        animation: bsp-ccw 1.8s linear infinite;
+    }
+
+    .bsp-ring-3 {
+        inset: 22px;
+        border-top-color: rgba(47,125,50,.5);
+        animation: bsp-cw 2.6s linear infinite;
+    }
+
+    @keyframes bsp-cw  { to { transform: rotate(360deg); } }
+    @keyframes bsp-ccw { to { transform: rotate(-360deg); } }
+
+    .bsp-logo {
+        position: absolute;
+        inset: 30px;
+        width: calc(100% - 60px);
+        height: calc(100% - 60px);
+        object-fit: contain;
+        border-radius: 50%;
+        animation: bsp-breathe 2.4s ease-in-out infinite;
+    }
+
+    @keyframes bsp-breathe {
+        0%, 100% { transform: scale(1); opacity: .88; }
+        50% { transform: scale(1.09); opacity: 1; }
+    }
+
+    .bsp-name {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--gold);
+        letter-spacing: .025em;
+        margin-bottom: 2px;
+        white-space: nowrap;
+    }
+
+    .bsp-sub {
+        font-size: 10.5px;
+        color: var(--text3);
+        font-style: italic;
+        letter-spacing: .04em;
+        margin-bottom: 20px;
+        white-space: nowrap;
+    }
+
+    .bsp-track {
+        width: 100%;
+        height: 3px;
+        background: var(--line2);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 14px;
+    }
+
+    .bsp-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, var(--g500) 0%, var(--gold-lt) 50%, var(--g500) 100%);
+        background-size: 200% 100%;
+        transition: width .18s linear;
+        animation: bsp-shine 1.8s linear infinite;
+    }
+
+    @keyframes bsp-shine {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .bsp-dots {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .bsp-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        animation: bsp-dot 1.2s ease-in-out infinite;
+    }
+
+    .bsp-dot:nth-child(1) { background: var(--g500); animation-delay: 0s; }
+    .bsp-dot:nth-child(2) { background: var(--gold-lt); animation-delay: .18s; }
+    .bsp-dot:nth-child(3) { background: var(--g500); animation-delay: .36s; }
+
+    @keyframes bsp-dot {
+        0%, 70%, 100% { transform: scale(1); opacity: .45; }
+        35% { transform: scale(1.6); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .bsp-ring-1, .bsp-ring-2, .bsp-ring-3, .bsp-logo, .bsp-fill, .bsp-dot { animation: none; }
+        .bsp-dot { opacity: 1; }
+    }
+
+    /* ══════════════════════════════════════
        NAVBAR
     ══════════════════════════════════════ */
     .n-bar {
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
         z-index: 900;
         background: rgba(255,255,255,.96);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border-bottom: 1px solid var(--line);
-        transition: box-shadow .2s var(--ease);
+        transition: box-shadow .2s var(--ease), background .2s var(--ease);
     }
 
-    .n-bar.scrolled {
-        box-shadow: 0 4px 20px rgba(0,0,0,.07);
-    }
+    .n-bar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
 
     .n-inner {
         max-width: 1280px;
@@ -285,7 +572,6 @@
         gap: 8px;
     }
 
-    /* Brand */
     .n-brand {
         display: flex;
         align-items: center;
@@ -304,30 +590,10 @@
     }
 
     .n-brand:hover .n-brand-logo { transform: scale(1.05); }
-
     .n-brand-text { line-height: 1; }
+    .n-brand-name { display: block; font-size: 15px; font-weight: 700; color: var(--gold); letter-spacing: -.01em; white-space: nowrap; }
+    .n-brand-sub { display: block; font-size: 10.5px; font-weight: 400; color: var(--g500); font-style: italic; letter-spacing: .02em; margin-top: 2px; white-space: nowrap; }
 
-    .n-brand-name {
-        display: block;
-        font-size: 15px;
-        font-weight: 700;
-        color: var(--gold);
-        letter-spacing: -.01em;
-        white-space: nowrap;
-    }
-
-    .n-brand-sub {
-        display: block;
-        font-size: 10.5px;
-        font-weight: 400;
-        color: var(--g500);
-        font-style: italic;
-        letter-spacing: .02em;
-        margin-top: 2px;
-        white-space: nowrap;
-    }
-
-    /* Desktop nav */
     .n-menu {
         flex: 1;
         display: flex;
@@ -336,8 +602,7 @@
         gap: 2px;
     }
 
-    .n-link,
-    .n-dd-btn {
+    .n-link, .n-dd-btn {
         position: relative;
         display: inline-flex;
         align-items: center;
@@ -357,16 +622,8 @@
         text-decoration: none;
     }
 
-    .n-link:hover, .n-dd-btn:hover {
-        background: var(--g50);
-        color: var(--g900);
-    }
-
-    .n-link.is-active, .n-dd-btn.is-active {
-        color: var(--g900);
-        font-weight: 700;
-        background: var(--g100);
-    }
+    .n-link:hover, .n-dd-btn:hover { background: var(--g50); color: var(--g900); }
+    .n-link.is-active, .n-dd-btn.is-active { color: var(--g900); font-weight: 700; background: var(--g100); }
 
     .n-link.is-active::after, .n-dd-btn.is-active::after {
         content: '';
@@ -379,7 +636,6 @@
         background: var(--g500);
     }
 
-    /* Dropdown */
     .n-dd { position: relative; }
 
     .n-dd-caret {
@@ -390,8 +646,7 @@
         transition: transform .18s var(--ease), opacity .18s;
     }
 
-    .n-dd:hover .n-dd-caret,
-    .n-dd.is-open .n-dd-caret { opacity: .8; }
+    .n-dd:hover .n-dd-caret, .n-dd.is-open .n-dd-caret { opacity: .8; }
     .n-dd.is-open .n-dd-caret { transform: rotate(180deg); }
 
     .n-panel {
@@ -430,13 +685,7 @@
     }
 
     .n-panel a:hover { background: var(--g50); color: var(--g900); }
-
-    .n-panel a.is-active {
-        background: var(--g100);
-        color: var(--g900);
-        font-weight: 700;
-    }
-
+    .n-panel a.is-active { background: var(--g100); color: var(--g900); font-weight: 700; }
     .n-panel a.is-active::before {
         content: '';
         width: 5px;
@@ -446,7 +695,6 @@
         flex-shrink: 0;
     }
 
-    /* Right side */
     .n-right {
         display: flex;
         align-items: center;
@@ -486,7 +734,6 @@
     }
 
     .n-lang a:hover { color: var(--text); }
-
     .n-lang a.is-active {
         background: var(--white);
         color: var(--g900);
@@ -494,7 +741,6 @@
         box-shadow: 0 1px 4px rgba(0,0,0,.08);
     }
 
-    /* Burger */
     .n-burger {
         display: none;
         align-items: center;
@@ -617,7 +863,10 @@
         flex-shrink: 0;
     }
 
-    .n-drawer-close:hover { background: var(--g50); color: var(--g900); }
+    .n-drawer-close:hover {
+        background: var(--g50);
+        color: var(--g900);
+    }
 
     .n-drawer-body {
         flex: 1;
@@ -646,7 +895,6 @@
     }
 
     .n-drawer-link:hover { background: var(--g50); color: var(--g900); }
-
     .n-drawer-link.is-active {
         background: var(--g100);
         color: var(--g900);
@@ -701,13 +949,7 @@
 
     .n-drawer-sub-link:hover { background: var(--g50); color: var(--g900); }
     .n-drawer-sub-link:hover::before { background: var(--g500); }
-
-    .n-drawer-sub-link.is-active {
-        color: var(--g900);
-        font-weight: 700;
-        background: var(--g50);
-    }
-
+    .n-drawer-sub-link.is-active { color: var(--g900); font-weight: 700; background: var(--g50); }
     .n-drawer-sub-link.is-active::before { background: var(--g500); }
 
     .n-drawer-foot {
@@ -753,32 +995,34 @@
     }
 
     .n-drawer-lang a:hover { border-color: var(--g200); color: var(--g900); background: var(--g50); }
-
-    .n-drawer-lang a.is-active {
-        border-color: var(--g500);
-        background: var(--g100);
-        color: var(--g900);
-    }
+    .n-drawer-lang a.is-active { border-color: var(--g500); background: var(--g100); color: var(--g900); }
 
     /* ══════════════════════════════════════
-       MAIN CONTENT
+       MAIN & FOOTER
     ══════════════════════════════════════ */
     .n-main {
         max-width: 1280px;
         margin: 0 auto;
         padding: 32px 28px 64px;
         min-height: 60vh;
+        overflow-x: hidden;
+        width: 100%;
     }
 
-    /* ══════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════ */
+    body.page-home .n-main {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 0 0 64px;
+        overflow: visible;
+    }
+
     .f-bar {
         background: #0e2a04;
-        background-image: radial-gradient(ellipse at 20% 50%, rgba(23,63,8,.8) 0%, transparent 60%),
-                          radial-gradient(ellipse at 80% 20%, rgba(21,53,8,.6) 0%, transparent 50%);
+        background-image:
+            radial-gradient(ellipse at 20% 50%, rgba(23,63,8,.8) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 20%, rgba(21,53,8,.6) 0%, transparent 50%);
         color: rgba(255,255,255,.65);
-        margin-top: 0;
     }
 
     .f-top {
@@ -790,57 +1034,15 @@
         gap: 52px;
     }
 
-    /* Brand col */
     .f-brand { display: flex; flex-direction: column; }
+    .f-brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .f-brand-row img { width: 46px; height: 46px; object-fit: contain; filter: brightness(1.15); }
+    .f-brand-name { display: block; font-size: 15.5px; font-weight: 700; color: var(--gold-lt); line-height: 1.25; letter-spacing: -.01em; }
+    .f-brand-sub { display: block; font-size: 11px; color: rgba(255,255,255,.38); font-style: italic; margin-top: 2px; }
+    .f-brand-desc { font-size: 13.5px; line-height: 1.78; color: rgba(255,255,255,.48); margin-bottom: 22px; }
+    .f-divider { width: 40px; height: 2px; background: rgba(212,168,67,.4); border-radius: 2px; margin-bottom: 20px; }
 
-    .f-brand-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-    }
-
-    .f-brand-row img {
-        width: 46px;
-        height: 46px;
-        object-fit: contain;
-        filter: brightness(1.15);
-    }
-
-    .f-brand-name {
-        display: block;
-        font-size: 15.5px;
-        font-weight: 700;
-        color: var(--gold-lt);
-        line-height: 1.25;
-        letter-spacing: -.01em;
-    }
-
-    .f-brand-sub {
-        display: block;
-        font-size: 11px;
-        color: rgba(255,255,255,.38);
-        font-style: italic;
-        margin-top: 2px;
-    }
-
-    .f-brand-desc {
-        font-size: 13.5px;
-        line-height: 1.78;
-        color: rgba(255,255,255,.48);
-        margin-bottom: 22px;
-    }
-
-    .f-divider {
-        width: 40px;
-        height: 2px;
-        background: rgba(212,168,67,.4);
-        border-radius: 2px;
-        margin-bottom: 20px;
-    }
-
-    /* Social */
-    .f-social { display: flex; gap: 8px; margin-bottom: 0; }
+    .f-social { display: flex; gap: 8px; }
 
     .f-social-btn {
         display: inline-flex;
@@ -863,7 +1065,6 @@
         transform: translateY(-2px);
     }
 
-    /* Footer columns */
     .f-col-title {
         font-size: 11px;
         font-weight: 700;
@@ -886,7 +1087,7 @@
         font-size: 13.5px;
         color: rgba(255,255,255,.55);
         text-decoration: none;
-        transition: color .13s, padding-left .13s;
+        transition: color .13s;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -904,10 +1105,17 @@
     .f-col ul li a:hover { color: #fff; }
     .f-col ul li a:hover::before { width: 10px; }
 
-    /* Contact */
-    .f-contact { display: flex; flex-direction: column; gap: 16px; }
+    .f-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
 
-    .f-contact-item { display: flex; gap: 12px; align-items: flex-start; }
+    .f-contact-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
 
     .f-contact-icon-wrap {
         width: 32px;
@@ -946,7 +1154,6 @@
 
     .f-contact-text a:hover { color: var(--gold-lt); }
 
-    /* Footer badge strip */
     .f-badges {
         max-width: 1280px;
         margin: 0 auto;
@@ -978,7 +1185,6 @@
         flex-shrink: 0;
     }
 
-    /* Footer bottom */
     .f-bottom { border-top: 1px solid rgba(255,255,255,.06); }
 
     .f-bottom-inner {
@@ -994,7 +1200,10 @@
 
     .f-copy { font-size: 12px; color: rgba(255,255,255,.25); }
 
-    .f-bottom-links { display: flex; gap: 20px; }
+    .f-bottom-links {
+        display: flex;
+        gap: 20px;
+    }
 
     .f-bottom-links a {
         font-size: 12px;
@@ -1012,27 +1221,51 @@
         .n-menu { display: none; }
         .n-right { display: none; }
         .n-burger { display: flex; }
-
         .n-inner { padding: 0 18px; }
-
         .f-top { grid-template-columns: 1fr 1fr; gap: 36px 40px; }
     }
 
     @media (max-width: 680px) {
+        :root { --nav-h: 58px; }
         .n-main { padding: 24px 16px 48px; }
+        body.page-home .n-main { padding: 0 0 48px; }
         .n-inner { padding: 0 16px; height: 58px; }
-
         .n-brand-logo { width: 40px; height: 40px; }
         .n-brand-name { font-size: 13.5px; }
         .n-brand-sub { font-size: 10px; }
-
         .f-top { grid-template-columns: 1fr; gap: 32px; padding: 40px 20px 36px; }
         .f-badges { padding: 0 20px 28px; }
         .f-bottom-inner { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 10px; }
+        .bsp-card { padding: 26px 30px 22px; }
+        .bsp-rings { width: 78px; height: 78px; }
+        .bsp-logo { inset: 24px; width: calc(100% - 48px); height: calc(100% - 48px); }
     }
 </style>
 
-{{-- Drawer overlay --}}
+<div id="bspLoader" role="status" aria-label="{{ app()->getLocale() === 'id' ? 'Memuat halaman' : 'Loading page' }}">
+    <div class="bsp-card">
+        <div class="bsp-rings">
+            <div class="bsp-ring bsp-ring-1"></div>
+            <div class="bsp-ring bsp-ring-2"></div>
+            <div class="bsp-ring bsp-ring-3"></div>
+            <img src="{{ asset('images/logo.png') }}" alt="BSP Zapin" class="bsp-logo">
+        </div>
+
+        <div class="bsp-name">PT Bumi Siak Pusako Zapin</div>
+        <div class="bsp-sub">the energy company</div>
+
+        <div class="bsp-track">
+            <div class="bsp-fill" id="bspFill"></div>
+        </div>
+
+        <div class="bsp-dots">
+            <span class="bsp-dot"></span>
+            <span class="bsp-dot"></span>
+            <span class="bsp-dot"></span>
+        </div>
+    </div>
+</div>
+
 <div class="n-drawer-overlay" id="nOverlay"></div>
 
 <header class="n-bar" id="nBar">
@@ -1061,6 +1294,7 @@
                                 <polyline points="4 6 8 10 12 6"/>
                             </svg>
                         </button>
+
                         <div class="n-panel" role="menu">
                             @foreach($menu->children as $child)
                                 @php
@@ -1090,14 +1324,11 @@
         </div>
 
         <button class="n-burger" id="nBurger" aria-label="Buka menu" aria-expanded="false" aria-controls="nDrawer">
-            <div class="n-burger-icon">
-                <span></span><span></span><span></span>
-            </div>
+            <div class="n-burger-icon"><span></span><span></span><span></span></div>
         </button>
     </div>
 </header>
 
-{{-- Mobile Drawer --}}
 <div class="n-drawer" id="nDrawer" role="dialog" aria-modal="true" aria-label="Navigasi" aria-hidden="true">
     <div class="n-drawer-head">
         <div class="n-drawer-brand">
@@ -1122,7 +1353,7 @@
                 <div class="n-drawer-dd {{ $isActive ? 'is-open' : '' }}">
                     <button type="button" class="n-drawer-link {{ $isActive ? 'is-active' : '' }}">
                         {{ $label }}
-                        <span class="n-drawer-link-arrow">▼</span>
+                        <span class="n-drawer-link-arrow">&#9660;</span>
                     </button>
                     <div class="n-drawer-sub">
                         <div class="n-drawer-sub-inner">
@@ -1170,12 +1401,15 @@
                     <span class="f-brand-sub">the energy company</span>
                 </div>
             </div>
+
             <div class="f-divider"></div>
+
             <p class="f-brand-desc">
                 {{ $locale === 'id'
                     ? 'Perusahaan energi nasional yang berkomitmen pada pengelolaan sumber daya alam secara berkelanjutan dan bertanggung jawab demi generasi mendatang.'
                     : 'A national energy company committed to sustainable and responsible management of natural resources for future generations.' }}
             </p>
+
             <div class="f-social">
                 <a href="https://www.instagram.com/bspzapin/" target="_blank" rel="noopener noreferrer" class="f-social-btn" title="Instagram" aria-label="Instagram">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1184,6 +1418,7 @@
                         <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
                     </svg>
                 </a>
+
                 <a href="https://www.youtube.com/@BSPZAPIN" target="_blank" rel="noopener noreferrer" class="f-social-btn" title="YouTube" aria-label="YouTube">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
@@ -1235,6 +1470,7 @@
                         Pekanbaru, Riau 28116
                     </div>
                 </div>
+
                 <div class="f-contact-item">
                     <div class="f-contact-icon-wrap">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1264,6 +1500,7 @@
                 &copy; {{ date('Y') }} PT Bumi Siak Pusako Zapin.
                 {{ $locale === 'id' ? 'Hak cipta dilindungi.' : 'All rights reserved.' }}
             </span>
+
             <div class="f-bottom-links">
                 <a href="{{ route('legal.privacy', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Kebijakan Privasi' : 'Privacy Policy' }}</a>
                 <a href="{{ route('legal.terms', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Syarat & Ketentuan' : 'Terms' }}</a>
@@ -1275,10 +1512,51 @@
 
 <script>
 (function () {
+
+    /* ── PAGE LOADER ── */
+    (function () {
+        var loader = document.getElementById('bspLoader');
+        var fill   = document.getElementById('bspFill');
+        var prog   = 0;
+
+        function setProgress(p) {
+            prog = Math.max(prog, Math.min(p, 98));
+            if (fill) fill.style.width = prog + '%';
+        }
+
+        var steps = [[28,80],[52,350],[68,800],[80,1500],[90,2500]];
+        steps.forEach(function (s) {
+            setTimeout(function () { setProgress(s[0]); }, s[1]);
+        });
+
+        function finish() {
+            setProgress(100);
+            setTimeout(function () {
+                if (!loader) return;
+                loader.classList.add('is-hidden');
+                setTimeout(function () {
+                    if (loader) loader.style.display = 'none';
+                }, 520);
+            }, 200);
+        }
+
+        if (document.readyState === 'complete') {
+            setTimeout(finish, 240);
+        } else {
+            window.addEventListener('load', function () {
+                setTimeout(finish, 240);
+            });
+        }
+
+        setTimeout(finish, 6000);
+    })();
+
     /* ── Scroll shadow ── */
     var bar = document.getElementById('nBar');
     if (bar) {
-        var onScroll = function() { bar.classList.toggle('scrolled', window.scrollY > 10); };
+        var onScroll = function () {
+            bar.classList.toggle('scrolled', window.scrollY > 10);
+        };
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
     }
@@ -1287,7 +1565,7 @@
     var dds = Array.from(document.querySelectorAll('.n-bar [data-dd]'));
 
     function closeAllDd(except) {
-        dds.forEach(function(dd) {
+        dds.forEach(function (dd) {
             if (dd === except) return;
             dd.classList.remove('is-open');
             var btn = dd.querySelector(':scope > .n-dd-btn');
@@ -1295,12 +1573,14 @@
         });
     }
 
-    dds.forEach(function(dd) {
+    dds.forEach(function (dd) {
         var btn = dd.querySelector(':scope > .n-dd-btn');
         if (!btn) return;
-        btn.addEventListener('click', function(e) {
+
+        btn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
+
             var open = !dd.classList.contains('is-open');
             closeAllDd(dd);
             dd.classList.toggle('is-open', open);
@@ -1308,13 +1588,15 @@
         });
     });
 
-    document.addEventListener('click', function() { closeAllDd(null); });
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllDd(null); });
+    document.addEventListener('click', function () { closeAllDd(null); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAllDd(null);
+    });
 
     /* ── Mobile drawer ── */
-    var burger = document.getElementById('nBurger');
-    var drawer = document.getElementById('nDrawer');
-    var overlay = document.getElementById('nOverlay');
+    var burger   = document.getElementById('nBurger');
+    var drawer   = document.getElementById('nDrawer');
+    var overlay  = document.getElementById('nOverlay');
     var closeBtn = document.getElementById('nDrawerClose');
 
     function openDrawer() {
@@ -1323,7 +1605,7 @@
         burger.classList.add('is-open');
         burger.setAttribute('aria-expanded', 'true');
         drawer.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('n-drawer-open');
     }
 
     function closeDrawer() {
@@ -1332,26 +1614,38 @@
         burger.classList.remove('is-open');
         burger.setAttribute('aria-expanded', 'false');
         drawer.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        document.body.classList.remove('n-drawer-open');
     }
 
-    if (burger) burger.addEventListener('click', function(e) { e.stopPropagation(); drawer.classList.contains('is-open') ? closeDrawer() : openDrawer(); });
+    if (burger) {
+        burger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            drawer.classList.contains('is-open') ? closeDrawer() : openDrawer();
+        });
+    }
+
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     if (overlay) overlay.addEventListener('click', closeDrawer);
 
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDrawer(); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDrawer();
+    });
 
     /* ── Drawer accordion ── */
     var drawerDds = Array.from(document.querySelectorAll('#nDrawer .n-drawer-dd'));
-    drawerDds.forEach(function(dd) {
+    drawerDds.forEach(function (dd) {
         var btn = dd.querySelector(':scope > .n-drawer-link');
         if (!btn) return;
-        btn.addEventListener('click', function() {
+
+        btn.addEventListener('click', function () {
             var open = !dd.classList.contains('is-open');
-            drawerDds.forEach(function(d) { if (d !== dd) d.classList.remove('is-open'); });
+            drawerDds.forEach(function (d) {
+                if (d !== dd) d.classList.remove('is-open');
+            });
             dd.classList.toggle('is-open', open);
         });
     });
+
 })();
 </script>
 
