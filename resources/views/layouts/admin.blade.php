@@ -357,8 +357,6 @@
             flex-wrap: wrap;
         }
 
-        .a-page-head-copy {}
-
         .a-breadcrumb {
             display: flex;
             align-items: center;
@@ -746,6 +744,156 @@
             .a-stats-grid { grid-template-columns: 1fr 1fr; }
             .a-main { padding: 16px 14px 40px; }
         }
+
+        /* Toast Alerts */
+        .a-toast-stack {
+            position: fixed;
+            top: calc(var(--header-h) + 16px);
+            right: 20px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: min(380px, calc(100vw - 24px));
+            pointer-events: none;
+        }
+
+        .a-toast {
+            --toast-accent: #166534;
+            position: relative;
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 14px 14px 12px;
+            border-radius: 16px;
+            background: rgba(255,255,255,.96);
+            border: 1px solid rgba(255,255,255,.7);
+            box-shadow: 0 18px 40px rgba(15,23,42,.14), 0 4px 12px rgba(15,23,42,.08);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            overflow: hidden;
+            pointer-events: auto;
+            transform-origin: top right;
+            animation: aToastIn .42s cubic-bezier(.22,.61,.36,1) forwards;
+        }
+
+        .a-toast.is-hiding {
+            animation: aToastOut .28s cubic-bezier(.55,.06,.68,.19) forwards;
+        }
+
+        .a-toast::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: var(--toast-accent);
+        }
+
+        .a-toast::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--toast-accent), transparent 82%);
+            transform-origin: left center;
+            animation: aToastTimer linear forwards;
+            animation-duration: var(--toast-duration, 5200ms);
+        }
+
+        .a-toast:hover::after {
+            animation-play-state: paused;
+        }
+
+        .a-toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--toast-accent);
+            background: color-mix(in srgb, var(--toast-accent) 10%, white);
+            flex-shrink: 0;
+        }
+
+        .a-toast-body {
+            min-width: 0;
+        }
+
+        .a-toast-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.35;
+            margin-bottom: 2px;
+        }
+
+        .a-toast-text {
+            font-size: 13px;
+            color: var(--text2);
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .a-toast-close {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
+            margin-top: -2px;
+        }
+
+        .a-toast-close:hover {
+            background: var(--line2);
+            color: var(--text);
+            transform: scale(1.04);
+        }
+
+        .a-toast--success { --toast-accent: #166534; }
+        .a-toast--error   { --toast-accent: #b42318; }
+        .a-toast--warning { --toast-accent: #b45309; }
+        .a-toast--info    { --toast-accent: #1d4ed8; }
+
+        @keyframes aToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes aToastOut {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                max-height: 220px;
+                margin-bottom: 0;
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-8px) scale(.96);
+                max-height: 0;
+                margin-bottom: -4px;
+            }
+        }
+
+        @keyframes aToastTimer {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
     </style>
 </head>
 <body>
@@ -803,79 +951,82 @@
     <aside class="a-sidebar" id="aSidebar">
         <div class="a-sidebar-body">
 
+            {{-- ================= UTAMA ================= --}}
             <div class="a-nav-section">
                 <span class="a-nav-label">Utama</span>
 
                 <a href="{{ route('admin.dashboard') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                class="a-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
                         </svg>
                     </div>
                     <span class="a-nav-item-text">Dashboard</span>
                 </a>
             </div>
 
+            {{-- ================= NEWS (SEMUA ROLE) ================= --}}
+            @if(is_admin_panel_user())
             <div class="a-nav-section">
                 <span class="a-nav-label">Konten</span>
 
+                <a href="{{ route('admin.news.index') }}"
+                class="a-nav-item {{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">📰</div>
+                    <span class="a-nav-item-text">News</span>
+                </a>
+            </div>
+            @endif
+
+            {{-- ================= ADMIN ONLY ================= --}}
+            @if(is_admin())
+
+            <div class="a-nav-section">
+                <span class="a-nav-label">Konten Lanjutan</span>
+
                 <a href="{{ route('admin.pages.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                    </div>
+                class="a-nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">📄</div>
                     <span class="a-nav-item-text">Pages</span>
                 </a>
 
-                <a href="{{ route('admin.news.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
-                            <line x1="9" y1="9" x2="17" y2="9"/><line x1="9" y1="13" x2="17" y2="13"/>
-                        </svg>
-                    </div>
-                    <span class="a-nav-item-text">News</span>
-                </a>
-                
                 <a href="{{ route('admin.gcg.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
+                class="a-nav-item {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">🛡</div>
                     <span class="a-nav-item-text">GCG</span>
                 </a>
 
                 <a href="{{ route('admin.gcg-highlight-items.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 12h12"/>
-                            <path d="M9 7h6"/>
-                            <path d="M9 17h6"/>
-                            <rect x="3" y="4" width="18" height="16" rx="3"/>
-                        </svg>
-                    </div>
+                class="a-nav-item {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">⭐</div>
                     <span class="a-nav-item-text">GCG Highlight</span>
                 </a>
 
+                <a href="{{ route('admin.investor-relations.index') }}"
+                class="a-nav-item {{ request()->routeIs('admin.investor-relations.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">📊</div>
+                    <span class="a-nav-item-text">Investor</span>
+                </a>
+
+                <a href="{{ route('admin.investor-highlight-items.index') }}"
+                class="a-nav-item {{ request()->routeIs('admin.investor-highlight-items.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">📌</div>
+                    <span class="a-nav-item-text">Investor Highlight</span>
+                </a>
+
+                <a href="{{ route('admin.tjsl.index') }}"
+                class="a-nav-item {{ request()->routeIs('admin.tjsl.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">🌱</div>
+                    <span class="a-nav-item-text">TJSL</span>
+                </a>
+
                 <a href="{{ route('admin.sliders.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21 15 16 10 5 21"/>
-                        </svg>
-                    </div>
+                class="a-nav-item {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">🎞</div>
                     <span class="a-nav-item-text">Sliders</span>
                 </a>
             </div>
@@ -884,16 +1035,9 @@
                 <span class="a-nav-label">Relasi</span>
 
                 <a href="{{ route('admin.partners.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                    </div>
-                    <span class="a-nav-item-text">Kelola Mitra</span>
+                class="a-nav-item {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">🤝</div>
+                    <span class="a-nav-item-text">Mitra</span>
                 </a>
             </div>
 
@@ -901,35 +1045,126 @@
                 <span class="a-nav-label">Konfigurasi</span>
 
                 <a href="{{ route('admin.menus.index') }}"
-                   class="a-nav-item {{ request()->routeIs('admin.menus.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                    </div>
-                    <span class="a-nav-item-text">Navbar Menu</span>
+                class="a-nav-item {{ request()->routeIs('admin.menus.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">⚙</div>
+                    <span class="a-nav-item-text">Menu</span>
                 </a>
             </div>
 
+            @endif
+
         </div>
 
-        @if(session()->has('user_id'))
-        <div class="a-sidebar-foot">
-            <div class="a-sidebar-user">
-                <div class="a-sidebar-avatar">A</div>
-                <div>
-                    <div class="a-sidebar-user-name">Administrator</div>
-                    <div class="a-sidebar-user-role">Super Admin</div>
-                </div>
-            </div>
-        </div>
-        @endif
+
     </aside>
 
     <main class="a-main">
+
+        <div class="a-toast-stack" id="aToastStack">
+            @if(session('success'))
+                <div class="a-toast a-toast--success" data-toast data-duration="4200">
+                    <div class="a-toast-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    <div class="a-toast-body">
+                        <div class="a-toast-title">Berhasil</div>
+                        <div class="a-toast-text">{{ session('success') }}</div>
+                    </div>
+                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="a-toast a-toast--error" data-toast data-duration="5600">
+                    <div class="a-toast-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 8v5"/>
+                            <path d="M12 16h.01"/>
+                        </svg>
+                    </div>
+                    <div class="a-toast-body">
+                        <div class="a-toast-title">Gagal</div>
+                        <div class="a-toast-text">{{ session('error') }}</div>
+                    </div>
+                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="a-toast a-toast--warning" data-toast data-duration="5200">
+                    <div class="a-toast-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3 2 20h20L12 3z"/>
+                            <path d="M12 9v4"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                    </div>
+                    <div class="a-toast-body">
+                        <div class="a-toast-title">Perhatian</div>
+                        <div class="a-toast-text">{{ session('warning') }}</div>
+                    </div>
+                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="a-toast a-toast--info" data-toast data-duration="5000">
+                    <div class="a-toast-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 10v6"/>
+                            <path d="M12 7h.01"/>
+                        </svg>
+                    </div>
+                    <div class="a-toast-body">
+                        <div class="a-toast-title">Informasi</div>
+                        <div class="a-toast-text">{{ session('info') }}</div>
+                    </div>
+                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="a-toast a-toast--error" data-toast data-duration="6400">
+                    <div class="a-toast-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 8v5"/>
+                            <path d="M12 16h.01"/>
+                        </svg>
+                    </div>
+                    <div class="a-toast-body">
+                        <div class="a-toast-title">Validasi gagal</div>
+                        <div class="a-toast-text">{{ $errors->first() }}</div>
+                    </div>
+                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            @endif
+        </div>
+
         @yield('content')
     </main>
 
@@ -964,10 +1199,48 @@
 
     if (overlay) overlay.addEventListener('click', closeSidebar);
 
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSidebar();
+    });
 
     window.addEventListener('resize', syncBurger);
     syncBurger();
+})();
+
+(function () {
+    function hideToast(toast) {
+        if (!toast || toast.classList.contains('is-hiding')) return;
+        toast.classList.add('is-hiding');
+        window.setTimeout(function () {
+            if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 280);
+    }
+
+    document.querySelectorAll('[data-toast]').forEach(function (toast) {
+        var duration = Number(toast.getAttribute('data-duration') || 5200);
+        toast.style.setProperty('--toast-duration', duration + 'ms');
+
+        var closeBtn = toast.querySelector('[data-toast-close]');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                hideToast(toast);
+            });
+        }
+
+        var timer = window.setTimeout(function () {
+            hideToast(toast);
+        }, duration);
+
+        toast.addEventListener('mouseenter', function () {
+            window.clearTimeout(timer);
+        });
+
+        toast.addEventListener('mouseleave', function () {
+            timer = window.setTimeout(function () {
+                hideToast(toast);
+            }, 1800);
+        });
+    });
 })();
 </script>
 

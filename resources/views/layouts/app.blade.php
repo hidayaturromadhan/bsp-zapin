@@ -19,6 +19,10 @@
             if (! $routeName) return route('web.home', ['locale' => $targetLocale]);
             if ($routeName === 'web.home') return route('web.home', ['locale' => $targetLocale]);
 
+            if ($routeName === 'investor-relations.index') {
+                return route('investor-relations.index', ['locale' => $targetLocale]);
+            }
+
             if ($routeName === 'page.show' && !empty($routeParams['slug'])) {
                 $slug = $routeParams['slug'];
                 $page = \App\Models\Page::query()
@@ -234,6 +238,7 @@
         if ($currentRouteName === 'media_publikasi.index') return $menuUrl === $normalizeUrl(route('media_publikasi.index', ['locale' => $locale]));
         if ($currentRouteName === 'tjsl.index') return $menuUrl === $normalizeUrl(route('tjsl.index', ['locale' => $locale]));
         if ($currentRouteName === 'wbs.index') return $menuUrl === $normalizeUrl(route('wbs.index', ['locale' => $locale]));
+        if ($currentRouteName === 'investor-relations.index') return $menuUrl === $normalizeUrl(route('investor-relations.index', ['locale' => $locale]));
         if ($currentRouteName === 'profil.show' && isset($routeParams['slug'])) {
             return $menuUrl === $normalizeUrl(route('profil.show', ['locale' => $locale, 'slug' => $routeParams['slug']]));
         }
@@ -256,6 +261,10 @@
     $switchLocaleUrl = function (string $targetLocale) use ($locale, $currentRouteName, $routeParams) {
         if (! $currentRouteName) return route('web.home', ['locale' => $targetLocale]);
         if ($currentRouteName === 'web.home') return route('web.home', ['locale' => $targetLocale]);
+
+        if ($currentRouteName === 'investor-relations.index') {
+            return route('investor-relations.index', ['locale' => $targetLocale]);
+        }
 
         if ($currentRouteName === 'page.show') {
             $slug = $routeParams['slug'] ?? null;

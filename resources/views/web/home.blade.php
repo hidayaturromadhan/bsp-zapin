@@ -6,10 +6,10 @@
 @php
     $locale = $locale ?? (in_array(request()->segment(1), ['id', 'en']) ? request()->segment(1) : 'id');
 
-    $youtubeEmbedUrl = 'https://www.youtube-nocookie.com/embed/7-TghrJvi9c?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1';
+    $companyVideoUrl = asset('videos/company-profile.mp4');
+    $companyVideoPoster = asset('images/video-poster.jpg');
 
     $latestNews = $latestNews ?? collect();
-    $featuredNews = $featuredNews ?? collect();
     $customerPartners = $customerPartners ?? collect();
     $businessPartners = $businessPartners ?? collect();
 
@@ -42,7 +42,6 @@
         padding-bottom: 64px;
     }
 
-    /* ── SECTION ── */
     .home-section {
         display: flex;
         flex-direction: column;
@@ -161,13 +160,6 @@
         transform: translateY(-1px);
     }
 
-    /* ══════════════════════════════════════════
-       SLIDER — FULL BLEED
-       Teknik: negative margin sebesar padding .n-main (28px)
-       agar slider menembus batas container kiri & kanan.
-       overflow-x: clip pada .n-main mencegah scrollbar
-       tanpa memblokir posisi sticky/fixed.
-    ══════════════════════════════════════════ */
     .home-slider-section {
         width: 100vw;
         margin-left: calc(50% - 50vw);
@@ -273,50 +265,14 @@
         color: #fff;
     }
 
-    .bspz-slider__eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,.86);
-    }
-
-    .bspz-slider__eyebrow::before {
-        content: '';
-        width: 32px;
-        height: 2px;
-        border-radius: 999px;
-        background: #d4a843;
-        flex-shrink: 0;
-    }
-
     .bspz-slider__title {
         margin: 0;
-        font-size: clamp(28px, 4.8vw, 54px);
+        font-size: clamp(30px, 5vw, 56px);
         line-height: 1.08;
         font-weight: 800;
         letter-spacing: -.04em;
-        text-shadow: 0 8px 30px rgba(0,0,0,.28);
-        max-width: 760px;
+        text-shadow: 0 10px 30px rgba(0,0,0,.35);
     }
-
-    .bspz-slider__subtitle {
-        margin: 14px 0 0;
-        max-width: 620px;
-        font-size: 15px;
-        line-height: 1.8;
-        color: rgba(255,255,255,.86);
-        text-shadow: 0 4px 16px rgba(0,0,0,.22);
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
 
     .bspz-slider__dots {
         position: absolute;
@@ -350,7 +306,6 @@
         transform: translateY(-1px);
     }
 
-    /* ── OVERVIEW ── */
     .home-overview {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -440,7 +395,12 @@
         flex-wrap: wrap;
     }
 
-    /* ── VIDEO ── */
+    /* VIDEO */
+    .home-video-shell {
+        width: min(100%, 920px);
+        margin: 0 auto;
+    }
+
     .home-video-box {
         overflow: hidden;
         border-radius: 20px;
@@ -452,18 +412,19 @@
     .home-video-embed {
         position: relative;
         width: 100%;
-        padding-top: 56.25%;
+        padding-top: 48%;
+        background: #000;
     }
 
-    .home-video-embed iframe {
+    .home-video-embed video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        border: 0;
+        object-fit: cover;
+        display: block;
     }
 
-    /* ── NEWS GRID ── */
     .home-card-grid {
         --cols: 3;
         display: grid;
@@ -568,7 +529,6 @@
         overflow: hidden;
     }
 
-    /* ── PARTNERS ── */
     .home-relations {
         display: flex;
         flex-direction: column;
@@ -648,7 +608,6 @@
         border: 1px solid rgba(255,255,255,.18);
     }
 
-    /* ── MARQUEE ── */
     .home-partner-preview-wrap {
         display: flex;
         flex-direction: column;
@@ -820,7 +779,6 @@
         padding: 8px 0 4px;
     }
 
-    /* ── EMPTY STATE ── */
     .home-empty {
         background: #fff;
         border: 1px dashed #d1d5db;
@@ -856,7 +814,6 @@
         max-width: 400px;
     }
 
-    /* ── SCROLL REVEAL ── */
     .home-section {
         opacity: 0;
         transform: translateY(24px);
@@ -868,7 +825,6 @@
         transform: translateY(0);
     }
 
-        /* ===== BADGE ===== */
     .bspz-slider__badge {
         display: inline-block;
         padding: 6px 12px;
@@ -883,17 +839,6 @@
         color: rgba(255,255,255,.9);
     }
 
-    /* ===== TITLE IMPROVE ===== */
-    .bspz-slider__title {
-        margin: 0;
-        font-size: clamp(30px, 5vw, 56px);
-        line-height: 1.08;
-        font-weight: 800;
-        letter-spacing: -.04em;
-        text-shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-
-    /* ===== GOLD LINE ===== */
     .bspz-slider__line {
         width: 60px;
         height: 3px;
@@ -902,9 +847,6 @@
         background: linear-gradient(90deg, #d4a843, #f2c94c);
     }
 
-    /* Slider tidak punya class .home-section sehingga tidak terkena reveal */
-
-    /* ── RESPONSIVE ── */
     @media (max-width: 1100px) {
         .home-card-grid:not(.cols-1):not(.cols-2) { --cols: 2; }
     }
@@ -925,6 +867,14 @@
 
         .bspz-slider__img {
             height: clamp(360px, calc(100vh - 66px), 720px);
+        }
+
+        .home-video-shell {
+            width: 100%;
+        }
+
+        .home-video-embed {
+            padding-top: 54%;
         }
     }
 
@@ -984,12 +934,6 @@
             line-height: 1.14;
         }
 
-        .bspz-slider__subtitle {
-            font-size: 13.5px;
-            line-height: 1.7;
-            -webkit-line-clamp: 2;
-        }
-
         .bspz-slider__dots {
             bottom: 14px;
             padding: 7px 10px;
@@ -1004,6 +948,9 @@
             width: 22px;
         }
 
+        .home-video-embed {
+            padding-top: 58%;
+        }
     }
 
     @media (max-width: 480px) {
@@ -1015,13 +962,6 @@
 
 <div class="home-wrap">
 
-    {{-- ════════════════════════════════════
-         SLIDER — FULL BLEED
-         Tidak menggunakan class "home-section" agar
-         tidak terkena reveal animation (opacity: 0 / translateY).
-         Full bleed dicapai dengan margin-left/right negatif
-         sebesar padding .n-main (28px desktop, 16px mobile).
-    ════════════════════════════════════ --}}
     @if($sliders->count())
         <div class="home-slider-section">
             <div class="bspz-slider-wrap">
@@ -1044,29 +984,22 @@
                                         draggable="false"
                                     >
 
-                                    {{-- overlay hanya kalau ada text --}}
                                     @if($hasContent)
                                         <div class="bspz-slider__overlay"></div>
                                     @endif
 
-                                    {{-- CONTENT --}}
                                     @if($hasContent)
                                         <div class="bspz-slider__content">
                                             <div class="bspz-slider__content-inner">
-
-                                                {{-- PREMIUM BADGE --}}
                                                 <div class="bspz-slider__badge">
                                                     {{ $locale === 'id' ? 'BSP Zapin' : 'BSP Zapin' }}
                                                 </div>
 
-                                                {{-- TITLE --}}
                                                 <h2 class="bspz-slider__title">
                                                     {{ $s->title }}
                                                 </h2>
 
-                                                {{-- DECORATIVE LINE --}}
                                                 <div class="bspz-slider__line"></div>
-
                                             </div>
                                         </div>
                                     @endif
@@ -1239,9 +1172,6 @@
         </section>
     @endif
 
-    {{-- ════════════════════════════════════
-         COMPANY OVERVIEW
-    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-overview">
             <div class="home-overview-media-card">
@@ -1272,9 +1202,6 @@
         </div>
     </section>
 
-    {{-- ════════════════════════════════════
-         VIDEO
-    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-section-copy">
             <div class="home-section-eyebrow">
@@ -1284,22 +1211,24 @@
                 {{ $locale === 'id' ? 'Lihat Sekilas Profil BSP Zapin' : 'Take a Quick Look at BSP Zapin Profile' }}
             </h2>
         </div>
-        <div class="home-video-box">
-            <div class="home-video-embed">
-                <iframe id="homeYoutubePlayer"
-                    src="{{ $youtubeEmbedUrl }}"
-                    title="BSP Zapin YouTube Video"
-                    loading="lazy"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen>
-                </iframe>
+
+        <div class="home-video-shell">
+            <div class="home-video-box">
+                <div class="home-video-embed">
+                    <video
+                        controls
+                        preload="metadata"
+                        playsinline
+                        poster="{{ $companyVideoPoster }}"
+                    >
+                        <source src="{{ $companyVideoUrl }}" type="video/mp4">
+                        Browser Anda tidak mendukung pemutaran video.
+                    </video>
+                </div>
             </div>
         </div>
     </section>
 
-    {{-- ════════════════════════════════════
-         LATEST NEWS
-    ════════════════════════════════════ --}}
     <section class="home-section">
         <div class="home-section-head">
             <div class="home-section-copy">
@@ -1371,78 +1300,6 @@
         @endif
     </section>
 
-    {{-- ════════════════════════════════════
-         FEATURED NEWS
-    ════════════════════════════════════ --}}
-    <section class="home-section">
-        <div class="home-section-head">
-            <div class="home-section-copy">
-                <div class="home-section-eyebrow">
-                    {{ $locale === 'id' ? 'Unggulan' : 'Featured' }}
-                </div>
-                <h2 class="home-section-title">
-                    {{ $locale === 'id' ? 'Berita Unggulan Pilihan' : 'Selected Featured News' }}
-                </h2>
-                <p class="home-section-desc">
-                    {{ $locale === 'id'
-                        ? 'Sorotan informasi penting dan publikasi unggulan yang perlu mendapatkan perhatian lebih dari pengunjung.'
-                        : 'Highlights of important information and featured publications that deserve more visitor attention.' }}
-                </p>
-            </div>
-        </div>
-
-        @php $featuredCount = $featuredNews->count(); @endphp
-        @if($featuredCount)
-            @php $featuredColClass = $featuredCount === 1 ? 'cols-1' : ($featuredCount === 2 ? 'cols-2' : ''); @endphp
-            <div class="home-card-grid {{ $featuredColClass }}">
-                @foreach($featuredNews as $news)
-                    @php
-                        $translation = method_exists($news, 'getTranslationByLocale')
-                            ? $news->getTranslationByLocale($locale)
-                            : ($news->translations->firstWhere('locale', $locale) ?? $news->translations->firstWhere('locale', 'id'));
-                    @endphp
-                    <article class="home-news-card">
-                        @if($news->featured_image)
-                            <a href="{{ $translation?->slug ? route('news.show', ['locale' => $locale, 'slug' => $translation->slug]) : '#' }}" class="home-news-thumb-wrap">
-                                <img src="{{ asset($news->featured_image) }}" alt="{{ $translation?->title ?? 'Featured image' }}" class="home-news-thumb" loading="lazy">
-                            </a>
-                        @endif
-                        <div class="home-news-body">
-                            <div class="home-news-meta">
-                                <span class="home-news-category">{{ $locale === 'id' ? 'Unggulan' : 'Featured' }}</span>
-                                @if($news->published_at)
-                                    <span>{{ $news->published_at->format('d M Y') }}</span>
-                                @endif
-                            </div>
-                            <h3 class="home-news-title">
-                                @if($translation?->slug)
-                                    <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $translation->slug]) }}">{{ $translation->title }}</a>
-                                @else
-                                    {{ $translation?->title ?? ($locale === 'id' ? 'Berita Unggulan' : 'Featured News') }}
-                                @endif
-                            </h3>
-                            @if(!empty($translation?->excerpt))
-                                <p class="home-news-excerpt">{{ $translation->excerpt }}</p>
-                            @endif
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        @else
-            <div class="home-empty">
-                <h3 class="home-empty-title">{{ $locale === 'id' ? 'Belum ada berita unggulan' : 'No featured news yet' }}</h3>
-                <p class="home-empty-text">
-                    {{ $locale === 'id'
-                        ? 'Tandai berita sebagai unggulan dari panel admin.'
-                        : 'Mark news as featured from the admin panel.' }}
-                </p>
-            </div>
-        @endif
-    </section>
-
-    {{-- ════════════════════════════════════
-         PARTNERS
-    ════════════════════════════════════ --}}
     <section class="home-section home-relations">
         <div class="home-section-copy">
             <div class="home-section-eyebrow">
@@ -1617,9 +1474,6 @@
 
 </div>
 
-{{-- ════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════ --}}
 <script>
 (function () {
 
@@ -1679,20 +1533,3 @@
 })();
 </script>
 @endsection
-<script src="https://www.youtube.com/iframe_api"></script>
-<script>
-var homeYoutubePlayer;
-function onYouTubeIframeAPIReady() {
-    homeYoutubePlayer = new YT.Player('homeYoutubePlayer', {
-        events: {
-            onReady: function (event) {
-                try {
-                    event.target.mute();
-                    event.target.playVideo();
-                    event.target.setPlaybackQuality('hd1080');
-                } catch (e) {}
-            }
-        }
-    });
-}
-</script>

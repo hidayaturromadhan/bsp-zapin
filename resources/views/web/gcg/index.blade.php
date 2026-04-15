@@ -177,56 +177,84 @@
     white-space: nowrap;
 }
 
-/* ── FLEX GRID — auto center semua card ke tengah ── */
+/* ── GRID — lebih rapi, center, dan scalable ── */
 .gcg-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 36px 24px;
+    --gcg-card-min: 220px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--gcg-card-min), 1fr));
+    gap: 34px 26px;
     justify-content: center;
-    align-items: flex-start;
+    align-items: start;
 }
 
-/* ── Card — lebar fixed agar konsisten ── */
+.gcg-grid > * {
+    min-width: 0;
+}
+
 .gcg-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 240px;
-    flex-shrink: 0;
+    width: min(100%, 248px);
+    margin: 0 auto;
+    transform: translateY(0);
+    opacity: 0;
+    animation: gcg-card-in .6s cubic-bezier(.22,.61,.36,1) forwards;
 }
 
-/* ── Book shadow wrapper ── */
+.gcg-card:nth-child(2n) { animation-delay: .05s; }
+.gcg-card:nth-child(3n) { animation-delay: .1s; }
+.gcg-card:nth-child(4n) { animation-delay: .15s; }
+.gcg-card:nth-child(5n) { animation-delay: .2s; }
+.gcg-card:nth-child(6n) { animation-delay: .25s; }
+
+@keyframes gcg-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .gcg-book-wrap {
     position: relative;
     width: 100%;
-    filter: drop-shadow(4px 6px 18px rgba(5,18,2,.14));
-    transition: filter .28s ease;
+    filter: drop-shadow(0 10px 24px rgba(5,18,2,.12));
+    transition: transform .28s cubic-bezier(.22,.61,.36,1), filter .28s ease;
 }
 
 .gcg-card:hover .gcg-book-wrap {
-    filter: drop-shadow(6px 10px 26px rgba(5,18,2,.22));
+    transform: translateY(-6px);
+    filter: drop-shadow(0 18px 34px rgba(5,18,2,.18));
 }
 
-/* ── Book cover ── */
 .gcg-book-cover {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: 3px 14px 14px 3px;
+    border-radius: 5px 18px 18px 5px;
     overflow: hidden;
     background: #edf4eb;
-    border-left: 5px solid rgba(0,0,0,.16);
+    border-left: 6px solid rgba(0,0,0,.16);
     box-shadow:
         inset -2px 0 6px rgba(0,0,0,.05),
-        inset 2px 0 4px rgba(255,255,255,.5);
-    transition: transform .28s cubic-bezier(.22,.68,0,1.15);
+        inset 2px 0 4px rgba(255,255,255,.55),
+        0 1px 0 rgba(255,255,255,.5);
+    transition: transform .32s cubic-bezier(.22,.61,.36,1), box-shadow .32s ease, border-color .32s ease;
 }
 
 .gcg-card:hover .gcg-book-cover {
-    transform: perspective(600px) rotateY(-3deg) translateY(-5px);
+    transform: perspective(900px) rotateY(-4deg) rotateX(.6deg);
+    box-shadow:
+        inset -2px 0 6px rgba(0,0,0,.05),
+        inset 2px 0 4px rgba(255,255,255,.55),
+        0 16px 28px rgba(5,18,2,.12);
 }
 
-/* Page-edge lines (dekoratif) */
 .gcg-book-cover::before {
     content: '';
     position: absolute;
@@ -243,19 +271,28 @@
     z-index: 0;
 }
 
+.gcg-book-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 34%, rgba(0,0,0,.04) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
 .gcg-book-cover img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform .35s ease;
+    transition: transform .38s cubic-bezier(.22,.61,.36,1), filter .38s ease;
 }
 
 .gcg-card:hover .gcg-book-cover img {
-    transform: scale(1.04);
+    transform: scale(1.045);
+    filter: saturate(1.04) contrast(1.02);
 }
 
-/* ── Placeholder (tidak ada cover) ── */
 .gcg-placeholder {
     width: 100%;
     height: 100%;
@@ -267,6 +304,8 @@
     background: linear-gradient(160deg, #f2f8f0 0%, #dcebd7 100%);
     padding: 32px;
     text-align: center;
+    position: relative;
+    z-index: 2;
 }
 
 .gcg-placeholder-icon {
@@ -290,25 +329,25 @@
     max-width: 140px;
 }
 
-/* ── Hover overlay ── */
 .gcg-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(
         to top,
-        rgba(4,12,2,.92) 0%,
-        rgba(4,12,2,.55) 45%,
-        rgba(4,12,2,.08) 100%
+        rgba(4,12,2,.94) 0%,
+        rgba(4,12,2,.68) 44%,
+        rgba(4,12,2,.14) 100%
     );
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
-    padding: 20px 14px;
+    padding: 18px 14px;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .22s ease, visibility .22s ease;
+    transform: translateY(8px);
+    transition: opacity .24s ease, visibility .24s ease, transform .28s cubic-bezier(.22,.61,.36,1);
     z-index: 10;
 }
 
@@ -316,14 +355,15 @@
 .gcg-card:focus-within .gcg-overlay {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
 }
 
 .gcg-overlay-title {
     font-size: 11.5px;
     font-weight: 600;
-    color: rgba(255,255,255,.75);
+    color: rgba(255,255,255,.78);
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.42;
     margin-bottom: 2px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -338,7 +378,6 @@
     width: 100%;
 }
 
-/* ── Buttons ── */
 .gcg-btn {
     flex: 1;
     display: inline-flex;
@@ -346,40 +385,39 @@
     justify-content: center;
     gap: 5px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 11px;
     font-size: 12.5px;
     font-weight: 700;
     text-decoration: none;
-    transition: transform .14s ease, box-shadow .14s ease;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .gcg-btn:hover { transform: translateY(-2px); }
 
 .gcg-btn--view {
-    background: rgba(255,255,255,.93);
+    background: rgba(255,255,255,.94);
     color: #204712;
     box-shadow: 0 4px 14px rgba(0,0,0,.18);
 }
-.gcg-btn--view:hover { box-shadow: 0 6px 20px rgba(0,0,0,.22); }
+.gcg-btn--view:hover { box-shadow: 0 8px 18px rgba(0,0,0,.2); }
 
 .gcg-btn--dl {
-    background: #204712;
+    background: linear-gradient(180deg, #28561a 0%, #204712 100%);
     color: #fff;
     border: 1px solid rgba(255,255,255,.14);
-    box-shadow: 0 6px 18px rgba(32,71,18,.42);
+    box-shadow: 0 8px 18px rgba(32,71,18,.34);
 }
-.gcg-btn--dl:hover { box-shadow: 0 8px 24px rgba(32,71,18,.52); }
+.gcg-btn--dl:hover { box-shadow: 0 10px 24px rgba(32,71,18,.42); }
 
-/* ── Card title ── */
 .gcg-card-title {
     width: 100%;
-    margin-top: 16px;
-    font-size: 13.5px;
+    margin-top: 18px;
+    font-size: 14px;
     font-weight: 700;
     color: #1a2e16;
-    line-height: 1.5;
+    line-height: 1.55;
     text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -416,25 +454,34 @@
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 1060px) {
     .gcg-band-inner { padding: 0 20px; }
-    .gcg-docs       { padding: 40px 20px 60px; }
-    .gcg-card       { width: 210px; }
+    .gcg-docs       { padding: 42px 20px 60px; }
+    .gcg-grid       { --gcg-card-min: 200px; gap: 28px 20px; }
+    .gcg-card       { width: min(100%, 232px); }
 }
 
 @media (max-width: 680px) {
     .gcg-band       { padding: 28px 0 32px; }
     .gcg-band-inner { padding: 0 16px; }
-    .gcg-docs       { padding: 32px 16px 52px; }
+    .gcg-docs       { padding: 34px 16px 52px; }
 
     .gcg-hero       { padding: 36px 22px 32px; border-radius: 18px; }
     .gcg-hero-title { font-size: 22px; letter-spacing: -.01em; }
     .gcg-hero-desc  { font-size: 13.5px; }
 
-    .gcg-grid       { gap: 22px 14px; }
-    .gcg-card       { width: calc(50% - 7px); }
+    .gcg-grid {
+        --gcg-card-min: 150px;
+        gap: 22px 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gcg-card { width: 100%; max-width: none; }
+
+    .gcg-book-wrap { filter: drop-shadow(0 8px 18px rgba(5,18,2,.1)); }
 
     .gcg-overlay {
         opacity: 1;
         visibility: visible;
+        transform: none;
         padding: 10px;
         gap: 6px;
     }
@@ -457,7 +504,14 @@
 }
 
 @media (max-width: 400px) {
-    .gcg-card { width: 100%; max-width: 260px; }
+    .gcg-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gcg-card {
+        width: 100%;
+        max-width: 260px;
+    }
 }
 </style>
 
