@@ -338,6 +338,131 @@
         }
 
         /* ═══════════════════════════════
+           NAV DROPDOWN GROUP
+        ═══════════════════════════════ */
+        .a-nav-group { margin-bottom: 2px; }
+
+        .a-nav-group-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 42px;
+            padding: 0 12px;
+            border-radius: var(--r);
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text2);
+            text-decoration: none;
+            transition: background .14s var(--ease), color .14s var(--ease);
+            position: relative;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: var(--font);
+            text-align: left;
+        }
+
+        .a-nav-group-trigger:hover {
+            background: var(--g50);
+            color: var(--g800);
+        }
+
+        .a-nav-group-trigger.is-open,
+        .a-nav-group-trigger.has-active {
+            color: var(--g800);
+            font-weight: 600;
+        }
+
+        .a-nav-group-trigger:hover .a-nav-icon,
+        .a-nav-group-trigger.is-open .a-nav-icon,
+        .a-nav-group-trigger.has-active .a-nav-icon {
+            background: var(--g800);
+            color: #fff;
+        }
+
+        .a-nav-group-trigger.has-active .a-nav-icon {
+            background: var(--g800);
+            color: #fff;
+        }
+
+        .a-nav-group-arrow {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            color: var(--text3);
+            transition: transform .2s var(--ease);
+        }
+
+        .a-nav-group-trigger.is-open .a-nav-group-arrow {
+            transform: rotate(180deg);
+        }
+
+        .a-nav-group-children {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height .25s var(--ease), opacity .2s var(--ease);
+            opacity: 0;
+        }
+
+        .a-nav-group-children.is-open {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .a-nav-group-inner {
+            padding: 4px 0 4px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Child nav items (indented) */
+        .a-nav-child {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            min-height: 38px;
+            padding: 0 10px 0 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text2);
+            text-decoration: none;
+            transition: background .14s var(--ease), color .14s var(--ease);
+            position: relative;
+            border-left: 2px solid var(--line);
+        }
+
+        .a-nav-child:hover {
+            background: var(--g50);
+            color: var(--g800);
+            border-left-color: var(--g300);
+        }
+
+        .a-nav-child.active {
+            background: var(--g100);
+            color: var(--g800);
+            font-weight: 700;
+            border-left-color: var(--g500);
+        }
+
+        .a-nav-child-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--line);
+            flex-shrink: 0;
+            transition: background .14s;
+        }
+
+        .a-nav-child:hover .a-nav-child-dot,
+        .a-nav-child.active .a-nav-child-dot {
+            background: var(--g500);
+        }
+
+        /* ═══════════════════════════════
            MAIN CONTENT
         ═══════════════════════════════ */
         .a-main {
@@ -472,7 +597,7 @@
         /* Stat cards */
         .a-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -697,8 +822,13 @@
         /* ═══════════════════════════════
            RESPONSIVE
         ═══════════════════════════════ */
+        @media (max-width: 1280px) {
+            .a-stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
         @media (max-width: 1024px) {
             :root { --sidebar-w: 220px; }
+            .a-stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 860px) {
@@ -735,6 +865,8 @@
             .a-topbar-center { padding: 0 12px; }
 
             .a-page-title { font-size: 22px; }
+
+            .a-stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 540px) {
@@ -743,6 +875,10 @@
             .a-topbar-btn { padding: 0 10px; }
             .a-stats-grid { grid-template-columns: 1fr 1fr; }
             .a-main { padding: 16px 14px 40px; }
+        }
+
+        @media (max-width: 380px) {
+            .a-stats-grid { grid-template-columns: 1fr; }
         }
 
         /* Toast Alerts */
@@ -864,34 +1000,18 @@
         .a-toast--info    { --toast-accent: #1d4ed8; }
 
         @keyframes aToastIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px) scale(.96);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(-10px) scale(.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         @keyframes aToastOut {
-            from {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-                max-height: 220px;
-                margin-bottom: 0;
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-8px) scale(.96);
-                max-height: 0;
-                margin-bottom: -4px;
-            }
+            from { opacity: 1; transform: translateY(0) scale(1); max-height: 220px; margin-bottom: 0; }
+            to   { opacity: 0; transform: translateY(-8px) scale(.96); max-height: 0; margin-bottom: -4px; }
         }
 
         @keyframes aToastTimer {
             from { transform: scaleX(1); }
-            to { transform: scaleX(0); }
+            to   { transform: scaleX(0); }
         }
 
     </style>
@@ -976,7 +1096,12 @@
 
                 <a href="{{ route('admin.news.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">📰</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+                            <path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">News</span>
                 </a>
             </div>
@@ -990,44 +1115,116 @@
 
                 <a href="{{ route('admin.pages.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">📄</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <line x1="10" y1="9" x2="8" y2="9"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">Pages</span>
                 </a>
 
-                <a href="{{ route('admin.gcg.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">🛡</div>
-                    <span class="a-nav-item-text">GCG</span>
-                </a>
+                {{-- GROUP: GCG --}}
+                <div class="a-nav-group">
+                    <button type="button"
+                        class="a-nav-group-trigger {{ request()->routeIs('admin.gcg.*') || request()->routeIs('admin.gcg-highlight-items.*') ? 'has-active' : '' }}"
+                        data-group="gcg">
+                        <div class="a-nav-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <span class="a-nav-item-text">GCG</span>
+                        <svg class="a-nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="a-nav-group-children {{ request()->routeIs('admin.gcg.*') || request()->routeIs('admin.gcg-highlight-items.*') ? 'is-open' : '' }}" data-group-children="gcg">
+                        <div class="a-nav-group-inner">
+                            <a href="{{ route('admin.gcg.index') }}"
+                            class="a-nav-child {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
+                                <span class="a-nav-child-dot"></span>
+                                GCG
+                            </a>
+                            <a href="{{ route('admin.gcg-highlight-items.index') }}"
+                            class="a-nav-child {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
+                                <span class="a-nav-child-dot"></span>
+                                GCG Highlight
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-                <a href="{{ route('admin.gcg-highlight-items.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">⭐</div>
-                    <span class="a-nav-item-text">GCG Highlight</span>
-                </a>
-
-                <a href="{{ route('admin.investor-relations.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.investor-relations.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">📊</div>
-                    <span class="a-nav-item-text">Investor</span>
-                </a>
-
-                <a href="{{ route('admin.investor-highlight-items.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.investor-highlight-items.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">📌</div>
-                    <span class="a-nav-item-text">Investor Highlight</span>
-                </a>
+                {{-- GROUP: INVESTOR --}}
+                <div class="a-nav-group">
+                    <button type="button"
+                        class="a-nav-group-trigger {{ request()->routeIs('admin.investor-relations.*') || request()->routeIs('admin.investor-highlight-items.*') ? 'has-active' : '' }}"
+                        data-group="investor">
+                        <div class="a-nav-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6"  y1="20" x2="6"  y2="14"/>
+                                <line x1="2"  y1="20" x2="22" y2="20"/>
+                            </svg>
+                        </div>
+                        <span class="a-nav-item-text">Investor</span>
+                        <svg class="a-nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="a-nav-group-children {{ request()->routeIs('admin.investor-relations.*') || request()->routeIs('admin.investor-highlight-items.*') ? 'is-open' : '' }}" data-group-children="investor">
+                        <div class="a-nav-group-inner">
+                            <a href="{{ route('admin.investor-relations.index') }}"
+                            class="a-nav-child {{ request()->routeIs('admin.investor-relations.*') ? 'active' : '' }}">
+                                <span class="a-nav-child-dot"></span>
+                                Investor Relations
+                            </a>
+                            <a href="{{ route('admin.investor-highlight-items.index') }}"
+                            class="a-nav-child {{ request()->routeIs('admin.investor-highlight-items.*') ? 'active' : '' }}">
+                                <span class="a-nav-child-dot"></span>
+                                Investor Highlight
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <a href="{{ route('admin.tjsl.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.tjsl.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">🌱</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12c0-2.76 1.12-5.26 2.93-7.07"/>
+                            <path d="M12 6v6l4 2"/>
+                            <path d="M7 3.34A10 10 0 0 0 3.34 7"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">TJSL</span>
                 </a>
 
                 <a href="{{ route('admin.sliders.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">🎞</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2"/>
+                            <path d="m7 7-3-3h16l-3 3"/>
+                            <path d="M12 12v5"/><path d="m9 14 3-2 3 2"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">Sliders</span>
+                </a>
+
+                <a href="{{ route('admin.profile-pages.index') }}"
+                class="a-nav-item {{ request()->routeIs('admin.profile-pages.*') ? 'active' : '' }}">
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <span class="a-nav-item-text">Profile</span>
                 </a>
             </div>
 
@@ -1036,7 +1233,14 @@
 
                 <a href="{{ route('admin.partners.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">🤝</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">Mitra</span>
                 </a>
             </div>
@@ -1046,7 +1250,12 @@
 
                 <a href="{{ route('admin.menus.index') }}"
                 class="a-nav-item {{ request()->routeIs('admin.menus.*') ? 'active' : '' }}">
-                    <div class="a-nav-icon">⚙</div>
+                    <div class="a-nav-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-1.93 7.07M4.93 4.93A10 10 0 0 0 3 12a10 10 0 0 0 1.93 7.07M10.5 2.08A10 10 0 0 1 12 2a10 10 0 0 1 1.5.08M10.5 21.92A10 10 0 0 1 12 22a10 10 0 0 1 1.5-.08"/>
+                        </svg>
+                    </div>
                     <span class="a-nav-item-text">Menu</span>
                 </a>
             </div>
@@ -1054,8 +1263,6 @@
             @endif
 
         </div>
-
-
     </aside>
 
     <main class="a-main">
@@ -1207,6 +1414,33 @@
     syncBurger();
 })();
 
+/* ── Nav Group Dropdown ── */
+(function () {
+    document.querySelectorAll('[data-group]').forEach(function (trigger) {
+        var groupKey = trigger.getAttribute('data-group');
+        var children = document.querySelector('[data-group-children="' + groupKey + '"]');
+        if (!children) return;
+
+        // Auto-open if has active child
+        if (trigger.classList.contains('has-active')) {
+            trigger.classList.add('is-open');
+            children.classList.add('is-open');
+        }
+
+        trigger.addEventListener('click', function () {
+            var isOpen = children.classList.contains('is-open');
+            if (isOpen) {
+                children.classList.remove('is-open');
+                trigger.classList.remove('is-open');
+            } else {
+                children.classList.add('is-open');
+                trigger.classList.add('is-open');
+            }
+        });
+    });
+})();
+
+/* ── Toast ── */
 (function () {
     function hideToast(toast) {
         if (!toast || toast.classList.contains('is-hiding')) return;

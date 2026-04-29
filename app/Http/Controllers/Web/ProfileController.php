@@ -40,11 +40,7 @@ class ProfileController extends Controller
 
         $page = $menu->first();
 
-        return view('web.profile', [
-            'page' => $page,
-            'menu' => $menu,
-            'locale' => $locale,
-        ]);
+        return $this->renderProfilePage($page, $menu, $locale);
     }
 
     public function show(string $locale, string $slug)
@@ -107,10 +103,36 @@ class ProfileController extends Controller
             ->filter()
             ->values();
 
+        return $this->renderProfilePage($page, $menu, $locale);
+    }
+
+    private function renderProfilePage($page, $menu, string $locale)
+    {
+        $structuredContent = $this->decodeStructuredContent($page?->content);
+        $template = $structuredContent['template'] ?? null;
+
         return view('web.profile', [
             'page' => $page,
             'menu' => $menu,
             'locale' => $locale,
+            'structuredContent' => $structuredContent,
+            'isAboutPage' => $template === 'about_us',
+            'isVisionMissionPage' => $template === 'vision_mission',
+            'isHistoryPage' => $template === 'history',
+            'isShareholderPage' => $template === 'shareholder',
+            'isOrganizationStructurePage' => $template === 'organization_structure',
+            'isHsePage' => $template === 'hse',
         ]);
+    }
+
+    private function decodeStructuredContent(?string $content): array
+    {
+        if (! $content) {
+            return [];
+        }
+
+        $decoded = json_decode($content, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 }

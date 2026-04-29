@@ -10,10 +10,18 @@ class Role
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
+        $userId = $request->session()->get('user_id');
         $role = $request->session()->get('user_role');
 
-        if (! $role) {
-            abort(403, 'Silakan login terlebih dahulu.');
+        if (! $userId || ! $role) {
+            return redirect()->route('login')
+                ->withErrors([
+                    'email' => 'Silakan login terlebih dahulu.',
+                ]);
+        }
+
+        if (empty($roles)) {
+            return $next($request);
         }
 
         if (! in_array($role, $roles, true)) {

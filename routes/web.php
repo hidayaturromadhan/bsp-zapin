@@ -16,6 +16,15 @@ use App\Http\Controllers\Admin\GcgCategoryController;
 use App\Http\Controllers\Admin\GcgHighlightItemController;
 use App\Http\Controllers\Admin\InvestorDocumentController;
 use App\Http\Controllers\Admin\InvestorHighlightItemController;
+use App\Http\Controllers\Admin\ProfilePageController as AdminProfilePageController;
+
+// Operational
+use App\Http\Controllers\Operational\DashboardController as OperationalDashboardController;
+use App\Http\Controllers\Operational\FlowGasDailyRecordController;
+use App\Http\Controllers\Operational\FlowGasExportController;
+use App\Http\Controllers\Operational\CrudeDailyRecordController;
+use App\Http\Controllers\Operational\VitolRecordController;
+use App\Http\Controllers\Web\OperationalController;
 
 // Reviewer
 use App\Http\Controllers\Reviewer\DashboardController as ReviewerDashboardController;
@@ -61,6 +70,36 @@ Route::middleware(['auth.session', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     });
+
+
+// Operational Panel
+Route::middleware(['auth', 'role:operational'])->prefix('operational')->name('operational.')->group(function () {
+    Route::get('/dashboard', [OperationalDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/tv', [OperationalDashboardController::class, 'tv'])->name('tv');
+
+    Route::get('/flow-gas', [FlowGasDailyRecordController::class, 'index'])->name('flow-gas.index');
+    Route::get('/flow-gas/create', [FlowGasDailyRecordController::class, 'create'])->name('flow-gas.create');
+    Route::post('/flow-gas', [FlowGasDailyRecordController::class, 'store'])->name('flow-gas.store');
+    Route::get('/flow-gas/{flowGas}/edit', [FlowGasDailyRecordController::class, 'edit'])->name('flow-gas.edit');
+    Route::put('/flow-gas/{flowGas}', [FlowGasDailyRecordController::class, 'update'])->name('flow-gas.update');
+    Route::delete('/flow-gas/{flowGas}', [FlowGasDailyRecordController::class, 'destroy'])->name('flow-gas.destroy');
+
+    Route::get('/flow-gas-export/monthly', [FlowGasExportController::class, 'monthly'])->name('flow-gas.export.monthly');
+
+    Route::get('/crude', [CrudeDailyRecordController::class, 'index'])->name('crude.index');
+    Route::get('/crude/create', [CrudeDailyRecordController::class, 'create'])->name('crude.create');
+    Route::post('/crude', [CrudeDailyRecordController::class, 'store'])->name('crude.store');
+    Route::get('/crude/{crude}/edit', [CrudeDailyRecordController::class, 'edit'])->name('crude.edit');
+    Route::put('/crude/{crude}', [CrudeDailyRecordController::class, 'update'])->name('crude.update');
+    Route::delete('/crude/{crude}', [CrudeDailyRecordController::class, 'destroy'])->name('crude.destroy');
+
+    Route::get('/vitol', [VitolRecordController::class, 'index'])->name('vitol.index');
+    Route::get('/vitol/create', [VitolRecordController::class, 'create'])->name('vitol.create');
+    Route::post('/vitol', [VitolRecordController::class, 'store'])->name('vitol.store');
+    Route::get('/vitol/{vitol}/edit', [VitolRecordController::class, 'edit'])->name('vitol.edit');
+    Route::put('/vitol/{vitol}', [VitolRecordController::class, 'update'])->name('vitol.update');
+    Route::delete('/vitol/{vitol}', [VitolRecordController::class, 'destroy'])->name('vitol.destroy');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -124,6 +163,10 @@ Route::middleware(['auth.session', 'role:admin'])
     ->group(function () {
         Route::resource('partners', AdminPartnerController::class);
         Route::resource('sliders', SliderController::class);
+
+        Route::get('/profile-pages', [AdminProfilePageController::class, 'index'])->name('profile-pages.index');
+        Route::get('/profile-pages/{page}/edit', [AdminProfilePageController::class, 'edit'])->name('profile-pages.edit');
+        Route::put('/profile-pages/{page}', [AdminProfilePageController::class, 'update'])->name('profile-pages.update');
 
         Route::get('/pages', [AdminPageController::class, 'index'])->name('pages.index');
         Route::get('/pages/{page}/edit', [AdminPageController::class, 'edit'])->name('pages.edit');
@@ -234,7 +277,11 @@ Route::prefix('{locale}')
 
         Route::get('/hubungan-investor', [InvestorRelationController::class, 'index'])->name('investor-relations.index');
 
+        // ── FIX: web.operational dipindah ke dalam prefix group ──
+        // Ditempatkan SEBELUM /{slug} agar tidak ditangkap sebagai page slug
+        Route::get('/operasional', [OperationalController::class, 'index'])->name('web.operational');
+
         Route::get('/{slug}', [PageController::class, 'show'])
-            ->where('slug', 'layanan|operasional|publikasi|kontak')
+            ->where('slug', 'layanan|publikasi|kontak')
             ->name('page.show');
     });

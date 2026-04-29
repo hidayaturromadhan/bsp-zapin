@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -37,6 +38,10 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        // LOGIN KE GUARD LARAVEL JUGA
+        Auth::login($user);
+
+        // SESSION CUSTOM TETAP DIPERTAHANKAN
         $request->session()->put('user_id', $user->id);
         $request->session()->put('user_role', $user->role);
         $request->session()->put('user_name', $user->name);
@@ -51,6 +56,10 @@ class AuthController extends Controller
 
         if ($user->role === 'writer') {
             return redirect()->route('writer.dashboard');
+        }
+
+        if ($user->role === 'operational') {
+            return redirect()->route('operational.dashboard');
         }
 
         if ($user->role === 'wbs_officer') {
@@ -85,6 +94,8 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        Auth::login($user);
+
         $request->session()->put('user_id', $user->id);
         $request->session()->put('user_role', $user->role);
         $request->session()->put('user_name', $user->name);
@@ -96,6 +107,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        Auth::logout();
+
         $request->session()->forget([
             'user_id',
             'user_role',
