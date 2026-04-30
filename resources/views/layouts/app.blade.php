@@ -1607,7 +1607,7 @@
             <ul>
                 <li><a href="{{ route('profil.index', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Tentang Kami' : 'About Us' }}</a></li>
                 <li><a href="{{ route('tjsl.index', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'TJSL / CSR' : 'CSR' }}</a></li>
-                <li><a href="{{ route('wbs.index', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Whistleblowing' : 'Whistleblowing' }}</a></li>
+                <li><a href="{{ route('web.wbs.index', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Whistleblowing' : 'Whistleblowing' }}</a></li>
                 <li><a href="{{ route('media_publikasi.index', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Media & Publikasi' : 'Media & Publication' }}</a></li>
                 <li><a href="{{ route('legal.privacy', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Kebijakan Privasi' : 'Privacy Policy' }}</a></li>
                 <li><a href="{{ route('legal.terms', ['locale' => $locale]) }}">{{ $locale === 'id' ? 'Syarat & Ketentuan' : 'Terms & Conditions' }}</a></li>
@@ -1650,7 +1650,7 @@
 
     <div class="f-badges">
         <div class="f-badge"><span class="f-badge-dot"></span>{{ $locale === 'id' ? 'Sektor Hilir Migas' : 'Downstream Oil & Gas' }}</div>
-        <div class="f-badge"><span class="f-badge-dot"></span>{{ $locale === 'id' ? 'Berdiri sejak 2010' : 'Est. 2010' }}</div>
+        <div class="f-badge"><span class="f-badge-dot"></span>{{ $locale === 'id' ? 'Berdiri sejak 2013' : 'Est. 2013' }}</div>
         <div class="f-badge"><span class="f-badge-dot"></span>Pekanbaru, Riau</div>
         <div class="f-badge"><span class="f-badge-dot"></span>ISO Certified</div>
     </div>
@@ -1805,5 +1805,63 @@
 })();
 </script>
 
+@if(
+    auth()->check() &&
+    (
+        request()->is('wbs/*') ||
+        request()->is('admin/*') ||
+        request()->is('reviewer/*') ||
+        request()->is('writer/*') ||
+        request()->is('operational/*')
+    )
+)
+<script>
+(function () {
+    const heartbeatUrl = "{{ route('session.heartbeat') }}";
+    const csrfToken = "{{ csrf_token() }}";
+
+    let intervalId = null;
+
+    function pingSession() {
+        fetch(heartbeatUrl, {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
+                "Accept": "application/json"
+            },
+            credentials: "same-origin"
+        }).then(function (response) {
+            if (response.status === 401 || response.status === 419) {
+                window.location.href = "{{ route('login') }}";
+            }
+        }).catch(function () {});
+    }
+
+    function startHeartbeat() {
+        if (intervalId) return;
+
+        pingSession();
+        intervalId = setInterval(pingSession, 120000);
+    }
+
+    function stopHeartbeat() {
+        if (!intervalId) return;
+
+        clearInterval(intervalId);
+        intervalId = null;
+    }
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            stopHeartbeat();
+        } else {
+            startHeartbeat();
+        }
+    });
+
+    startHeartbeat();
+})();
+</script>
+@endif
 </body>
 </html>

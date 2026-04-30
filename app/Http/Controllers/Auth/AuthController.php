@@ -10,8 +10,15 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    private int $inactiveLimitMinutes = 3;
+
+    public function showLogin(Request $request)
     {
+        // Simpan redirect tujuan (kalau ada dari query ?redirect=)
+        if ($request->filled('redirect')) {
+            $request->session()->put('login_redirect_url', $request->query('redirect'));
+        }
+
         return view('auth.login');
     }
 
@@ -24,11 +31,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (
-            ! $user ||
-            ! $user->is_active ||
-            ! Hash::check($data['password'], $user->password)
-        ) {
+        if (! $user || ! $user->is_active || ! Hash::check($data['password'], $user->password)) {
             return back()
                 ->withErrors([
                     'email' => 'Email atau password salah, atau akun nonaktif.',
@@ -36,39 +39,55 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
-        $request->session()->regenerate();
+        if ($user->active_session_id && $this->isDeviceGone($user)) {
+            $user->forceFill([
+                'active_session_id' => null,
+                'active_login_at' => null,
+            ])->save();
+        }
 
-        // LOGIN KE GUARD LARAVEL JUGA
+        if ($user->active_session_id) {
+            return back()
+                ->withErrors([
+                    'email' => 'Akun ini masih aktif di perangkat lain.',
+                ])
+                ->onlyInput('email');
+        }
+
         Auth::login($user);
 
-        // SESSION CUSTOM TETAP DIPERTAHANKAN
-        $request->session()->put('user_id', $user->id);
-        $request->session()->put('user_role', $user->role);
-        $request->session()->put('user_name', $user->name);
+        $request->session()->regenerate();
 
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
+        $user->forceFill([
+            'active_session_id' => $request->session()->getId(),
+            'active_login_at' => now(),
+        ])->save();
 
-        if ($user->role === 'reviewer') {
-            return redirect()->route('reviewer.dashboard');
-        }
-
-        if ($user->role === 'writer') {
-            return redirect()->route('writer.dashboard');
-        }
-
-        if ($user->role === 'operational') {
-            return redirect()->route('operational.dashboard');
-        }
-
-        if ($user->role === 'wbs_officer') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect()->route('web.home', [
-            'locale' => 'id',
+        $request->session()->put([
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'user_name' => $user->name,
         ]);
+
+        // DEFAULT REDIRECT
+        $defaultRedirect = match ($user->role) {
+            'admin' => route('admin.dashboard'),
+            'reviewer' => route('reviewer.dashboard'),
+            'writer' => route('writer.dashboard'),
+            'operational' => route('operational.dashboard'),
+            'wbs_admin', 'wbs_officer' => route('wbs.admin.dashboard'),
+            'pelapor' => route('wbs.pelapor.dashboard'),
+            default => route('web.home', ['locale' => 'id']),
+        };
+
+        // AMBIL REDIRECT DARI SESSION
+        $redirectUrl = $request->session()->pull('login_redirect_url');
+
+        if ($redirectUrl && str_starts_with($redirectUrl, url('/'))) {
+            return redirect()->to($redirectUrl);
+        }
+
+        return redirect()->to($defaultRedirect);
     }
 
     public function showRegister()
@@ -88,25 +107,39 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => 'user',
+            'role' => 'pelapor',
             'is_active' => true,
         ]);
 
-        $request->session()->regenerate();
-
         Auth::login($user);
 
-        $request->session()->put('user_id', $user->id);
-        $request->session()->put('user_role', $user->role);
-        $request->session()->put('user_name', $user->name);
+        $request->session()->regenerate();
 
-        return redirect()->route('web.home', [
-            'locale' => 'id',
+        $user->forceFill([
+            'active_session_id' => $request->session()->getId(),
+            'active_login_at' => now(),
+        ])->save();
+
+        $request->session()->put([
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'user_name' => $user->name,
         ]);
+
+        return redirect()->intended(route('wbs.pelapor.dashboard'));
     }
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        if ($user && $user->active_session_id === $request->session()->getId()) {
+            $user->forceFill([
+                'active_session_id' => null,
+                'active_login_at' => null,
+            ])->save();
+        }
+
         Auth::logout();
 
         $request->session()->forget([
@@ -119,5 +152,14 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    private function isDeviceGone(User $user): bool
+    {
+        if (! $user->active_login_at) {
+            return true;
+        }
+
+        return $user->active_login_at->lt(now()->subMinutes($this->inactiveLimitMinutes));
     }
 }

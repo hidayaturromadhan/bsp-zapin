@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen TJSL')
+@section('title', 'Monitoring TJSL')
 
 @section('content')
 
@@ -11,23 +11,76 @@
             <span class="a-breadcrumb-sep">›</span>
             <span>TJSL</span>
         </div>
-        <h1 class="a-page-title">Manajemen TJSL</h1>
-        <p class="a-page-desc">Kelola program TJSL per tahun beserta galeri dokumentasi</p>
+        <h1 class="a-page-title">Monitoring TJSL</h1>
+        <p class="a-page-desc">Admin hanya dapat memantau aktivitas TJSL yang dikelola writer dan reviewer.</p>
     </div>
+</div>
 
-    <a href="{{ route('admin.tjsl.create') }}" class="a-btn a-btn--primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Tambah Program TJSL
-    </a>
+@if(session('success'))
+    <div class="a-alert a-alert--success">{{ session('success') }}</div>
+@endif
+
+@if(session('error'))
+    <div class="a-alert a-alert--danger">{{ session('error') }}</div>
+@endif
+
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-bottom:16px">
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Total</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['total'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Draft</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['draft'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Review</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['submitted'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Revisi</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['revision'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Approved</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['approved'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Rejected</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['rejected'] }}</div>
+    </div>
+    <div class="a-card">
+        <div style="font-size:12px;color:#6b7280">Published</div>
+        <div style="font-size:24px;font-weight:900">{{ $summary['published'] }}</div>
+    </div>
+</div>
+
+<div class="a-card" style="margin-bottom:16px">
+    <form method="GET" action="{{ route('admin.tjsl.index') }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+        <div style="flex:1;min-width:220px">
+            <label class="a-label">Search</label>
+            <input type="text" name="search" value="{{ $search }}" class="a-input" placeholder="Cari judul / tahun / writer / reviewer">
+        </div>
+
+        <div style="min-width:220px">
+            <label class="a-label">Status</label>
+            <select name="status" class="a-input">
+                <option value="">Semua Status</option>
+                @foreach($statuses as $key => $label)
+                    <option value="{{ $key }}" @selected($status === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <button type="submit" class="a-btn a-btn--secondary">Filter</button>
+        <a href="{{ route('admin.tjsl.index') }}" class="a-btn a-btn--light">Reset</a>
+    </form>
 </div>
 
 <div class="a-card">
     <div class="a-card-head">
         <div>
-            <div class="a-card-title">Daftar Program TJSL</div>
+            <div class="a-card-title">Daftar Aktivitas TJSL</div>
             <div class="a-card-desc">Total {{ $programs->total() }} program</div>
         </div>
     </div>
@@ -37,12 +90,14 @@
             <thead>
                 <tr>
                     <th width="48">#</th>
+                    <th width="90">Gambar</th>
                     <th width="90">Tahun</th>
-                    <th>Judul (ID)</th>
-                    <th>Judul (EN)</th>
-                    <th width="100" style="text-align:center">Galeri</th>
-                    <th width="100" style="text-align:center">Status</th>
-                    <th width="150" style="text-align:center">Aksi</th>
+                    <th>Judul</th>
+                    <th width="170">Writer</th>
+                    <th width="170">Reviewer</th>
+                    <th width="145">Status</th>
+                    <th width="160">Aktivitas</th>
+                    <th width="110" style="text-align:center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,53 +105,81 @@
                     @php
                         $trId = $program->translations->firstWhere('locale', 'id');
                         $trEn = $program->translations->firstWhere('locale', 'en');
+
+                        $badgeClass = match($program->status) {
+                            'draft' => 'a-badge--gray',
+                            'submitted' => 'a-badge--blue',
+                            'revision' => 'a-badge--orange',
+                            'approved' => 'a-badge--green',
+                            'rejected' => 'a-badge--red',
+                            'published' => 'a-badge--green',
+                            default => 'a-badge--gray',
+                        };
                     @endphp
+
                     <tr>
                         <td>{{ $programs->firstItem() + $loop->index }}</td>
-                        <td style="font-weight:700">{{ $program->year }}</td>
-                        <td style="font-weight:600">{{ $trId->title ?? '-' }}</td>
-                        <td>{{ $trEn->title ?? '-' }}</td>
-                        <td style="text-align:center">
-                            <span class="a-badge a-badge--blue">{{ $program->images->count() }} foto</span>
-                        </td>
-                        <td style="text-align:center">
-                            @if($program->is_active)
-                                <span class="a-badge a-badge--green">Aktif</span>
+
+                        <td>
+                            @if($program->featured_image)
+                                <img src="{{ asset($program->featured_image) }}" alt="TJSL" style="width:64px;height:46px;object-fit:cover;border-radius:10px">
                             @else
-                                <span class="a-badge a-badge--red">Nonaktif</span>
+                                <div style="width:64px;height:46px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6b7280">
+                                    No Image
+                                </div>
                             @endif
                         </td>
-                        <td style="text-align:center">
-                            <div style="display:flex;gap:6px;justify-content:center">
-                                <a href="{{ route('admin.tjsl.edit', $program) }}" class="a-btn a-btn--secondary a-btn--sm">
-                                    Edit
-                                </a>
 
-                                <form action="{{ route('admin.tjsl.destroy', $program) }}"
-                                      method="POST"
-                                      onsubmit="return confirm('Hapus program TJSL ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="a-btn a-btn--danger a-btn--sm">
-                                        Hapus
-                                    </button>
-                                </form>
+                        <td style="font-weight:700">{{ $program->year }}</td>
+
+                        <td>
+                            <div style="font-weight:800;color:#111827">{{ $trId->title ?? '-' }}</div>
+
+                            @if($trEn?->title)
+                                <div style="font-size:12px;color:#2563eb;margin-top:3px">
+                                    EN otomatis tersedia
+                                </div>
+                            @else
+                                <div style="font-size:12px;color:#b45309;margin-top:3px">
+                                    EN belum tersedia
+                                </div>
+                            @endif
+                        </td>
+
+                        <td>
+                            <div style="font-weight:700">{{ $program->author?->name ?? '-' }}</div>
+                            <div style="font-size:12px;color:#6b7280">{{ $program->author?->email ?? '-' }}</div>
+                        </td>
+
+                        <td>
+                            <div style="font-weight:700">{{ $program->reviewer?->name ?? '-' }}</div>
+                            <div style="font-size:12px;color:#6b7280">{{ $program->reviewer?->email ?? '-' }}</div>
+                        </td>
+
+                        <td>
+                            <span class="a-badge {{ $badgeClass }}">{{ $program->status_label }}</span>
+                        </td>
+
+                        <td>
+                            <div style="font-size:12px;color:#6b7280">
+                                Submit: <strong>{{ $program->submitted_at?->format('d M Y H:i') ?? '-' }}</strong><br>
+                                Review: <strong>{{ $program->reviewed_at?->format('d M Y H:i') ?? '-' }}</strong><br>
+                                Publish: <strong>{{ $program->published_at?->format('d M Y H:i') ?? '-' }}</strong>
                             </div>
+                        </td>
+
+                        <td style="text-align:center">
+                            <a href="{{ route('admin.tjsl.show', $program) }}" class="a-btn a-btn--primary a-btn--sm">
+                                Detail
+                            </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">
+                        <td colspan="9">
                             <div class="a-empty">
-                                <div class="a-empty-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                        <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"/>
-                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                                    </svg>
-                                </div>
-                                <div class="a-empty-title">Belum ada program TJSL</div>
-                                <div class="a-empty-desc">Mulai dengan menambahkan program TJSL per tahun</div>
-                                <a href="{{ route('admin.tjsl.create') }}" class="a-btn a-btn--primary">Tambah Program</a>
+                                <div class="a-empty-title">Belum ada aktivitas TJSL</div>
+                                <div class="a-empty-desc">Aktivitas writer dan reviewer akan tampil di sini.</div>
                             </div>
                         </td>
                     </tr>

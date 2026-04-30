@@ -74,13 +74,8 @@
             --op-shadow-soft: 0 10px 24px rgba(0, 0, 0, .22);
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         html, body {
             margin: 0;
@@ -90,21 +85,9 @@
             color: var(--op-text);
         }
 
-        body {
-            min-height: 100vh;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        button,
-        input,
-        select,
-        textarea {
-            font: inherit;
-        }
+        body { min-height: 100vh; }
+        a { color: inherit; text-decoration: none; }
+        button, input, select, textarea { font: inherit; }
 
         .op-app {
             min-height: 100vh;
@@ -261,12 +244,6 @@
             font-size: 14px;
             font-weight: 700;
             color: var(--op-sidebar-text);
-        }
-
-        .op-user-role {
-            margin-top: 4px;
-            font-size: 12px;
-            color: var(--op-sidebar-text-soft);
         }
 
         .op-logout-btn {
@@ -497,23 +474,9 @@
             padding: 22px;
         }
 
-        .op-grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-        }
-
-        .op-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .op-grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 18px;
-        }
+        .op-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+        .op-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .op-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 
         .op-stat {
             background: linear-gradient(180deg, var(--op-surface) 0%, var(--op-surface-soft) 100%);
@@ -584,9 +547,7 @@
             gap: 16px 18px;
         }
 
-        .op-field.full {
-            grid-column: 1 / -1;
-        }
+        .op-field.full { grid-column: 1 / -1; }
 
         .op-label {
             display: block;
@@ -682,35 +643,15 @@
             white-space: nowrap;
         }
 
-        .op-badge--green {
-            background: #eef8ee;
-            color: #17603a;
-        }
+        .op-badge--green { background: #eef8ee; color: #17603a; }
+        .op-badge--gold { background: #fff8eb; color: #9a6700; }
+        .op-badge--blue { background: #eef5ff; color: #1d4ed8; }
+        .op-badge--red { background: #fff1f2; color: #be123c; }
 
-        .op-badge--gold {
-            background: #fff8eb;
-            color: #9a6700;
-        }
-
-        .op-badge--blue {
-            background: #eef5ff;
-            color: #1d4ed8;
-        }
-
-        html[data-theme="dark"] .op-badge--green {
-            background: rgba(22, 101, 52, .22);
-            color: #86efac;
-        }
-
-        html[data-theme="dark"] .op-badge--gold {
-            background: rgba(133, 77, 14, .22);
-            color: #fcd34d;
-        }
-
-        html[data-theme="dark"] .op-badge--blue {
-            background: rgba(29, 78, 216, .22);
-            color: #93c5fd;
-        }
+        html[data-theme="dark"] .op-badge--green { background: rgba(22, 101, 52, .22); color: #86efac; }
+        html[data-theme="dark"] .op-badge--gold { background: rgba(133, 77, 14, .22); color: #fcd34d; }
+        html[data-theme="dark"] .op-badge--blue { background: rgba(29, 78, 216, .22); color: #93c5fd; }
+        html[data-theme="dark"] .op-badge--red { background: rgba(127, 29, 29, .22); color: #fca5a5; }
 
         .op-actions {
             display: flex;
@@ -890,19 +831,12 @@
         }
 
         @media (max-width: 1280px) {
-            .op-grid-4 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .op-grid-3 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+            .op-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .op-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 1024px) {
-            .op-app {
-                grid-template-columns: 1fr;
-            }
+            .op-app { grid-template-columns: 1fr; }
 
             .op-sidebar-backdrop {
                 display: block;
@@ -937,13 +871,8 @@
                 transform: translateX(0);
             }
 
-            .op-mobile-menu-btn {
-                display: inline-flex;
-            }
-
-            .op-main {
-                width: 100%;
-            }
+            .op-mobile-menu-btn { display: inline-flex; }
+            .op-main { width: 100%; }
         }
 
         @media (max-width: 768px) {
@@ -953,9 +882,7 @@
                 padding-right: 16px;
             }
 
-            .op-page-title {
-                font-size: 28px;
-            }
+            .op-page-title { font-size: 28px; }
 
             .op-grid-2,
             .op-grid-3,
@@ -982,18 +909,14 @@
                 justify-content: flex-end;
             }
 
-            .op-btn {
-                width: 100%;
-            }
+            .op-btn { width: 100%; }
 
             .op-topbar-actions .op-btn,
             .op-topbar-actions .op-theme-btn {
                 width: auto;
             }
 
-            .op-pagination {
-                justify-content: flex-start;
-            }
+            .op-pagination { justify-content: flex-start; }
 
             .op-pagination nav[role="navigation"] a,
             .op-pagination nav[role="navigation"] span,
@@ -1009,18 +932,9 @@
         }
 
         @media (max-width: 576px) {
-            .op-topbar-inner {
-                align-items: stretch;
-            }
-
-            .op-topbar-left,
-            .op-topbar-actions {
-                width: 100%;
-            }
-
-            .op-topbar-actions {
-                justify-content: space-between;
-            }
+            .op-topbar-inner { align-items: stretch; }
+            .op-topbar-left, .op-topbar-actions { width: 100%; }
+            .op-topbar-actions { justify-content: space-between; }
 
             .op-topbar-title {
                 flex: 1 1 auto;
@@ -1093,8 +1007,8 @@
                         </svg>
                     </span>
                     <span class="op-nav-text">
-                        <span class="op-nav-title">Data Crude</span>
-                        <span class="op-nav-subtitle">Produksi crude harian</span>
+                        <span class="op-nav-title">Data Crude Oil</span>
+                        <span class="op-nav-subtitle">Produksi crude oil harian</span>
                     </span>
                 </a>
 
@@ -1109,7 +1023,21 @@
                     </span>
                     <span class="op-nav-text">
                         <span class="op-nav-title">Data VITOL</span>
-                        <span class="op-nav-subtitle">Quantity, fee, commission</span>
+                        <span class="op-nav-subtitle">Quantity & Satuan</span>
+                    </span>
+                </a>
+
+                <a href="{{ route('operational.broadcast.index') }}" class="op-nav-link {{ request()->routeIs('operational.broadcast.*') ? 'is-active' : '' }}">
+                    <span class="op-nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 5h16v10H7l-3 3V5z"></path>
+                            <path d="M8 9h8"></path>
+                            <path d="M8 12h5"></path>
+                        </svg>
+                    </span>
+                    <span class="op-nav-text">
+                        <span class="op-nav-title">Broadcast TV</span>
+                        <span class="op-nav-subtitle">Atur running text TV</span>
                     </span>
                 </a>
             </nav>

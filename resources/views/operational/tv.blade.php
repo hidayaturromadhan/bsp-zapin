@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operational Display — BSP</title>
+    <title>Operational Display BSPZ</title>
     <meta http-equiv="refresh" content="300">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -41,6 +41,7 @@
             --shadow:0 10px 32px rgba(13,27,42,.10), 0 2px 8px rgba(13,27,42,.05);
 
             --hdr-h:82px;
+            --broadcast-h:52px;
             --gap:12px;
             --radius:20px;
         }
@@ -58,7 +59,6 @@
             background: linear-gradient(180deg, #f4f8fc 0%, #edf3f9 100%);
         }
 
-        /* Background image blur + brighten */
         body::before{
             content:'';
             position:fixed;
@@ -70,7 +70,6 @@
             transform: scale(1.08);
         }
 
-        /* Light overlay above blurred background */
         body::after{
             content:'';
             position:fixed;
@@ -90,11 +89,10 @@
             height:100vh;
             padding:12px;
             display:grid;
-            grid-template-rows: var(--hdr-h) 90px 1fr;
+            grid-template-rows: var(--hdr-h) 1fr var(--broadcast-h);
             gap:var(--gap);
         }
 
-        /* HEADER */
         .hdr{
             display:grid;
             grid-template-columns: 280px 1fr 250px;
@@ -154,7 +152,6 @@
             color:var(--green);
         }
 
-        /* PRAYER */
         .prayer-strip{
             display:flex;
             align-items:center;
@@ -226,139 +223,20 @@
             color:var(--ink-2);
         }
 
-        .period-row{
-            font-size:11px;
-            font-weight:800;
-            color:var(--green);
-            letter-spacing:.04em;
-            text-transform:uppercase;
-        }
-
-        /* KPI BAR */
-        .kpi-row{
-            display:grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap:var(--gap);
-            min-height:0;
-        }
-
-        .kpi{
-            position:relative;
-            border-radius:18px;
-            background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.80));
-            border:1px solid rgba(255,255,255,.36);
-            box-shadow:var(--shadow);
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            padding:14px 16px;
-            overflow:hidden;
-            backdrop-filter:blur(12px);
-            -webkit-backdrop-filter:blur(12px);
-        }
-
-        .kpi::after{
-            content:'';
-            position:absolute;
-            right:-24px;
-            top:-24px;
-            width:92px;
-            height:92px;
-            border-radius:50%;
-            opacity:.12;
-        }
-
-        .kpi.gas::after{ background:var(--gold); }
-        .kpi.crude::after{ background:var(--red); }
-        .kpi.vitol::after{ background:var(--blue); }
-        .kpi.year::after{ background:var(--green); }
-
-        .kpi-info{
-            position:relative;
-            z-index:2;
-            min-width:0;
-        }
-
-        .kpi-label{
-            font-size:10px;
-            font-weight:800;
-            letter-spacing:.10em;
-            text-transform:uppercase;
-            color:var(--ink-3);
-        }
-
-        .kpi-value{
-            margin-top:3px;
-            font-size:26px;
-            font-weight:900;
-            letter-spacing:-.05em;
-            color:var(--ink);
-            line-height:1;
-            white-space:nowrap;
-        }
-
-        .kpi-meta{
-            margin-top:4px;
-            font-size:10px;
-            font-weight:700;
-            color:var(--ink-4);
-        }
-
-        .kpi-tag{
-            position:relative;
-            z-index:2;
-            font-size:10px;
-            font-weight:900;
-            letter-spacing:.08em;
-            text-transform:uppercase;
-            padding:6px 10px;
-            border-radius:999px;
-            white-space:nowrap;
-        }
-
-        .kpi.gas .kpi-tag{
-            background:var(--gold-soft);
-            color:var(--gold);
-        }
-
-        .kpi.crude .kpi-tag{
-            background:var(--red-soft);
-            color:var(--red);
-        }
-
-        .kpi.vitol .kpi-tag{
-            background:var(--blue-soft);
-            color:var(--blue);
-        }
-
-        .kpi.year .kpi-tag{
-            background:var(--green-soft);
-            color:var(--green);
-        }
-
-        /* BODY */
         .body{
             display:grid;
-            grid-template-columns: 1.05fr 1fr;
-            gap:var(--gap);
-            min-height:0;
-        }
-
-        .left, .right{
-            display:grid;
-            gap:var(--gap);
-            min-height:0;
-        }
-
-        .left{
-            grid-template-rows: 1.04fr .96fr;
-        }
-
-        .right{
             grid-template-rows: 1fr 1fr;
+            gap:var(--gap);
+            min-height:0;
         }
 
-        /* CARD */
+        .row{
+            display:grid;
+            grid-template-columns: 1fr 1.18fr 1fr;
+            gap:var(--gap);
+            min-height:0;
+        }
+
         .card{
             background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.80));
             border:1px solid rgba(255,255,255,.36);
@@ -419,6 +297,7 @@
         }
 
         .b-gas{ background:var(--gold-soft); color:var(--gold); }
+        .b-gas-month{ background:var(--teal-soft); color:var(--teal); }
         .b-crude{ background:var(--red-soft); color:var(--red); }
         .b-vitol{ background:var(--blue-soft); color:var(--blue); }
         .b-yr{ background:var(--green-soft); color:var(--green); }
@@ -431,13 +310,11 @@
             z-index:2;
         }
 
-        .chart-wrap canvas,
-        .dual-pane canvas{
+        .chart-wrap canvas{
             width:100% !important;
             height:100% !important;
         }
 
-        /* VIDEO CARD */
         .video-card{
             background:#07111e;
             padding:0;
@@ -524,57 +401,102 @@
             border-radius:999px;
         }
 
-        /* DUAL */
-        .dual{
-            flex:1 1 auto;
+        .broadcast-bar{
+            position:relative;
+            overflow:hidden;
+            border-radius:18px;
+            background:linear-gradient(180deg, rgba(13,27,42,.92), rgba(13,27,42,.86));
+            border:1px solid rgba(255,255,255,.14);
+            box-shadow:var(--shadow);
+            display:flex;
+            align-items:center;
             min-height:0;
-            display:grid;
-            grid-template-columns: 1fr 1px 1fr;
-            gap:0;
-            padding:10px 14px 14px;
+        }
+
+        .broadcast-label{
             position:relative;
             z-index:2;
-        }
-
-        .dual-div{
-            background:linear-gradient(180deg, transparent, var(--line), transparent);
-            margin:8px 6px;
-            border-radius:99px;
-        }
-
-        .dual-pane{
-            min-height:0;
-            position:relative;
-        }
-
-        /* BOTTOM MICRO INFO */
-        .micro-info{
-            position:absolute;
-            left:14px;
-            bottom:12px;
-            z-index:3;
+            flex:0 0 auto;
             display:flex;
-            gap:8px;
-            flex-wrap:wrap;
+            align-items:center;
+            justify-content:center;
+            height:100%;
+            min-width:165px;
+            padding:0 18px;
+            font-size:11px;
+            font-weight:900;
+            letter-spacing:.12em;
+            text-transform:uppercase;
+            color:#fff;
+            background:linear-gradient(135deg, var(--gold), var(--gold-2));
+            box-shadow:inset -1px 0 0 rgba(255,255,255,.18);
         }
 
-        .micro-chip{
-            background:rgba(255,255,255,.16);
-            color:#fff;
-            border:1px solid rgba(255,255,255,.18);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius:999px;
+        .broadcast-track{
+            position:relative;
+            flex:1 1 auto;
+            height:100%;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+        }
+
+        .broadcast-content{
+            display:inline-flex;
+            align-items:center;
+            white-space:nowrap;
+            will-change:transform;
+            animation:broadcast-marquee 45s linear infinite;
+            padding-left:100%;
+        }
+
+        .broadcast-item{
+            display:inline-flex;
+            align-items:center;
+            font-size:15px;
+            font-weight:700;
+            color:#f8fbff;
+            letter-spacing:.01em;
+        }
+
+        .broadcast-item .tag{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            margin-right:10px;
             padding:5px 10px;
-            font-size:9px;
-            font-weight:800;
-            letter-spacing:.06em;
+            border-radius:999px;
+            background:rgba(240,180,41,.16);
+            border:1px solid rgba(240,180,41,.25);
+            color:#ffd979;
+            font-size:10px;
+            font-weight:900;
+            letter-spacing:.10em;
             text-transform:uppercase;
+        }
+
+        .broadcast-sep{
+            display:inline-block;
+            margin:0 18px;
+            color:rgba(255,255,255,.40);
+            font-weight:900;
+        }
+
+        .broadcast-empty{
+            padding:0 18px;
+            font-size:14px;
+            font-weight:700;
+            color:rgba(255,255,255,.72);
+        }
+
+        @keyframes broadcast-marquee{
+            0%{ transform:translateX(0); }
+            100%{ transform:translateX(-100%); }
         }
 
         @media (max-width: 1366px){
             .page{
-                grid-template-rows: 78px 84px 1fr;
+                grid-template-rows: 78px 1fr 48px;
                 padding:10px;
             }
 
@@ -586,30 +508,25 @@
             .brand-name{ font-size:16px; }
             .clock{ font-size:26px; }
 
-            .kpi-value{ font-size:22px; }
-
             .pt{
                 min-width:60px;
                 padding:6px 8px;
             }
 
             .pt-val{ font-size:12px; }
+
+            .broadcast-label{
+                min-width:145px;
+                font-size:10px;
+            }
+
+            .broadcast-item{
+                font-size:13px;
+            }
         }
     </style>
 </head>
 <body>
-
-<audio id="tvBackgroundMusic" autoplay loop preload="auto">
-    <source src="{{ asset('audio/tv-music.mp3') }}" type="audio/mpeg">
-    Browser Anda tidak mendukung audio.
-</audio>
-
-@php
-    $gasTodayValue = collect($gasDailyChartValues ?? [])->last() ?? 0;
-    $crudeTodayValue = collect($crudeDailyChartValues ?? [])->last() ?? 0;
-    $vitolLastValue = collect($vitolMonthlyChartValues ?? [])->last() ?? 0;
-    $gasYearValue = collect($gasYearlyChartValues ?? [])->last() ?? 0;
-@endphp
 
 <div class="page">
 
@@ -619,7 +536,7 @@
                 <img src="{{ asset('images/logo.png') }}" alt="BSP Logo">
             </div>
             <div>
-                <div class="brand-name">PT Bumi Siak Pusako</div>
+                <div class="brand-name">PT Bumi Siak Pusako Zapin</div>
                 <div class="brand-tag">the energy company</div>
             </div>
         </div>
@@ -636,50 +553,24 @@
         <div class="hdr-right">
             <div class="clock" id="clockEl">--:--:--</div>
             <div class="date-row" id="dateEl">--</div>
-            <div class="period-row">{{ $monthLabel ?? 'Periode Aktif' }}</div>
         </div>
     </header>
 
-    <section class="kpi-row">
-        <div class="kpi gas">
-            <div class="kpi-info">
-                <div class="kpi-label">Flow Gas Daily</div>
-                <div class="kpi-value">{{ number_format((float)$gasTodayValue, 0, ',', '.') }}</div>
-                <div class="kpi-meta">MSCF · nilai terbaru</div>
-            </div>
-            <div class="kpi-tag">Gas</div>
-        </div>
-
-        <div class="kpi crude">
-            <div class="kpi-info">
-                <div class="kpi-label">Crude Daily</div>
-                <div class="kpi-value">{{ number_format((float)$crudeTodayValue, 0, ',', '.') }}</div>
-                <div class="kpi-meta">BOPD / produksi terbaru</div>
-            </div>
-            <div class="kpi-tag">Crude</div>
-        </div>
-
-        <div class="kpi vitol">
-            <div class="kpi-info">
-                <div class="kpi-label">VITOL Monthly</div>
-                <div class="kpi-value">{{ number_format((float)$vitolLastValue, 0, ',', '.') }}</div>
-                <div class="kpi-meta">Quantity · bulan aktif</div>
-            </div>
-            <div class="kpi-tag">VITOL</div>
-        </div>
-
-        <div class="kpi year">
-            <div class="kpi-info">
-                <div class="kpi-label">Gas Yearly</div>
-                <div class="kpi-value">{{ number_format((float)$gasYearValue, 0, ',', '.') }}</div>
-                <div class="kpi-meta">MSCF · tahun terakhir</div>
-            </div>
-            <div class="kpi-tag">Yearly</div>
-        </div>
-    </section>
-
     <main class="body">
-        <div class="left">
+        <section class="row row-top">
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">BSP Crude Oil Trucking with TBM</div>
+                        <div class="card-sub">Produksi Crude Oil 14 Hari Terakhir</div>
+                    </div>
+                    <span class="badge b-crude">Crude</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="cCrudeDaily" role="img" aria-label="Crude Daily chart"></canvas>
+                </div>
+            </div>
+
             <div class="card video-card">
                 <div class="video-topbar">
                     <div class="live-pill">
@@ -692,19 +583,29 @@
                     <source src="{{ asset('videos/company-profile.mp4') }}" type="video/mp4">
                 </video>
 
-                <div class="micro-info">
-                    <div class="micro-chip">BSP Monitoring</div>
-                    <div class="micro-chip">Realtime Display</div>
-                </div>
-
-                <div class="video-pill">{{ $monthLabel ?? 'Periode Aktif' }}</div>
+                <div class="video-pill">{{ $monthLabel ?? now()->translatedFormat('F Y') }}</div>
             </div>
 
             <div class="card">
                 <div class="card-head">
                     <div>
-                        <div class="card-title">Flow Gas — Daily</div>
-                        <div class="card-sub">Total MSCF harian bulan aktif</div>
+                        <div class="card-title">OIL TRADING WITH VITOL TO BPC</div>
+                        <div class="card-sub">Quantity VITOL per bulan tahun aktif</div>
+                    </div>
+                    <span class="badge b-vitol">VITOL</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="cVitol" role="img" aria-label="VITOL Monthly chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="row row-bottom">
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Distribution Gas With Pertagas to BSP</div>
+                        <div class="card-sub">Trend Penyaluran Gas Harian</div>
                     </div>
                     <span class="badge b-gas">Gas Daily</span>
                 </div>
@@ -712,43 +613,80 @@
                     <canvas id="cGasDaily" role="img" aria-label="Flow Gas Daily chart"></canvas>
                 </div>
             </div>
-        </div>
 
-        <div class="right">
             <div class="card">
                 <div class="card-head">
                     <div>
-                        <div class="card-title">Crude — Daily</div>
-                        <div class="card-sub">Produksi crude harian bulan aktif</div>
+                        <div class="card-title">Distribution Gas With Pertagas to BSP</div>
+                        <div class="card-sub">Rata-rata Flow Gas per Bulan</div>
                     </div>
-                    <span class="badge b-crude">Crude</span>
+                    <span class="badge b-gas-month">Gas Monthly</span>
                 </div>
                 <div class="chart-wrap">
-                    <canvas id="cCrudeDaily" role="img" aria-label="Crude Daily chart"></canvas>
+                    <canvas id="cGasMonthly" role="img" aria-label="Flow Gas Monthly chart"></canvas>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-head">
                     <div>
-                        <div class="card-title">VITOL Monthly &amp; Gas Yearly</div>
-                        <div class="card-sub">Quantity VITOL dan tren gas antar tahun</div>
+                        <div class="card-title">Distribution Gas With Pertagas to BSP</div>
+                        <div class="card-sub">Trend Penyaluran Gas Tahunan</div>
                     </div>
-                    <span class="badge b-vitol">Dual Analytics</span>
+                    <span class="badge b-yr">Yearly</span>
                 </div>
-
-                <div class="dual">
-                    <div class="dual-pane">
-                        <canvas id="cVitol" role="img" aria-label="VITOL Monthly chart"></canvas>
-                    </div>
-                    <div class="dual-div"></div>
-                    <div class="dual-pane">
-                        <canvas id="cGasYearly" role="img" aria-label="Gas Yearly chart"></canvas>
-                    </div>
+                <div class="chart-wrap">
+                    <canvas id="cGasYearly" role="img" aria-label="Gas Yearly chart"></canvas>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
+
+    <section class="broadcast-bar">
+        <div class="broadcast-label">Broadcast</div>
+
+        <div class="broadcast-track">
+            @php
+                $activeBroadcasts = collect($broadcastItems ?? [])->filter(function ($item) {
+                    return !empty($item['enabled']) && !empty($item['message']);
+                })->values();
+            @endphp
+
+            @if($activeBroadcasts->isNotEmpty())
+                <div class="broadcast-content">
+                    @foreach($activeBroadcasts as $item)
+                        <div class="broadcast-item">
+                            @if(!empty($item['label']))
+                                <span class="tag">{{ $item['label'] }}</span>
+                            @endif
+                            <span>{{ $item['message'] }}</span>
+                        </div>
+
+                        @if(!$loop->last)
+                            <span class="broadcast-sep">✦</span>
+                        @endif
+                    @endforeach
+
+                    <span class="broadcast-sep">✦</span>
+
+                    @foreach($activeBroadcasts as $item)
+                        <div class="broadcast-item">
+                            @if(!empty($item['label']))
+                                <span class="tag">{{ $item['label'] }}</span>
+                            @endif
+                            <span>{{ $item['message'] }}</span>
+                        </div>
+
+                        @if(!$loop->last)
+                            <span class="broadcast-sep">✦</span>
+                        @endif
+                    @endforeach
+                </div>
+            @else
+                <div class="broadcast-empty">Belum ada broadcast aktif.</div>
+            @endif
+        </div>
+    </section>
 </div>
 
 <!-- ================= REMINDER ALERT ================= -->
@@ -775,7 +713,7 @@
         overflow: hidden;
     ">
 
-        <div style="
+        <div id="reminderIcon" style="
             width: 42px;
             height: 42px;
             border-radius: 12px;
@@ -826,6 +764,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
 <script>
 (function () {
 
@@ -834,28 +773,31 @@
     const titleEl = document.getElementById('reminderTitle');
     const textEl = document.getElementById('reminderText');
     const progress = document.getElementById('reminderProgress');
+    const iconEl = document.getElementById('reminderIcon');
 
     const schedule = {
         "08:00": {
             title: "Jam Masuk",
-            text: "Waktu kerja dimulai. Yuk mulai aktivitas 🚀"
+            text: "Waktu kerja dimulai. Yuk mulai aktivitas hari ini dengan semangat!",
+            icon: "⏰"
         },
         "12:00": {
             title: "Jam Istirahat",
-            text: "Saatnya recharge. Istirahat dulu ya ☕"
+            text: "Saatnya recharge. Istirahat dulu ya sejenak untuk makan siang dan sholat.",
+            icon: "⏰"
         },
         "16:30": {
             title: "Jam Pulang",
-            text: "Kerja selesai. Jangan lupa closing aktivitas 👍"
+            text: "Kerja selesai. Jangan lupa closing aktivitas hari ini ya",
+            icon: "⏰"
         }
     };
 
-    /* ================= SOUND ================= */
     function playAlarmSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-            function beep(time, freq) {
+            function beep(time, freq, duration = 0.3) {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
 
@@ -864,25 +806,25 @@
 
                 gain.gain.setValueAtTime(0.001, time);
                 gain.gain.exponentialRampToValueAtTime(0.5, time + 0.01);
-                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
                 osc.start(time);
-                osc.stop(time + 0.3);
+                osc.stop(time + duration);
             }
 
             const now = ctx.currentTime;
-            beep(now, 880);
-            beep(now + 0.35, 660);
+            beep(now, 880, 0.28);
+            beep(now + 0.35, 660, 0.28);
+            beep(now + 0.70, 990, 0.32);
 
         } catch (e) {
             console.log('Audio error');
         }
     }
 
-    /* ================= TIME WIB ================= */
     function getWIB() {
         const now = new Date();
         const parts = new Intl.DateTimeFormat('en-GB', {
@@ -901,13 +843,12 @@
         return `${h}:${m}`;
     }
 
-    /* ================= SHOW ALERT ================= */
-    function showReminder(title, text, key) {
-
-        playAlarmSound(); // 🔊 suara
+    function showReminder(title, text, key, icon = '⏰') {
+        playAlarmSound();
 
         titleEl.innerText = title;
         textEl.innerText = text;
+        if (iconEl) iconEl.innerText = icon;
 
         alertWrap.style.display = 'block';
 
@@ -916,7 +857,6 @@
             box.style.opacity = '1';
         }, 50);
 
-        // progress bar
         progress.style.transition = 'none';
         progress.style.transform = 'scaleX(1)';
         setTimeout(() => {
@@ -929,7 +869,6 @@
         setTimeout(hideReminder, 8000);
     }
 
-    /* ================= HIDE ALERT ================= */
     window.hideReminder = function () {
         box.style.transform = 'translateY(-20px)';
         box.style.opacity = '0';
@@ -939,7 +878,6 @@
         }, 300);
     };
 
-    /* ================= CHECK ================= */
     function checkReminder() {
         const time = getWIB();
         const today = new Date().toISOString().slice(0,10);
@@ -950,12 +888,16 @@
         const key = "reminder-" + today + "-" + time;
         if (localStorage.getItem(key)) return;
 
-        showReminder(data.title, data.text, key);
+        showReminder(data.title, data.text, key, data.icon || '⏰');
     }
+
+    window.__tvReminder = {
+        showReminder,
+        getWIB
+    };
 
     setInterval(checkReminder, 1000);
 
-    /* ================= ENABLE AUDIO ================= */
     document.addEventListener('click', () => {
         if (window.AudioContext) {
             new AudioContext().resume();
@@ -964,10 +906,8 @@
 
 })();
 </script>
+
 <script>
-/* ─────────────────────────────
-   CLOCK
-───────────────────────────── */
 function tick(){
     const n = new Date();
     const p = v => String(v).padStart(2, '0');
@@ -990,21 +930,48 @@ function tick(){
 tick();
 setInterval(tick, 1000);
 
-/* ─────────────────────────────
-   PRAYER TIMES
-───────────────────────────── */
 let ptimes = {};
+let prayerAlertMap = {};
+
 const PKEYS = [
-    { api:'Fajr',    id:'shubuh'  },
-    { api:'Sunrise', id:'dhuha'   },
-    { api:'Dhuhr',   id:'dzuhur'  },
-    { api:'Asr',     id:'ashar'   },
-    { api:'Maghrib', id:'maghrib' },
-    { api:'Isha',    id:'isya'    }
+    { api:'subuh',   id:'shubuh',  label:'Shubuh'  },
+    { api:'dhuha',   id:'dhuha',   label:'Dhuha'   },
+    { api:'dzuhur',  id:'dzuhur',  label:'Dzuhur'  },
+    { api:'ashar',   id:'ashar',   label:'Ashar'   },
+    { api:'maghrib', id:'maghrib', label:'Maghrib' },
+    { api:'isya',    id:'isya',    label:'Isya'    }
 ];
 
+function getPekanbaruDateParts() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).formatToParts(now);
+
+    let year = '', month = '', day = '';
+    parts.forEach(p => {
+        if (p.type === 'year') year = p.value;
+        if (p.type === 'month') month = p.value;
+        if (p.type === 'day') day = p.value;
+    });
+
+    return {
+        year,
+        month,
+        day,
+        ymd: `${year}-${month}-${day}`,
+        dayNumber: Number(day),
+        monthNumber: Number(month),
+        yearNumber: Number(year)
+    };
+}
+
 function fmtPrayer(s){
-    return s ? s.substring(0,5) : '--:--';
+    if (!s) return '--:--';
+    return String(s).substring(0,5);
 }
 
 function toMin(s){
@@ -1014,8 +981,8 @@ function toMin(s){
 }
 
 function highlightActivePrayer(){
-    const n = new Date();
-    const cur = n.getHours() * 60 + n.getMinutes();
+    const nowWIB = window.__tvReminder?.getWIB ? window.__tvReminder.getWIB() : '--:--';
+    const cur = toMin(nowWIB);
     let active = PKEYS[0].id;
 
     PKEYS.forEach(p => {
@@ -1029,34 +996,95 @@ function highlightActivePrayer(){
     });
 }
 
+function buildPrayerAlertMap() {
+    prayerAlertMap = {};
+    PKEYS.forEach(p => {
+        const val = ptimes[p.id] || '--:--';
+        if (val !== '--:--') {
+            prayerAlertMap[val] = {
+                id: p.id,
+                label: p.label,
+                time: val
+            };
+        }
+    });
+}
+
+function checkPrayerReminder() {
+    const currentTime = window.__tvReminder?.getWIB ? window.__tvReminder.getWIB() : '--:--';
+    const prayer = prayerAlertMap[currentTime];
+    if (!prayer) return;
+
+    const pekanbaruDate = getPekanbaruDateParts().ymd;
+    const key = `prayer-alert-${pekanbaruDate}-${prayer.id}-${prayer.time}`;
+
+    if (localStorage.getItem(key)) return;
+
+    const title = `Waktu Sholat ${prayer.label}`;
+    const text = `Saat ini telah masuk waktu sholat ${prayer.label} untuk Kota Pekanbaru (${prayer.time} WIB).`;
+    window.__tvReminder.showReminder(title, text, key, '🕌');
+}
+
 function loadPrayerTimes(){
-    const d = new Date();
-    fetch(`https://api.aladhan.com/v1/timings/${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}?latitude=0.5071&longitude=101.4478&method=4&timezone=Asia/Jakarta`)
-        .then(r => r.json())
-        .then(data => {
-            const t = data?.data?.timings || {};
-            PKEYS.forEach(p => {
-                ptimes[p.id] = fmtPrayer(t[p.api]);
-                const el = document.getElementById('pv-' + p.id);
-                if (el) el.textContent = ptimes[p.id];
-            });
-            highlightActivePrayer();
+    const dateInfo = getPekanbaruDateParts();
+
+    fetch('https://equran.id/api/v2/shalat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            provinsi: 'Riau',
+            kabkota: 'Kota Pekanbaru',
+            bulan: dateInfo.monthNumber,
+            tahun: dateInfo.yearNumber
         })
-        .catch(err => console.warn('Prayer time error:', err));
+    })
+    .then(r => r.json())
+    .then(data => {
+        const jadwalBulanan = data?.data?.jadwal || [];
+        const jadwalHariIni = jadwalBulanan.find(item => Number(item.tanggal) === dateInfo.dayNumber);
+
+        if (!jadwalHariIni) {
+            throw new Error('Jadwal hari ini tidak ditemukan');
+        }
+
+        PKEYS.forEach(p => {
+            ptimes[p.id] = fmtPrayer(jadwalHariIni[p.api]);
+            const el = document.getElementById('pv-' + p.id);
+            if (el) el.textContent = ptimes[p.id];
+        });
+
+        buildPrayerAlertMap();
+        highlightActivePrayer();
+        checkPrayerReminder();
+    })
+    .catch(err => console.warn('Prayer time error:', err));
 }
 
 loadPrayerTimes();
-setInterval(highlightActivePrayer, 60000);
+setInterval(highlightActivePrayer, 30000);
+setInterval(checkPrayerReminder, 1000);
 setInterval(() => {
-    const n = new Date();
-    if (n.getHours() === 0 && n.getMinutes() < 2) {
+    const now = new Date();
+    const jakarta = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).formatToParts(now);
+
+    let h = '', m = '';
+    jakarta.forEach(p => {
+        if (p.type === 'hour') h = p.value;
+        if (p.type === 'minute') m = p.value;
+    });
+
+    if (h === '00' && Number(m) < 2) {
         loadPrayerTimes();
     }
 }, 60000);
 
-/* ─────────────────────────────
-   CHART 3D PLUGIN
-───────────────────────────── */
 const Bar3DPlugin = {
     id: 'bar3d',
     beforeDatasetsDraw(chart) {
@@ -1106,9 +1134,6 @@ const Bar3DPlugin = {
 
 Chart.register(Bar3DPlugin);
 
-/* ─────────────────────────────
-   SHARED OPTIONS
-───────────────────────────── */
 const gridC = 'rgba(13,27,42,.07)';
 const tickC = '#8ea4bb';
 
@@ -1175,9 +1200,7 @@ function baseOpts(extraX = {}) {
     };
 }
 
-/* ─────────────────────────────
-   FLOW GAS DAILY
-───────────────────────────── */
+/* GAS DAILY */
 (function(){
     const el = document.getElementById('cGasDaily');
     if (!el) return;
@@ -1212,9 +1235,38 @@ function baseOpts(extraX = {}) {
     });
 })();
 
-/* ─────────────────────────────
-   CRUDE DAILY
-───────────────────────────── */
+/* GAS MONTHLY */
+(function(){
+    const el = document.getElementById('cGasMonthly');
+    if (!el) return;
+
+    const ctx = el.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0, 'rgba(14,122,114,.90)');
+    grad.addColorStop(1, 'rgba(14,122,114,.52)');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: @json($gasMonthlyChartLabels ?? []),
+            datasets: [{
+                label: 'Avg MSCF',
+                data: @json($gasMonthlyChartValues ?? []),
+                backgroundColor: grad,
+                borderColor: 'rgba(14,122,114,1)',
+                borderWidth: 0,
+                borderRadius: { topLeft: 6, topRight: 6 },
+                borderSkipped: false,
+                maxBarThickness: 28,
+                _3dColor: 'rgba(86,188,180,.82)',
+                _3dColorDark: 'rgba(7,88,82,.86)'
+            }]
+        },
+        options: baseOpts()
+    });
+})();
+
+/* CRUDE DAILY */
 (function(){
     const el = document.getElementById('cCrudeDaily');
     if (!el) return;
@@ -1245,9 +1297,7 @@ function baseOpts(extraX = {}) {
     });
 })();
 
-/* ─────────────────────────────
-   VITOL MONTHLY
-───────────────────────────── */
+/* VITOL MONTHLY */
 (function(){
     const el = document.getElementById('cVitol');
     if (!el) return;
@@ -1290,9 +1340,7 @@ function baseOpts(extraX = {}) {
     });
 })();
 
-/* ─────────────────────────────
-   GAS YEARLY
-───────────────────────────── */
+/* GAS YEARLY */
 (function(){
     const el = document.getElementById('cGasYearly');
     if (!el) return;
@@ -1334,30 +1382,7 @@ function baseOpts(extraX = {}) {
         }
     });
 })();
-
-/* ─────────────────────────────
-   AUDIO
-───────────────────────────── */
-(function () {
-    const audio = document.getElementById('tvBackgroundMusic');
-    if (!audio) return;
-
-    audio.volume = 0.35;
-
-    const tryPlay = () => {
-        audio.play().catch(() => {});
-    };
-
-    tryPlay();
-
-    document.addEventListener('click', tryPlay, { once: true });
-    document.addEventListener('keydown', tryPlay, { once: true });
-
-    audio.addEventListener('ended', function () {
-        audio.currentTime = 0;
-        tryPlay();
-    });
-})();
 </script>
+
 </body>
 </html>

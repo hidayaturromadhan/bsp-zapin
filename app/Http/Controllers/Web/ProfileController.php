@@ -18,10 +18,8 @@ class ProfileController extends Controller
             ->orderBy('id')
             ->get()
             ->map(function ($page) use ($locale) {
-                $translation = method_exists($page, 'getTranslationByLocale')
-                    ? $page->getTranslationByLocale($locale)
-                    : $page->translations->firstWhere('locale', $locale)
-                        ?? $page->translations->firstWhere('locale', 'id');
+                $translation = $page->translations->firstWhere('locale', $locale)
+                    ?? $page->translations->firstWhere('locale', 'id');
 
                 if (! $translation) {
                     return null;
@@ -71,11 +69,9 @@ class ProfileController extends Controller
 
         $pageModel = $translation->page;
 
-        $page = $pageModel && method_exists($pageModel, 'getTranslationByLocale')
-            ? $pageModel->getTranslationByLocale($locale)
-            : $translation;
+        $page = $translation;
 
-        if ($page && $pageModel) {
+        if ($pageModel) {
             $page->setRelation('page', $pageModel);
         }
 
@@ -87,10 +83,8 @@ class ProfileController extends Controller
             ->orderBy('id')
             ->get()
             ->map(function ($item) use ($locale) {
-                $itemTranslation = method_exists($item, 'getTranslationByLocale')
-                    ? $item->getTranslationByLocale($locale)
-                    : $item->translations->firstWhere('locale', $locale)
-                        ?? $item->translations->firstWhere('locale', 'id');
+                $itemTranslation = $item->translations->firstWhere('locale', $locale)
+                    ?? $item->translations->firstWhere('locale', 'id');
 
                 if (! $itemTranslation) {
                     return null;

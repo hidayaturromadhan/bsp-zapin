@@ -3,562 +3,794 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reviewer Panel — {{ config('app.name', 'BSP Zapin') }}</title>
+    <title>@yield('title', 'Reviewer Panel') — {{ config('app.name', 'BSP Zapin') }}</title>
+
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --g950: #0b1f05;
-            --g900: #0f2906;
-            --g850: #123107;
-            --g800: #173f08;
-            --g700: #21560e;
-            --g600: #2b6b16;
-            --g500: #2f7d32;
-
-            --bg: #f4f7f6;
-            --surface: #ffffff;
-            --surface-soft: #f8fbf9;
-            --text: #0f172a;
-            --text-soft: #64748b;
-            --line: #e2e8f0;
-            --line-soft: #edf2f7;
-
-            --shadow-sm: 0 8px 20px rgba(15, 23, 42, .05);
-            --shadow-md: 0 14px 32px rgba(15, 23, 42, .08);
-
-            --radius: 20px;
-            --radius-md: 16px;
-            --radius-sm: 12px;
-
-            --sidebar-w: 280px;
-            --topbar-h: 74px;
+        :root{
+            --bg:#f4f7f6;
+            --surface:#ffffff;
+            --surface-soft:#f8fbf9;
+            --text:#0f172a;
+            --text-soft:#64748b;
+            --line:#e2e8f0;
+            --line-soft:#edf2f7;
+            --primary:#173f08;
+            --primary-2:#21560e;
+            --primary-soft:#eef6eb;
+            --danger:#dc2626;
+            --danger-soft:#fef2f2;
+            --warning:#d97706;
+            --warning-soft:#fffbeb;
+            --success:#15803d;
+            --success-soft:#f0fdf4;
+            --info:#2563eb;
+            --info-soft:#eff6ff;
+            --white:#ffffff;
+            --shadow:0 10px 30px rgba(15,23,42,.08);
+            --radius:20px;
+            --sidebar-w:280px;
+            --topbar-h:74px;
         }
 
-        * {
-            box-sizing: border-box;
+        *{box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        body{
+            margin:0;
+            font-family:'Plus Jakarta Sans',sans-serif;
+            background:var(--bg);
+            color:var(--text);
         }
 
-        html {
-            scroll-behavior: smooth;
+        a{text-decoration:none;color:inherit}
+        button,input,textarea,select{font:inherit}
+        img{max-width:100%}
+
+        .r-shell{
+            min-height:100vh;
+            display:grid;
+            grid-template-columns:var(--sidebar-w) 1fr;
         }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
-
-        .r-shell {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-        }
-
-        .r-sidebar {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
+        .r-sidebar{
+            position:sticky;
+            top:0;
+            height:100vh;
+            overflow-y:auto;
             background:
-                radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 28%),
-                linear-gradient(180deg, #173f08 0%, #0f2906 100%);
-            color: #fff;
-            padding: 22px 18px 20px;
-            border-right: 1px solid rgba(255,255,255,.08);
+                radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 30%),
+                linear-gradient(180deg,#173f08 0%,#102d06 100%);
+            color:var(--white);
+            padding:22px 18px 20px;
+            border-right:1px solid rgba(255,255,255,.08);
+            z-index:50;
         }
 
-        .r-sidebar::-webkit-scrollbar {
-            width: 8px;
+        .r-brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            margin-bottom:22px;
+            padding:8px 6px 2px;
         }
 
-        .r-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,.16);
-            border-radius: 999px;
+        .r-brand-logo{
+            width:44px;
+            height:44px;
+            border-radius:14px;
+            background:rgba(255,255,255,.08);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            flex-shrink:0;
+            border:1px solid rgba(255,255,255,.08);
         }
 
-        .r-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            margin-bottom: 18px;
+        .r-brand-logo img{
+            width:34px;
+            height:34px;
+            object-fit:contain;
         }
 
-        .r-brand-logo {
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
-            overflow: hidden;
-            background: rgba(255,255,255,.08);
-            border: 1px solid rgba(255,255,255,.10);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+        .r-brand-title{
+            font-size:22px;
+            font-weight:900;
+            letter-spacing:-.03em;
+            line-height:1.1;
+            margin:0 0 3px;
         }
 
-        .r-brand-logo img {
-            width: 34px;
-            height: 34px;
-            object-fit: contain;
+        .r-brand-subtitle{
+            font-size:13px;
+            color:rgba(255,255,255,.72);
+            margin:0;
         }
 
-        .r-brand-copy {
-            min-width: 0;
+        .r-role-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            min-height:40px;
+            padding:0 14px;
+            border-radius:999px;
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.10);
+            color:#f8fafc;
+            font-weight:800;
+            margin:8px 0 18px;
         }
 
-        .r-brand-title {
-            font-size: 22px;
-            font-weight: 800;
-            line-height: 1.05;
-            letter-spacing: -.03em;
-            margin: 0;
+        .r-role-dot{
+            width:8px;
+            height:8px;
+            border-radius:999px;
+            background:#bfdbfe;
+            box-shadow:0 0 0 4px rgba(191,219,254,.14);
         }
 
-        .r-brand-subtitle {
-            margin-top: 4px;
-            font-size: 12px;
-            color: rgba(255,255,255,.72);
+        .r-nav-group{margin-top:16px}
+
+        .r-nav-label{
+            display:block;
+            font-size:11px;
+            font-weight:800;
+            letter-spacing:.12em;
+            text-transform:uppercase;
+            color:rgba(255,255,255,.52);
+            margin:0 10px 10px;
         }
 
-        .r-role-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin: 2px 0 18px;
-            padding: 9px 13px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #eaffdf;
-            background: rgba(255,255,255,.08);
-            border: 1px solid rgba(255,255,255,.08);
+        .r-nav{
+            display:grid;
+            gap:6px;
         }
 
-        .r-role-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: #c7f9b1;
-            display: inline-block;
-            box-shadow: 0 0 0 4px rgba(199,249,177,.14);
+        .r-nav-item{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            min-height:48px;
+            padding:0 14px;
+            border-radius:14px;
+            color:rgba(255,255,255,.88);
+            transition:background .18s ease,color .18s ease,transform .18s ease;
         }
 
-        .r-nav-group {
-            margin-bottom: 20px;
+        .r-nav-item:hover{
+            background:rgba(255,255,255,.08);
+            color:var(--white);
+            transform:translateX(2px);
         }
 
-        .r-nav-label {
-            display: block;
-            padding: 0 10px 10px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .14em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,.55);
+        .r-nav-item.active{
+            background:var(--primary-soft);
+            color:var(--primary);
+            box-shadow:inset 0 0 0 1px rgba(23,63,8,.06);
         }
 
-        .r-nav {
-            display: grid;
-            gap: 6px;
+        .r-nav-icon{
+            width:19px;
+            height:19px;
+            flex-shrink:0;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
         }
 
-        .r-nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-height: 48px;
-            padding: 0 14px;
-            border-radius: 14px;
-            color: rgba(255,255,255,.86);
-            font-size: 14px;
-            font-weight: 700;
-            transition: background .18s ease, color .18s ease, transform .18s ease;
+        .r-nav-icon svg{
+            width:19px;
+            height:19px;
+            stroke:currentColor;
         }
 
-        .r-nav-item:hover {
-            background: rgba(255,255,255,.08);
-            color: #fff;
-            transform: translateX(2px);
+        .r-nav-text{
+            font-size:15px;
+            font-weight:800;
+            line-height:1.2;
         }
 
-        .r-nav-item.active {
-            background: #eef6eb;
-            color: #173f08;
-            box-shadow: inset 3px 0 0 #2f7d32;
+        .r-main{
+            min-width:0;
+            display:flex;
+            flex-direction:column;
         }
 
-        .r-nav-icon {
-            width: 18px;
-            height: 18px;
-            flex: 0 0 18px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .r-nav-icon svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-        }
-
-        .r-main {
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .r-topbar {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            min-height: var(--topbar-h);
+        .r-topbar{
+            position:sticky;
+            top:0;
+            z-index:30;
+            height:var(--topbar-h);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            padding:14px 28px;
             background:
                 radial-gradient(circle at left center, rgba(255,255,255,.08), transparent 26%),
-                linear-gradient(90deg, var(--g900), var(--g700));
-            color: #fff;
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
+                linear-gradient(90deg,#102d06 0%,#21560e 100%);
+            color:var(--white);
+            border-bottom:1px solid rgba(255,255,255,.08);
         }
 
-        .r-topbar-left {
-            min-width: 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .r-topbar-left{
+            display:flex;
+            align-items:center;
+            gap:14px;
+            min-width:0;
         }
 
-        .r-topbar-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 13px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 700;
-            background: rgba(255,255,255,.10);
-            border: 1px solid rgba(255,255,255,.08);
-            white-space: nowrap;
+        .r-mobile-menu{
+            display:none;
+            width:42px;
+            height:42px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.14);
+            background:rgba(255,255,255,.08);
+            color:var(--white);
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            flex-shrink:0;
         }
 
-        .r-topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+        .r-topbar-title strong{
+            display:block;
+            font-size:17px;
+            font-weight:900;
+            line-height:1.2;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
         }
 
-        .r-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 42px;
-            padding: 0 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+        .r-topbar-title span{
+            display:block;
+            font-size:12px;
+            color:rgba(255,255,255,.72);
+            margin-top:3px;
         }
 
-        .r-btn:hover {
-            transform: translateY(-1px);
+        .r-topbar-right{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            flex-shrink:0;
         }
 
-        .r-btn svg {
-            width: 17px;
-            height: 17px;
-            stroke: currentColor;
+        .r-user{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:7px 10px;
+            border-radius:999px;
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.10);
         }
 
-        .r-btn-light {
-            background: rgba(255,255,255,.08);
-            color: #fff;
-            border-color: rgba(255,255,255,.12);
+        .r-user-avatar{
+            width:34px;
+            height:34px;
+            border-radius:999px;
+            background:#eef6eb;
+            color:#173f08;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:13px;
+            font-weight:900;
+            flex-shrink:0;
         }
 
-        .r-btn-light:hover {
-            background: rgba(255,255,255,.14);
+        .r-user-name{
+            font-size:13px;
+            font-weight:900;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            max-width:150px;
         }
 
-        .r-btn-white {
-            background: #fff;
-            color: var(--g800);
+        .r-user-role{
+            font-size:11px;
+            color:rgba(255,255,255,.68);
+            margin-top:2px;
+            text-transform:capitalize;
         }
 
-        .r-btn-white:hover {
-            background: #f4f7f4;
+        .r-logout-btn{
+            min-height:42px;
+            padding:0 14px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.14);
+            background:rgba(255,255,255,.08);
+            color:#fff;
+            font-weight:800;
+            cursor:pointer;
         }
 
-        .r-content {
-            padding: 28px;
+        .r-content{
+            padding:28px;
+            width:100%;
+            max-width:1500px;
         }
 
-        .r-page {
-            max-width: 1320px;
-            margin: 0 auto;
+        .a-page-head{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:18px;
+            margin-bottom:20px;
         }
 
-        .r-mobile-menu {
-            display: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.14);
-            background: rgba(255,255,255,.08);
-            color: #fff;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
+        .a-breadcrumb{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:12px;
+            font-weight:800;
+            color:var(--text-soft);
+            margin-bottom:8px;
+            flex-wrap:wrap;
         }
 
-        .r-mobile-menu svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
+        .a-breadcrumb a{color:var(--primary)}
+        .a-breadcrumb-sep{color:#94a3b8}
+
+        .a-page-title{
+            margin:0;
+            font-size:28px;
+            line-height:1.15;
+            letter-spacing:-.04em;
+            font-weight:900;
+            color:var(--text);
         }
 
-        .r-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, .42);
-            opacity: 0;
-            visibility: hidden;
-            transition: .2s ease;
-            z-index: 39;
+        .a-page-desc{
+            margin:8px 0 0;
+            color:var(--text-soft);
+            font-size:14px;
+            line-height:1.7;
         }
 
-        @media (max-width: 1080px) {
-            .r-shell {
-                grid-template-columns: 1fr;
+        .a-card{
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            padding:18px;
+            box-shadow:var(--shadow);
+        }
+
+        .a-card-head{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+            margin-bottom:16px;
+        }
+
+        .a-card-title{
+            font-size:16px;
+            font-weight:900;
+            color:var(--text);
+        }
+
+        .a-card-desc{
+            margin-top:4px;
+            font-size:13px;
+            color:var(--text-soft);
+            line-height:1.5;
+        }
+
+        .a-label{
+            display:block;
+            font-size:13px;
+            font-weight:800;
+            color:#334155;
+            margin-bottom:7px;
+        }
+
+        .a-input{
+            width:100%;
+            min-height:44px;
+            border:1px solid #cbd5e1;
+            border-radius:12px;
+            background:#fff;
+            color:#0f172a;
+            padding:10px 12px;
+            outline:none;
+            transition:border-color .16s ease,box-shadow .16s ease;
+        }
+
+        textarea.a-input{
+            min-height:110px;
+            resize:vertical;
+            line-height:1.7;
+        }
+
+        .a-input:focus{
+            border-color:var(--primary);
+            box-shadow:0 0 0 4px rgba(23,63,8,.10);
+        }
+
+        .a-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            min-height:44px;
+            padding:0 16px;
+            border-radius:12px;
+            border:1px solid transparent;
+            font-size:14px;
+            font-weight:900;
+            cursor:pointer;
+            transition:transform .16s ease,background .16s ease,border-color .16s ease;
+            white-space:nowrap;
+        }
+
+        .a-btn:hover{transform:translateY(-1px)}
+
+        .a-btn--primary{
+            background:var(--primary);
+            color:#fff;
+            border-color:var(--primary);
+        }
+
+        .a-btn--secondary{
+            background:#fff;
+            color:#334155;
+            border-color:#cbd5e1;
+        }
+
+        .a-btn--light{
+            background:#f8fafc;
+            color:#334155;
+            border-color:#e2e8f0;
+        }
+
+        .a-btn--danger{
+            background:var(--danger);
+            color:#fff;
+            border-color:var(--danger);
+        }
+
+        .a-btn--sm{
+            min-height:34px;
+            padding:0 11px;
+            border-radius:10px;
+            font-size:12px;
+        }
+
+        .a-alert{
+            padding:13px 15px;
+            border-radius:14px;
+            margin-bottom:16px;
+            font-size:14px;
+            font-weight:700;
+            line-height:1.6;
+            border:1px solid transparent;
+        }
+
+        .a-alert--success{
+            background:var(--success-soft);
+            color:#166534;
+            border-color:#bbf7d0;
+        }
+
+        .a-alert--danger{
+            background:var(--danger-soft);
+            color:#991b1b;
+            border-color:#fecaca;
+        }
+
+        .a-alert--info{
+            background:var(--info-soft);
+            color:#1e40af;
+            border-color:#bfdbfe;
+        }
+
+        .a-alert--warning{
+            background:var(--warning-soft);
+            color:#92400e;
+            border-color:#fde68a;
+        }
+
+        .a-table-wrap{
+            width:100%;
+            overflow-x:auto;
+            border:1px solid var(--line-soft);
+            border-radius:16px;
+        }
+
+        .a-table{
+            width:100%;
+            border-collapse:collapse;
+            min-width:900px;
+            background:#fff;
+        }
+
+        .a-table th{
+            background:#f8fafc;
+            color:#475569;
+            font-size:12px;
+            font-weight:900;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+            padding:13px 14px;
+            text-align:left;
+            border-bottom:1px solid var(--line);
+        }
+
+        .a-table td{
+            padding:14px;
+            border-bottom:1px solid var(--line-soft);
+            vertical-align:top;
+            font-size:14px;
+        }
+
+        .a-table tbody tr:hover{background:#fbfdfb}
+        .a-table tbody tr:last-child td{border-bottom:none}
+
+        .a-badge{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:28px;
+            padding:0 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:900;
+            border:1px solid transparent;
+            white-space:nowrap;
+        }
+
+        .a-badge--gray{
+            background:#f1f5f9;
+            color:#475569;
+            border-color:#e2e8f0;
+        }
+
+        .a-badge--blue{
+            background:#eff6ff;
+            color:#1d4ed8;
+            border-color:#bfdbfe;
+        }
+
+        .a-badge--orange{
+            background:#fffbeb;
+            color:#b45309;
+            border-color:#fde68a;
+        }
+
+        .a-badge--green{
+            background:#f0fdf4;
+            color:#15803d;
+            border-color:#bbf7d0;
+        }
+
+        .a-badge--red{
+            background:#fef2f2;
+            color:#b91c1c;
+            border-color:#fecaca;
+        }
+
+        .a-empty{
+            padding:40px 18px;
+            text-align:center;
+            color:#64748b;
+        }
+
+        .a-empty-title{
+            font-size:18px;
+            font-weight:900;
+            color:#0f172a;
+            margin-bottom:6px;
+        }
+
+        .a-empty-desc{
+            font-size:14px;
+            margin-bottom:16px;
+        }
+
+        .r-overlay{
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(15,23,42,.48);
+            z-index:40;
+        }
+
+        @media (max-width:1100px){
+            .r-shell{grid-template-columns:1fr}
+            .r-sidebar{
+                position:fixed;
+                left:0;
+                top:0;
+                transform:translateX(-100%);
+                transition:transform .22s ease;
+                width:var(--sidebar-w);
             }
 
-            .r-sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                width: min(86vw, 320px);
-                height: 100vh;
-                transform: translateX(-100%);
-                transition: transform .24s ease;
-                z-index: 40;
-                box-shadow: 0 20px 40px rgba(0,0,0,.24);
-            }
-
-            .r-shell.is-sidebar-open .r-sidebar {
-                transform: translateX(0);
-            }
-
-            .r-shell.is-sidebar-open .r-overlay {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            .r-mobile-menu {
-                display: inline-flex;
-            }
+            body.sidebar-open .r-sidebar{transform:translateX(0)}
+            body.sidebar-open .r-overlay{display:block}
+            .r-mobile-menu{display:inline-flex}
+            .r-content{padding:22px}
         }
 
-        @media (max-width: 760px) {
-            .r-topbar,
-            .r-content {
-                padding-left: 16px;
-                padding-right: 16px;
+        @media (max-width:760px){
+            .r-topbar{padding:12px 16px}
+            .r-user-copy{display:none}
+            .r-logout-btn{padding:0 11px}
+            .r-content{padding:16px}
+            .a-page-head{
+                display:grid;
+                gap:14px;
             }
-
-            .r-topbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .r-topbar-left,
-            .r-topbar-actions {
-                width: 100%;
-            }
-
-            .r-topbar-actions {
-                justify-content: stretch;
-            }
-
-            .r-topbar-actions > * {
-                flex: 1 1 auto;
-            }
-
-            .r-btn,
-            .r-topbar-actions form {
-                width: 100%;
-            }
-
-            .r-topbar-badge {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .r-brand-title {
-                font-size: 20px;
-            }
+            .a-page-title{font-size:24px}
+            .a-card{padding:15px;border-radius:16px}
         }
     </style>
+
+    @stack('styles')
 </head>
+
 <body>
-    <div class="r-shell" id="reviewerShell">
-        <div class="r-overlay" id="reviewerOverlay"></div>
+@php
+    $user = Auth::user();
+    $userName = $user?->name ?? session('user_name', 'Reviewer');
+    $userRole = $user?->role ?? session('user_role', 'reviewer');
 
-        <aside class="r-sidebar" id="reviewerSidebar">
-            <div class="r-brand">
-                <div class="r-brand-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo BSP Zapin">
-                </div>
+    $initials = collect(explode(' ', trim($userName)))
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => mb_substr($part, 0, 1))
+        ->implode('');
 
-                <div class="r-brand-copy">
-                    <div class="r-brand-title">BSP Zapin</div>
-                    <div class="r-brand-subtitle">Reviewer Panel</div>
-                </div>
+    $initials = $initials ?: 'R';
+
+    $isDashboardActive = request()->routeIs('reviewer.dashboard');
+    $isNewsActive = request()->routeIs('reviewer.news.*');
+    $isTjslActive = request()->routeIs('reviewer.tjsl.*');
+@endphp
+
+<div class="r-overlay" id="reviewerOverlay"></div>
+
+<div class="r-shell">
+    <aside class="r-sidebar" id="reviewerSidebar">
+        <div class="r-brand">
+            <div class="r-brand-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="BSP Zapin">
             </div>
-
-            <div class="r-role-pill">
-                <span class="r-role-dot"></span>
-                Reviewer Workspace
+            <div>
+                <p class="r-brand-title">Reviewer</p>
+                <p class="r-brand-subtitle">BSP Zapin Panel</p>
             </div>
+        </div>
 
-            <div class="r-nav-group">
-                <span class="r-nav-label">Utama</span>
+        <div class="r-role-badge">
+            <span class="r-role-dot"></span>
+            <span>Reviewer Area</span>
+        </div>
 
-                <nav class="r-nav">
-                    <a href="{{ route('reviewer.dashboard') }}"
-                       class="r-nav-item {{ request()->routeIs('reviewer.dashboard') ? 'active' : '' }}">
-                        <span class="r-nav-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                                <path d="M3 13.5 12 5l9 8.5"/>
-                                <path d="M5 11.5V20h14v-8.5"/>
-                            </svg>
-                        </span>
-                        <span>Dashboard</span>
-                    </a>
+        <div class="r-nav-group">
+            <span class="r-nav-label">Menu Utama</span>
 
-                    <a href="{{ route('reviewer.news.index') }}"
-                       class="r-nav-item {{ request()->routeIs('reviewer.news.*') ? 'active' : '' }}">
-                        <span class="r-nav-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                                <rect x="4" y="4" width="16" height="16" rx="2"/>
-                                <path d="M8 8h8M8 12h8M8 16h5"/>
-                            </svg>
-                        </span>
-                        <span>Review Queue</span>
-                    </a>
-                </nav>
-            </div>
-        </aside>
-
-        <main class="r-main">
-            <div class="r-topbar">
-                <div class="r-topbar-left">
-                    <button type="button" class="r-mobile-menu" id="reviewerMenuButton" aria-label="Buka menu">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                            <path d="M4 7h16M4 12h16M4 17h16"/>
+            <nav class="r-nav">
+                <a href="{{ route('reviewer.dashboard') }}" class="r-nav-item {{ $isDashboardActive ? 'active' : '' }}">
+                    <span class="r-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 13h8V3H3v10Z"/>
+                            <path d="M13 21h8V11h-8v10Z"/>
+                            <path d="M13 3h8v6h-8V3Z"/>
+                            <path d="M3 21h8v-6H3v6Z"/>
                         </svg>
-                    </button>
+                    </span>
+                    <span class="r-nav-text">Dashboard</span>
+                </a>
 
-                    <div class="r-topbar-badge">
-                        <span class="r-role-dot"></span>
-                        BSP Zapin Reviewer CMS
+                <a href="{{ route('reviewer.news.index') }}" class="r-nav-item {{ $isNewsActive ? 'active' : '' }}">
+                    <span class="r-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+                            <path d="M8 7h8"/>
+                            <path d="M8 11h8"/>
+                            <path d="M8 15h5"/>
+                        </svg>
+                    </span>
+                    <span class="r-nav-text">Review News</span>
+                </a>
+
+                <a href="{{ route('reviewer.tjsl.index') }}" class="r-nav-item {{ $isTjslActive ? 'active' : '' }}">
+                    <span class="r-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/>
+                            <path d="M9 12l2 2 4-5"/>
+                        </svg>
+                    </span>
+                    <span class="r-nav-text">Review TJSL</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="r-nav-group">
+            <span class="r-nav-label">Website</span>
+
+            <nav class="r-nav">
+                <a href="{{ route('web.home', ['locale' => 'id']) }}" target="_blank" class="r-nav-item">
+                    <span class="r-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                    </span>
+                    <span class="r-nav-text">Lihat Website</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="r-main">
+        <header class="r-topbar">
+            <div class="r-topbar-left">
+                <button type="button" class="r-mobile-menu" id="reviewerMenuBtn" aria-label="Buka Menu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                        <path d="M4 6h16"/>
+                        <path d="M4 12h16"/>
+                        <path d="M4 18h16"/>
+                    </svg>
+                </button>
+
+                <div class="r-topbar-title">
+                    <strong>@yield('title', 'Reviewer Panel')</strong>
+                    <span>Validasi dan publikasi konten website BSP Zapin</span>
+                </div>
+            </div>
+
+            <div class="r-topbar-right">
+                <div class="r-user">
+                    <div class="r-user-avatar">{{ strtoupper($initials) }}</div>
+                    <div class="r-user-copy">
+                        <div class="r-user-name">{{ $userName }}</div>
+                        <div class="r-user-role">{{ $userRole }}</div>
                     </div>
                 </div>
 
-                <div class="r-topbar-actions">
-                    <a href="{{ route('web.home', ['locale' => 'id']) }}" class="r-btn r-btn-light" target="_blank">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                            <path d="M7 17 17 7"/>
-                            <path d="M8 7h9v9"/>
-                        </svg>
-                        <span>Lihat Website</span>
-                    </a>
-
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="r-btn r-btn-white">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                <path d="M16 17l5-5-5-5"/>
-                                <path d="M21 12H9"/>
-                            </svg>
-                            <span>Logout</span>
-                        </button>
-                    </form>
-                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="r-logout-btn">Logout</button>
+                </form>
             </div>
+        </header>
 
-            <div class="r-content">
-                <div class="r-page">
-                    @yield('content')
-                </div>
-            </div>
-        </main>
-    </div>
+        <section class="r-content">
+            @yield('content')
+        </section>
+    </main>
+</div>
 
-    <script>
-        (function () {
-            const shell = document.getElementById('reviewerShell');
-            const overlay = document.getElementById('reviewerOverlay');
-            const menuButton = document.getElementById('reviewerMenuButton');
+<script>
+    const reviewerMenuBtn = document.getElementById('reviewerMenuBtn');
+    const reviewerOverlay = document.getElementById('reviewerOverlay');
 
-            if (!shell || !overlay || !menuButton) return;
+    if (reviewerMenuBtn) {
+        reviewerMenuBtn.addEventListener('click', function () {
+            document.body.classList.add('sidebar-open');
+        });
+    }
 
-            function openSidebar() {
-                shell.classList.add('is-sidebar-open');
-                document.body.style.overflow = 'hidden';
-            }
+    if (reviewerOverlay) {
+        reviewerOverlay.addEventListener('click', function () {
+            document.body.classList.remove('sidebar-open');
+        });
+    }
+</script>
 
-            function closeSidebar() {
-                shell.classList.remove('is-sidebar-open');
-                document.body.style.overflow = '';
-            }
-
-            menuButton.addEventListener('click', function () {
-                if (shell.classList.contains('is-sidebar-open')) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-
-            overlay.addEventListener('click', closeSidebar);
-
-            window.addEventListener('resize', function () {
-                if (window.innerWidth > 1080) {
-                    closeSidebar();
-                }
-            });
-        })();
-    </script>
+@stack('scripts')
 </body>
 </html>

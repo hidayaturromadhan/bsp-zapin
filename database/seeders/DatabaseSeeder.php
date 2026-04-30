@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             NewsCategorySeeder::class,
             PageSeeder::class,
+            WbsReportSeeder::class,
         ]);
     }
 }

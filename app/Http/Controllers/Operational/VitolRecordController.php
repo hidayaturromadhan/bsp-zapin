@@ -10,24 +10,19 @@ class VitolRecordController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = [
-            'year' => $request->input('year'),
-            'month' => $request->input('month'),
-            'search' => $request->input('search'),
-        ];
-
         $query = VitolRecord::query();
 
-        if (!empty($filters['year'])) {
-            $query->where('year', (int) $filters['year']);
+        if ($request->filled('year')) {
+            $query->where('year', (int) $request->year);
         }
 
-        if (!empty($filters['month'])) {
-            $query->where('month', (int) $filters['month']);
+        if ($request->filled('month')) {
+            $query->where('month', (int) $request->month);
         }
 
-        if (!empty($filters['search'])) {
-            $search = trim((string) $filters['search']);
+        if ($request->filled('search')) {
+            $search = trim((string) $request->search);
+
             $query->where(function ($q) use ($search) {
                 $q->where('unit', 'like', '%' . $search . '%')
                     ->orWhere('notes', 'like', '%' . $search . '%');
@@ -37,153 +32,135 @@ class VitolRecordController extends Controller
         $records = $query
             ->orderByDesc('year')
             ->orderByDesc('month')
-            ->paginate(20)
+            ->paginate(10)
+            ->through(function ($record) {
+                $record->month_label = $this->monthOptions()[(int) $record->month] ?? '-';
+                return $record;
+            })
             ->withQueryString();
 
-        $summaryQuery = VitolRecord::query();
-
-        if (!empty($filters['year'])) {
-            $summaryQuery->where('year', (int) $filters['year']);
-        }
-
-        if (!empty($filters['month'])) {
-            $summaryQuery->where('month', (int) $filters['month']);
-        }
+        $summaryQuery = clone $query;
 
         $summary = [
             'count' => (clone $summaryQuery)->count(),
-            'total_quantity' => (float) (clone $summaryQuery)->sum('quantity'),
-            'total_fee_rate' => (float) (clone $summaryQuery)->sum('fee_rate'),
-            'total_commission' => (float) (clone $summaryQuery)->sum('commission'),
+            'total_quantity' => (clone $summaryQuery)->sum('quantity'),
         ];
 
         $yearOptions = VitolRecord::query()
             ->select('year')
             ->distinct()
             ->orderByDesc('year')
-            ->pluck('year')
-            ->filter()
-            ->values();
+            ->pluck('year');
 
-        if ($yearOptions->isEmpty()) {
-            $yearOptions = collect([now()->year]);
-        }
+        $monthOptions = $this->monthOptions();
+        $filters = $request->only(['year', 'month', 'search']);
 
         return view('operational.vitol.index', [
             'records' => $records,
-            'filters' => $filters,
             'summary' => $summary,
             'yearOptions' => $yearOptions,
-            'monthOptions' => $this->monthOptions(),
-            'unitOptions' => $this->unitOptions(),
+            'monthOptions' => $monthOptions,
+            'filters' => $filters,
         ]);
     }
 
     public function create()
     {
         return view('operational.vitol.create', [
+            'defaultYear' => now()->year,
             'monthOptions' => $this->monthOptions(),
             'unitOptions' => $this->unitOptions(),
-            'defaultYear' => now()->year,
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $data = $request->validate([
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'month' => ['required', 'integer', 'between:1,12'],
-            'quantity' => ['required', 'numeric'],
-            'unit' => ['required', 'string', 'max:50'],
-            'fee_rate' => ['nullable', 'numeric'],
-            'commission' => ['nullable', 'numeric'],
+            'quantity' => ['required', 'numeric', 'min:0'],
+            'unit' => ['required', 'string', 'in:' . implode(',', array_keys($this->unitOptions()))],
             'notes' => ['nullable', 'string'],
         ]);
 
-        $exists = VitolRecord::query()
-            ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
-            ->exists();
-
-        if ($exists) {
-            return back()
-                ->withErrors(['month' => 'Data VITOL untuk bulan dan tahun tersebut sudah ada.'])
-                ->withInput();
-        }
-
-        VitolRecord::create($validated);
+        VitolRecord::create([
+            'year' => (int) $data['year'],
+            'month' => (int) $data['month'],
+            'quantity' => $data['quantity'],
+            'unit' => $data['unit'],
+            'fee_rate' => 0,
+            'commission' => 0,
+            'notes' => $data['notes'] ?? null,
+        ]);
 
         return redirect()
-            ->route('operational.vitol.index', [
-                'year' => $validated['year'],
-                'month' => $validated['month'],
-            ])
+            ->route('operational.vitol.index')
             ->with('success', 'Data VITOL berhasil ditambahkan.');
     }
 
-    public function edit(VitolRecord $vitol)
+    public function edit(int $id)
     {
+        $record = VitolRecord::findOrFail($id);
+
         return view('operational.vitol.edit', [
-            'record' => $vitol,
+            'record' => $record,
             'monthOptions' => $this->monthOptions(),
             'unitOptions' => $this->unitOptions(),
         ]);
     }
 
-    public function update(Request $request, VitolRecord $vitol)
+    public function update(Request $request, int $id)
     {
-        $validated = $request->validate([
+        $record = VitolRecord::findOrFail($id);
+
+        $data = $request->validate([
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'month' => ['required', 'integer', 'between:1,12'],
-            'quantity' => ['required', 'numeric'],
-            'unit' => ['required', 'string', 'max:50'],
-            'fee_rate' => ['nullable', 'numeric'],
-            'commission' => ['nullable', 'numeric'],
+            'quantity' => ['required', 'numeric', 'min:0'],
+            'unit' => ['required', 'string', 'in:' . implode(',', array_keys($this->unitOptions()))],
             'notes' => ['nullable', 'string'],
         ]);
 
-        $exists = VitolRecord::query()
-            ->where('id', '!=', $vitol->id)
-            ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
-            ->exists();
-
-        if ($exists) {
-            return back()
-                ->withErrors(['month' => 'Data VITOL untuk bulan dan tahun tersebut sudah ada.'])
-                ->withInput();
-        }
-
-        $vitol->update($validated);
+        $record->update([
+            'year' => (int) $data['year'],
+            'month' => (int) $data['month'],
+            'quantity' => $data['quantity'],
+            'unit' => $data['unit'],
+            'fee_rate' => 0,
+            'commission' => 0,
+            'notes' => $data['notes'] ?? null,
+        ]);
 
         return redirect()
-            ->route('operational.vitol.index', [
-                'year' => $validated['year'],
-                'month' => $validated['month'],
-            ])
+            ->route('operational.vitol.index')
             ->with('success', 'Data VITOL berhasil diperbarui.');
     }
 
-    public function destroy(VitolRecord $vitol)
+    public function destroy(int $id)
     {
-        $year = $vitol->year;
-        $month = $vitol->month;
-
-        $vitol->delete();
+        $record = VitolRecord::findOrFail($id);
+        $record->delete();
 
         return redirect()
-            ->route('operational.vitol.index', [
-                'year' => $year,
-                'month' => $month,
-            ])
+            ->route('operational.vitol.index')
             ->with('success', 'Data VITOL berhasil dihapus.');
     }
 
     private function monthOptions(): array
     {
         return [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
-            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
     }
 
@@ -192,6 +169,7 @@ class VitolRecordController extends Controller
         return [
             'BBL' => 'BBL',
             'MT' => 'MT',
+            'KL' => 'KL',
         ];
     }
 }

@@ -49,6 +49,215 @@
 }
 
 /* =========================
+   SKELETON LOADING
+========================= */
+.media-real-content {
+    display: none;
+}
+
+.media-real-content.is-loaded {
+    display: block;
+}
+
+.media-skeleton {
+    display: block;
+}
+
+.media-skeleton.is-hidden {
+    display: none;
+}
+
+.skeleton-line,
+.skeleton-img,
+.skeleton-card,
+.skeleton-input,
+.skeleton-button,
+.skeleton-circle {
+    position: relative;
+    overflow: hidden;
+    background: #e5e7eb;
+}
+
+.skeleton-line::after,
+.skeleton-img::after,
+.skeleton-card::after,
+.skeleton-input::after,
+.skeleton-button::after,
+.skeleton-circle::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.65),
+        transparent
+    );
+    animation: skeleton-shimmer 1.35s infinite;
+}
+
+@keyframes skeleton-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.skeleton-head {
+    margin-bottom: 22px;
+}
+
+.skeleton-title {
+    width: 280px;
+    height: 36px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.skeleton-desc {
+    width: min(760px, 100%);
+    height: 14px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+}
+
+.skeleton-desc.short {
+    width: min(560px, 82%);
+}
+
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.skeleton-news-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.skeleton-news-img {
+    width: 100%;
+    height: 220px;
+}
+
+.skeleton-news-body {
+    padding: 16px;
+}
+
+.skeleton-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.skeleton-pill {
+    width: 84px;
+    height: 22px;
+    border-radius: 999px;
+}
+
+.skeleton-date {
+    width: 90px;
+    height: 14px;
+    border-radius: 999px;
+    margin-top: 4px;
+}
+
+.skeleton-news-title {
+    width: 88%;
+    height: 20px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+}
+
+.skeleton-news-text {
+    width: 100%;
+    height: 13px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+}
+
+.skeleton-news-text.medium {
+    width: 82%;
+}
+
+.skeleton-news-text.short {
+    width: 64%;
+}
+
+.skeleton-sidebar-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
+}
+
+.skeleton-sidebar-title {
+    width: 170px;
+    height: 22px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+
+.skeleton-sidebar-input {
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.skeleton-sidebar-button {
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.skeleton-recent {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.skeleton-recent:last-child {
+    margin-bottom: 0;
+}
+
+.skeleton-recent-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skeleton-recent-content {
+    flex: 1;
+    padding-top: 5px;
+}
+
+.skeleton-recent-title {
+    width: 100%;
+    height: 14px;
+    border-radius: 999px;
+    margin-bottom: 9px;
+}
+
+.skeleton-recent-title.short {
+    width: 72%;
+}
+
+.skeleton-recent-date {
+    width: 90px;
+    height: 12px;
+    border-radius: 999px;
+}
+
+/* =========================
    GRID BERITA
 ========================= */
 .media-grid {
@@ -57,7 +266,6 @@
     gap: 22px;
 }
 
-/* item terakhir center kalau jumlah ganjil */
 .media-grid .media-card:last-child:nth-child(odd) {
     grid-column: 1 / -1;
     max-width: 520px;
@@ -372,7 +580,8 @@
 }
 
 @media (max-width: 700px) {
-    .media-grid {
+    .media-grid,
+    .skeleton-grid {
         grid-template-columns: 1fr;
     }
 
@@ -382,159 +591,246 @@
         margin: 0;
     }
 
-    .media-card img {
+    .media-card img,
+    .skeleton-news-img {
         height: 210px;
+    }
+
+    .skeleton-title {
+        width: 220px;
     }
 }
 </style>
 
 <div class="media-shell">
 
-    <header class="media-head">
-        <h1 class="media-title-main">
-            {{ $locale === 'id' ? 'Media & Publikasi' : 'Media & Publications' }}
-        </h1>
+    <div id="mediaSkeleton" class="media-skeleton">
+        <header class="skeleton-head">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-desc"></div>
+            <div class="skeleton-line skeleton-desc short"></div>
+        </header>
 
-        <p class="media-desc-main">
-            {{ $locale === 'id'
-                ? 'Temukan berita terbaru, publikasi resmi, dan berbagai informasi perusahaan yang telah dipublikasikan untuk masyarakat dan para pemangku kepentingan.'
-                : 'Discover the latest news, official publications, and various company updates published for the public and stakeholders.' }}
-        </p>
-    </header>
+        <div class="media-layout">
+            <div class="media-main">
+                <div class="skeleton-grid">
+                    @for ($i = 0; $i < 4; $i++)
+                        <article class="skeleton-news-card">
+                            <div class="skeleton-img skeleton-news-img"></div>
+                            <div class="skeleton-news-body">
+                                <div class="skeleton-meta">
+                                    <div class="skeleton-line skeleton-pill"></div>
+                                    <div class="skeleton-line skeleton-date"></div>
+                                </div>
 
-    <div class="media-layout">
+                                <div class="skeleton-line skeleton-news-title"></div>
+                                <div class="skeleton-line skeleton-news-text"></div>
+                                <div class="skeleton-line skeleton-news-text medium"></div>
+                                <div class="skeleton-line skeleton-news-text short"></div>
+                            </div>
+                        </article>
+                    @endfor
+                </div>
+            </div>
 
-        <div class="media-main">
-            @if($news->count())
-                <div class="media-grid">
-                    @foreach($news as $n)
+            <aside class="media-sidebar">
+                <div class="skeleton-sidebar-card">
+                    <div class="skeleton-line skeleton-sidebar-title"></div>
+                    <div class="skeleton-input skeleton-sidebar-input"></div>
+                    <div class="skeleton-input skeleton-sidebar-input"></div>
+                    <div class="skeleton-input skeleton-sidebar-input"></div>
+                    <div class="skeleton-button skeleton-sidebar-button"></div>
+                    <div class="skeleton-button skeleton-sidebar-button"></div>
+                </div>
+
+                <div class="skeleton-sidebar-card">
+                    <div class="skeleton-line skeleton-sidebar-title"></div>
+
+                    @for ($i = 0; $i < 4; $i++)
+                        <div class="skeleton-recent">
+                            <div class="skeleton-circle skeleton-recent-thumb"></div>
+                            <div class="skeleton-recent-content">
+                                <div class="skeleton-line skeleton-recent-title"></div>
+                                <div class="skeleton-line skeleton-recent-title short"></div>
+                                <div class="skeleton-line skeleton-recent-date"></div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="mediaRealContent" class="media-real-content">
+        <header class="media-head">
+            <h1 class="media-title-main">
+                {{ $locale === 'id' ? 'Media & Publikasi' : 'Media & Publications' }}
+            </h1>
+
+            <p class="media-desc-main">
+                {{ $locale === 'id'
+                    ? 'Temukan berita terbaru, publikasi resmi, dan berbagai informasi perusahaan yang telah dipublikasikan untuk masyarakat dan para pemangku kepentingan.'
+                    : 'Discover the latest news, official publications, and various company updates published for the public and stakeholders.' }}
+            </p>
+        </header>
+
+        <div class="media-layout">
+
+            <div class="media-main">
+                @if($news->count())
+                    <div class="media-grid">
+                        @foreach($news as $n)
+                            @php
+                                $t = method_exists($n, 'getTranslationByLocale')
+                                    ? $n->getTranslationByLocale($locale)
+                                    : ($n->translations->firstWhere('locale', $locale) ?? $n->translations->firstWhere('locale', 'id'));
+                            @endphp
+
+                            @if($t && !empty($t->slug))
+                                <article class="media-card">
+                                    <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $t->slug]) }}" class="media-card-link">
+                                        @if($n->featured_image)
+                                            <img src="{{ asset($n->featured_image) }}" alt="{{ $t->title }}">
+                                        @endif
+
+                                        <div class="media-card-body">
+                                            <div class="media-meta">
+                                                @if($n->category?->name)
+                                                    <span class="media-category">{{ $n->category->name }}</span>
+                                                @endif
+
+                                                <span>{{ optional($n->published_at)->format('d M Y') }}</span>
+                                            </div>
+
+                                            <h3 class="media-title">{{ $t->title }}</h3>
+
+                                            @if(!empty($t->excerpt))
+                                                <p class="media-excerpt">{{ $t->excerpt }}</p>
+                                            @endif
+                                        </div>
+                                    </a>
+                                </article>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <div class="media-pagination">
+                        {{ $news->links('vendor.pagination.media') }}
+                    </div>
+                @else
+                    <section class="media-empty">
+                        <div class="media-empty-icon">📰</div>
+                        <h2 class="media-empty-title">
+                            {{ $locale === 'id' ? 'Belum ada berita' : 'No news yet' }}
+                        </h2>
+                        <p class="media-empty-text">
+                            {{ $locale === 'id'
+                                ? 'Belum ada berita atau hasil filter belum menemukan data.'
+                                : 'There are no news items available or your filters returned no data.' }}
+                        </p>
+                    </section>
+                @endif
+            </div>
+
+            <aside class="media-sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-title">
+                        {{ $locale === 'id' ? 'Pencarian & Filter' : 'Search & Filter' }}
+                    </div>
+
+                    <form method="GET" action="{{ route('media_publikasi.index', ['locale' => $locale]) }}">
+                        <input
+                            name="q"
+                            value="{{ $q }}"
+                            class="sidebar-input"
+                            placeholder="{{ $locale === 'id' ? 'Cari berita...' : 'Search...' }}"
+                        >
+
+                        <select name="year" class="sidebar-select">
+                            <option value="">{{ $locale === 'id' ? 'Semua Tahun' : 'All Year' }}</option>
+                            @foreach($years as $y)
+                                <option value="{{ $y }}" {{ (string) $year === (string) $y ? 'selected' : '' }}>
+                                    {{ $y }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <select name="sort" class="sidebar-select">
+                            <option value="latest" {{ $sort === 'latest' ? 'selected' : '' }}>
+                                {{ $locale === 'id' ? 'Terbaru' : 'Latest' }}
+                            </option>
+                            <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>
+                                {{ $locale === 'id' ? 'Terlama' : 'Oldest' }}
+                            </option>
+                        </select>
+
+                        <button type="submit" class="sidebar-btn">
+                            {{ $locale === 'id' ? 'Terapkan Filter' : 'Apply Filter' }}
+                        </button>
+
+                        <a href="{{ route('media_publikasi.index', ['locale' => $locale]) }}" class="sidebar-reset">
+                            {{ $locale === 'id' ? 'Reset' : 'Reset' }}
+                        </a>
+                    </form>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">
+                        {{ $locale === 'id' ? 'Posts' : 'Posts' }}
+                    </div>
+
+                    @foreach($recentPosts as $p)
                         @php
-                            $t = method_exists($n, 'getTranslationByLocale')
-                                ? $n->getTranslationByLocale($locale)
-                                : ($n->translations->firstWhere('locale', $locale) ?? $n->translations->firstWhere('locale', 'id'));
+                            $t = method_exists($p, 'getTranslationByLocale')
+                                ? $p->getTranslationByLocale($locale)
+                                : ($p->translations->firstWhere('locale', $locale) ?? $p->translations->firstWhere('locale', 'id'));
                         @endphp
 
                         @if($t && !empty($t->slug))
-                            <article class="media-card">
-                                <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $t->slug]) }}" class="media-card-link">
-                                    @if($n->featured_image)
-                                        <img src="{{ asset($n->featured_image) }}" alt="{{ $t->title }}">
-                                    @endif
+                            <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $t->slug]) }}" class="recent-item">
+                                @if($p->featured_image)
+                                    <img src="{{ asset($p->featured_image) }}" alt="{{ $t->title }}">
+                                @else
+                                    <div class="recent-thumb-empty"></div>
+                                @endif
 
-                                    <div class="media-card-body">
-                                        <div class="media-meta">
-                                            @if($n->category?->name)
-                                                <span class="media-category">{{ $n->category->name }}</span>
-                                            @endif
-
-                                            <span>{{ optional($n->published_at)->format('d M Y') }}</span>
-                                        </div>
-
-                                        <h3 class="media-title">{{ $t->title }}</h3>
-
-                                        @if(!empty($t->excerpt))
-                                            <p class="media-excerpt">{{ $t->excerpt }}</p>
-                                        @endif
+                                <div>
+                                    <div class="recent-title">{{ $t->title }}</div>
+                                    <div class="recent-date">
+                                        {{ optional($p->published_at)->format('d M Y') }}
                                     </div>
-                                </a>
-                            </article>
+                                </div>
+                            </a>
                         @endif
                     @endforeach
                 </div>
+            </aside>
 
-                <div class="media-pagination">
-                    {{ $news->links('vendor.pagination.media') }}
-                </div>
-            @else
-                <section class="media-empty">
-                    <div class="media-empty-icon">📰</div>
-                    <h2 class="media-empty-title">
-                        {{ $locale === 'id' ? 'Belum ada berita' : 'No news yet' }}
-                    </h2>
-                    <p class="media-empty-text">
-                        {{ $locale === 'id'
-                            ? 'Belum ada berita atau hasil filter belum menemukan data.'
-                            : 'There are no news items available or your filters returned no data.' }}
-                    </p>
-                </section>
-            @endif
         </div>
-
-        <aside class="media-sidebar">
-            <div class="sidebar-card">
-                <div class="sidebar-title">
-                    {{ $locale === 'id' ? 'Pencarian & Filter' : 'Search & Filter' }}
-                </div>
-
-                <form method="GET" action="{{ route('media_publikasi.index', ['locale' => $locale]) }}">
-                    <input
-                        name="q"
-                        value="{{ $q }}"
-                        class="sidebar-input"
-                        placeholder="{{ $locale === 'id' ? 'Cari berita...' : 'Search...' }}"
-                    >
-
-                    <select name="year" class="sidebar-select">
-                        <option value="">{{ $locale === 'id' ? 'Semua Tahun' : 'All Year' }}</option>
-                        @foreach($years as $y)
-                            <option value="{{ $y }}" {{ (string) $year === (string) $y ? 'selected' : '' }}>
-                                {{ $y }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <select name="sort" class="sidebar-select">
-                        <option value="latest" {{ $sort === 'latest' ? 'selected' : '' }}>
-                            {{ $locale === 'id' ? 'Terbaru' : 'Latest' }}
-                        </option>
-                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>
-                            {{ $locale === 'id' ? 'Terlama' : 'Oldest' }}
-                        </option>
-                    </select>
-
-                    <button type="submit" class="sidebar-btn">
-                        {{ $locale === 'id' ? 'Terapkan Filter' : 'Apply Filter' }}
-                    </button>
-
-                    <a href="{{ route('media_publikasi.index', ['locale' => $locale]) }}" class="sidebar-reset">
-                        {{ $locale === 'id' ? 'Reset' : 'Reset' }}
-                    </a>
-                </form>
-            </div>
-
-            <div class="sidebar-card">
-                <div class="sidebar-title">
-                    {{ $locale === 'id' ? 'Posts' : 'Posts' }}
-                </div>
-
-                @foreach($recentPosts as $p)
-                    @php
-                        $t = method_exists($p, 'getTranslationByLocale')
-                            ? $p->getTranslationByLocale($locale)
-                            : ($p->translations->firstWhere('locale', $locale) ?? $p->translations->firstWhere('locale', 'id'));
-                    @endphp
-
-                    @if($t && !empty($t->slug))
-                        <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $t->slug]) }}" class="recent-item">
-                            @if($p->featured_image)
-                                <img src="{{ asset($p->featured_image) }}" alt="{{ $t->title }}">
-                            @else
-                                <div class="recent-thumb-empty"></div>
-                            @endif
-
-                            <div>
-                                <div class="recent-title">{{ $t->title }}</div>
-                                <div class="recent-date">
-                                    {{ optional($p->published_at)->format('d M Y') }}
-                                </div>
-                            </div>
-                        </a>
-                    @endif
-                @endforeach
-            </div>
-        </aside>
-
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const skeleton = document.getElementById('mediaSkeleton');
+    const content = document.getElementById('mediaRealContent');
+
+    const showContent = () => {
+        if (skeleton) {
+            skeleton.classList.add('is-hidden');
+        }
+
+        if (content) {
+            content.classList.add('is-loaded');
+        }
+    };
+
+    window.addEventListener('load', function () {
+        setTimeout(showContent, 500);
+    });
+
+    setTimeout(showContent, 1500);
+});
+</script>
 
 @endsection

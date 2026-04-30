@@ -114,7 +114,7 @@
             <div class="op-card-head">
                 <div>
                     <h2 class="op-card-title">Crude Daily</h2>
-                    <div class="op-card-desc">Grafik harian produksi crude pada bulan terpilih.</div>
+                    <div class="op-card-desc">Grafik produksi crude untuk 14 hari terakhir.</div>
                 </div>
             </div>
             <div class="op-card-body">
@@ -128,7 +128,7 @@
             <div class="op-card-head">
                 <div>
                     <h2 class="op-card-title">Flow Gas Monthly</h2>
-                    <div class="op-card-desc">Rekap total MSCF per bulan pada tahun terpilih.</div>
+                    <div class="op-card-desc">Rata-rata daily MSCF per bulan pada tahun terpilih.</div>
                 </div>
             </div>
             <div class="op-card-body">
@@ -278,8 +278,6 @@
                                 <th>Bulan</th>
                                 <th>Quantity</th>
                                 <th>Satuan</th>
-                                <th>Fee Rate</th>
-                                <th>Commission</th>
                                 <th>Catatan</th>
                             </tr>
                         </thead>
@@ -287,11 +285,9 @@
                             @foreach($recentVitolRecords as $record)
                                 <tr>
                                     <td>{{ $record->year }}</td>
-                                    <td>{{ $record->month }}</td>
+                                    <td>{{ $record->month_label }}</td>
                                     <td>{{ number_format((float) $record->quantity, 4, ',', '.') }}</td>
                                     <td>{{ $record->unit }}</td>
-                                    <td>{{ number_format((float) $record->fee_rate, 2, ',', '.') }}</td>
-                                    <td>{{ number_format((float) $record->commission, 4, ',', '.') }}</td>
                                     <td>{{ $record->notes ?: '-' }}</td>
                                 </tr>
                             @endforeach
@@ -417,7 +413,7 @@
             'flowGasMonthlyChart',
             @json($gasMonthlyChartLabels),
             @json($gasMonthlyChartValues),
-            'MSCF',
+            'Avg Daily MSCF',
             'rgba(22, 163, 74, 0.18)',
             'rgba(22, 163, 74, 1)'
         );

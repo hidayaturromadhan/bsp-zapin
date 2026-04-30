@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Slider;
+use App\Services\NewsAutoTranslator;
 use App\Services\PublicImageUploader;
 use Illuminate\Http\Request;
 
@@ -24,8 +25,11 @@ class SliderController extends Controller
         return view('admin.sliders.create');
     }
 
-    public function store(Request $request, PublicImageUploader $uploader)
-    {
+    public function store(
+        Request $request,
+        PublicImageUploader $uploader,
+        NewsAutoTranslator $translator
+    ) {
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:190'],
             'link_url' => ['nullable', 'string', 'max:255'],
@@ -34,6 +38,11 @@ class SliderController extends Controller
             'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
+        $title = trim((string) ($data['title'] ?? ''));
+        $titleEn = $title !== ''
+            ? $translator->translateText($title, 'id', 'en')
+            : null;
+
         $imagePath = $uploader->upload(
             $request->file('image'),
             'images/sliders',
@@ -41,7 +50,8 @@ class SliderController extends Controller
         );
 
         Slider::create([
-            'title' => $data['title'] ?? null,
+            'title' => $title ?: null,
+            'title_en' => $titleEn ?: null,
             'link_url' => $data['link_url'] ?? null,
             'sort_order' => $data['sort_order'] ?? 0,
             'is_active' => (bool) ($data['is_active'] ?? false),
@@ -58,8 +68,12 @@ class SliderController extends Controller
         return view('admin.sliders.edit', compact('slider'));
     }
 
-    public function update(Request $request, Slider $slider, PublicImageUploader $uploader)
-    {
+    public function update(
+        Request $request,
+        Slider $slider,
+        PublicImageUploader $uploader,
+        NewsAutoTranslator $translator
+    ) {
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:190'],
             'link_url' => ['nullable', 'string', 'max:255'],
@@ -68,8 +82,13 @@ class SliderController extends Controller
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
+        $title = trim((string) ($data['title'] ?? ''));
+
         $payload = [
-            'title' => $data['title'] ?? null,
+            'title' => $title ?: null,
+            'title_en' => $title !== ''
+                ? $translator->translateText($title, 'id', 'en')
+                : null,
             'link_url' => $data['link_url'] ?? null,
             'sort_order' => $data['sort_order'] ?? 0,
             'is_active' => (bool) ($data['is_active'] ?? false),

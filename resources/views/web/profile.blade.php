@@ -1616,7 +1616,6 @@
                                             @endif
                                         </div>
                                         <div class="org-card-body">
-                                            <div class="org-badge">{{ $locale === 'id' ? 'Direktur' : 'Director' }}</div>
                                             <h3 class="org-name">{{ $director['name'] ?? '-' }}</h3>
                                             <p class="org-position">{{ $director['position'] ?? ($locale === 'id' ? 'Direktur Utama' : 'President Director') }}</p>
                                         </div>
@@ -1637,7 +1636,6 @@
                                             @endif
                                         </div>
                                         <div class="org-card-body">
-                                            <div class="org-badge">{{ $locale === 'id' ? 'Komisaris' : 'Commissioner' }}</div>
                                             <h3 class="org-name">{{ $commissioner['name'] ?? '-' }}</h3>
                                             <p class="org-position">{{ $commissioner['position'] ?? ($locale === 'id' ? 'Komisaris Utama' : 'President Commissioner') }}</p>
                                         </div>

@@ -20,7 +20,6 @@
         overflow: hidden;
     }
 
-    /* Card header strip */
     .login-header {
         background: linear-gradient(135deg, var(--g800) 0%, var(--g700) 60%, var(--g500) 100%);
         padding: 32px 32px 28px;
@@ -101,12 +100,10 @@
         z-index: 1;
     }
 
-    /* Card body */
     .login-body {
         padding: 30px 32px 32px;
     }
 
-    /* Error alert */
     .error-alert {
         display: flex;
         align-items: flex-start;
@@ -130,7 +127,6 @@
         margin-top: 5px;
     }
 
-    /* Google SSO button */
     .btn-google {
         display: flex;
         align-items: center;
@@ -148,7 +144,7 @@
         cursor: pointer;
         text-decoration: none;
         transition: background .15s, border-color .15s, box-shadow .15s, transform .1s;
-        margin-bottom: 20px;
+        margin-top: 0;
     }
 
     .btn-google:hover {
@@ -170,7 +166,6 @@
         flex-shrink: 0;
     }
 
-    /* Form */
     .form-group {
         margin-bottom: 18px;
     }
@@ -199,7 +194,9 @@
         box-sizing: border-box;
     }
 
-    .form-input::placeholder { color: var(--text3); }
+    .form-input::placeholder {
+        color: var(--text3);
+    }
 
     .form-input:focus {
         border-color: var(--g500);
@@ -207,7 +204,6 @@
         background: var(--g50);
     }
 
-    /* Checkbox row */
     .form-check {
         display: flex;
         align-items: center;
@@ -230,7 +226,6 @@
         user-select: none;
     }
 
-    /* Submit button */
     .btn-submit {
         width: 100%;
         padding: 12px;
@@ -267,7 +262,6 @@
         box-shadow: none;
     }
 
-    /* Divider */
     .login-divider {
         display: flex;
         align-items: center;
@@ -285,7 +279,6 @@
         background: var(--line);
     }
 
-    /* Register link */
     .register-link {
         text-align: center;
         font-size: 13.5px;
@@ -304,18 +297,24 @@
         text-decoration: underline;
     }
 
-    /* Responsive */
     @media (max-width: 480px) {
-        .login-header { padding: 26px 22px 22px; }
-        .login-body { padding: 24px 22px 26px; }
-        .login-title { font-size: 19px; }
+        .login-header {
+            padding: 26px 22px 22px;
+        }
+
+        .login-body {
+            padding: 24px 22px 26px;
+        }
+
+        .login-title {
+            font-size: 19px;
+        }
     }
 </style>
 
 <div class="login-wrapper">
     <div class="login-card">
 
-        {{-- Header --}}
         <div class="login-header">
             <div class="login-brand">
                 <img src="{{ asset('images/logo.png') }}" alt="BSP Zapin" class="login-brand-logo">
@@ -324,17 +323,28 @@
                     <span class="login-brand-sub">the energy company</span>
                 </div>
             </div>
+
             <h1 class="login-title">Masuk ke Akun</h1>
-            <p class="login-subtitle">Gunakan kredensial Anda untuk melanjutkan</p>
+            <p class="login-subtitle">Gunakan kredensial atau akun Google Anda untuk melanjutkan</p>
         </div>
 
-        {{-- Body --}}
         <div class="login-body">
 
             @if($errors->any())
                 <div class="error-alert">
                     <span class="error-alert-dot"></span>
-                    {{ $errors->first() }}
+                    <div>
+                        {{ $errors->first() }}
+                    </div>
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="error-alert" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;">
+                    <span class="error-alert-dot" style="background:#22c55e;"></span>
+                    <div>
+                        {{ session('success') }}
+                    </div>
                 </div>
             @endif
 
@@ -369,17 +379,24 @@
                 </div>
 
                 <div class="form-check">
-                    <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                    <input
+                        type="checkbox"
+                        id="remember"
+                        name="remember"
+                        value="1"
+                        {{ old('remember') ? 'checked' : '' }}
+                    >
                     <label for="remember">Ingat saya di perangkat ini</label>
                 </div>
 
-                <button type="submit" class="btn-submit">Masuk</button>
+                <button type="submit" class="btn-submit">
+                    Masuk
+                </button>
             </form>
 
             <div class="login-divider">atau</div>
 
-            {{-- Google SSO --}}
-            <a href="#" class="btn-google">
+            <a href="{{ route('google.redirect') }}" class="btn-google">
                 <svg class="btn-google-icon" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
                     <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>

@@ -40,4 +40,14 @@ return [
         'url' => env('DEEPL_API_URL', 'https://api-free.deepl.com/v2/translate'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'tjsl_whatsapp' => [
+        'reviewer' => env('TJSL_REVIEWER_WA'),
+    ],
+
 ];

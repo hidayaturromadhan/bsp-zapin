@@ -4,10 +4,10 @@
 <div class="op-page-head">
     <div>
         <div class="op-breadcrumb"><span>Operational</span><span>›</span><span>Crude</span></div>
-        <h1 class="op-page-title">Data Produksi Crude</h1>
-        <p class="op-page-desc">Kelola data produksi crude harian seperti pola sistem lama.</p>
+        <h1 class="op-page-title">Data Produksi Crude Oil</h1>
+        <p class="op-page-desc">Kelola data produksi crude oil harian</p>
     </div>
-    <a href="{{ route('operational.crude.create') }}" class="op-btn op-btn--primary">+ Tambah Data</a>
+    <a href="{{ route('operational.crude.create') }}" class="op-btn op-btn--primary">Tambah Data</a>
 </div>
 @if(session('success'))<div class="op-alert op-alert--success">{{ session('success') }}</div>@endif
 <div class="op-grid-2" style="margin-bottom:20px;">
@@ -27,7 +27,7 @@
     </div>
 </div>
 <div class="op-card">
-    <div class="op-card-head"><div><h2 class="op-card-title">Daftar Data Crude</h2><div class="op-card-desc">Data produksi crude harian yang sudah masuk ke sistem.</div></div></div>
+    <div class="op-card-head"><div><h2 class="op-card-title">Daftar Data Crude Oil</h2></div></div>
     <div class="op-card-body">
         @if($records->count())
             <div class="op-table-wrap"><table class="op-table"><thead><tr><th>#</th><th>Tanggal</th><th>Produksi</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody>

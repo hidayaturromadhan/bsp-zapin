@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\CrudeDailyRecord;
 use App\Models\FlowGasDailyRecord;
 use App\Models\VitolRecord;
+use App\Models\BroadcastMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+
 
 class DashboardController extends Controller
 {
@@ -17,8 +19,36 @@ class DashboardController extends Controller
         $selectedMonth = (int) ($request->input('month') ?: now()->month);
         $selectedYear = (int) ($request->input('year') ?: now()->year);
 
-        $gasDailyChartRaw = FlowGasDailyRecord::query()
-            ->where('type', 'gas')
+        $gasBaseQuery = FlowGasDailyRecord::query()->where('type', 'gas');
+
+        $gasMonthlyRecords = (clone $gasBaseQuery)
+            ->with('category')
+            ->whereYear('record_date', $selectedYear)
+            ->whereMonth('record_date', $selectedMonth)
+            ->orderBy('record_date')
+            ->orderBy('flow_gas_category_id')
+            ->get();
+
+        $gasTotalRecords = $gasMonthlyRecords->count();
+        $gasTotalMscf = (float) $gasMonthlyRecords->sum('mscf');
+        $gasTotalMmbtu = (float) $gasMonthlyRecords->sum('mmbtu');
+        $gasTotalFix = (float) $gasMonthlyRecords->sum('fix');
+
+        $gasCategorySummary = (clone $gasBaseQuery)
+            ->select([
+                'flow_gas_category_id',
+                DB::raw('SUM(COALESCE(mscf, 0)) as total_mscf'),
+                DB::raw('SUM(COALESCE(mmbtu, 0)) as total_mmbtu'),
+                DB::raw('SUM(COALESCE(fix, 0)) as total_fix'),
+            ])
+            ->with('category')
+            ->whereYear('record_date', $selectedYear)
+            ->whereMonth('record_date', $selectedMonth)
+            ->groupBy('flow_gas_category_id')
+            ->orderBy('flow_gas_category_id')
+            ->get();
+
+        $gasDailyChartRaw = (clone $gasBaseQuery)
             ->select([
                 'record_date',
                 DB::raw('SUM(COALESCE(mscf, 0)) as total_mscf'),
@@ -37,51 +67,20 @@ class DashboardController extends Controller
             return round((float) $item->total_mscf, 4);
         })->values();
 
-        $gasTotalMscf = (float) FlowGasDailyRecord::query()
+        $gasMonthlyDailySubquery = FlowGasDailyRecord::query()
             ->where('type', 'gas')
+            ->selectRaw('DATE(record_date) as daily_date')
+            ->selectRaw('MONTH(record_date) as month_number')
+            ->selectRaw('YEAR(record_date) as year_number')
+            ->selectRaw('SUM(COALESCE(mscf, 0)) as daily_total_mscf')
             ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->sum('mscf');
+            ->groupBy(DB::raw('DATE(record_date)'), DB::raw('MONTH(record_date)'), DB::raw('YEAR(record_date)'));
 
-        $gasTotalMmbtu = (float) FlowGasDailyRecord::query()
-            ->where('type', 'gas')
-            ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->sum('mmbtu');
-
-        $gasTotalFix = (float) FlowGasDailyRecord::query()
-            ->where('type', 'gas')
-            ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->sum('fix');
-
-        $gasTotalRecords = (int) FlowGasDailyRecord::query()
-            ->where('type', 'gas')
-            ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->count();
-
-        $gasCategorySummary = FlowGasDailyRecord::query()
-            ->where('type', 'gas')
-            ->select([
-                'flow_gas_category_id',
-                DB::raw('SUM(COALESCE(mscf, 0)) as total_mscf'),
-                DB::raw('SUM(COALESCE(mmbtu, 0)) as total_mmbtu'),
-                DB::raw('SUM(COALESCE(fix, 0)) as total_fix'),
-            ])
-            ->with('category')
-            ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->groupBy('flow_gas_category_id')
-            ->orderBy('flow_gas_category_id')
-            ->get();
-
-        $gasMonthlyChartRaw = FlowGasDailyRecord::query()
-            ->where('type', 'gas')
-            ->selectRaw('MONTH(record_date) as month_number, SUM(COALESCE(mscf, 0)) as total_mscf')
-            ->whereYear('record_date', $selectedYear)
-            ->groupBy(DB::raw('MONTH(record_date)'))
-            ->orderBy(DB::raw('MONTH(record_date)'))
+        $gasMonthlyChartRaw = DB::query()
+            ->fromSub($gasMonthlyDailySubquery, 'gas_daily_totals')
+            ->selectRaw('month_number, AVG(daily_total_mscf) as avg_daily_mscf')
+            ->groupBy('month_number')
+            ->orderBy('month_number')
             ->get()
             ->keyBy('month_number');
 
@@ -90,11 +89,10 @@ class DashboardController extends Controller
         })->values();
 
         $gasMonthlyChartValues = collect(range(1, 12))->map(function ($month) use ($gasMonthlyChartRaw) {
-            return round((float) optional($gasMonthlyChartRaw->get($month))->total_mscf, 4);
+            return round((float) optional($gasMonthlyChartRaw->get($month))->avg_daily_mscf, 4);
         })->values();
 
-        $gasYearlyChartRaw = FlowGasDailyRecord::query()
-            ->where('type', 'gas')
+        $gasYearlyChartRaw = (clone $gasBaseQuery)
             ->selectRaw('YEAR(record_date) as year_number, SUM(COALESCE(mscf, 0)) as total_mscf')
             ->groupBy(DB::raw('YEAR(record_date)'))
             ->orderBy(DB::raw('YEAR(record_date)'))
@@ -103,7 +101,9 @@ class DashboardController extends Controller
         $gasYearlyChartLabels = $gasYearlyChartRaw->pluck('year_number')->map(fn ($year) => (string) $year)->values();
         $gasYearlyChartValues = $gasYearlyChartRaw->pluck('total_mscf')->map(fn ($value) => round((float) $value, 4))->values();
 
-        $crudeMonthlyRecords = CrudeDailyRecord::query()
+        $crudeBaseQuery = CrudeDailyRecord::query();
+
+        $crudeMonthlyRecords = (clone $crudeBaseQuery)
             ->whereYear('record_date', $selectedYear)
             ->whereMonth('record_date', $selectedMonth)
             ->orderBy('record_date')
@@ -112,11 +112,24 @@ class DashboardController extends Controller
         $crudeTotalRecords = $crudeMonthlyRecords->count();
         $crudeTotalProduction = (float) $crudeMonthlyRecords->sum('production');
 
-        $crudeDailyChartLabels = $crudeMonthlyRecords->map(function ($item) {
+        /*
+        |--------------------------------------------------------------------------
+        | CRUDE DAILY CHART = 14 HARI TERAKHIR
+        |--------------------------------------------------------------------------
+        */
+        $crudeLast14DaysRecords = CrudeDailyRecord::query()
+            ->orderByDesc('record_date')
+            ->orderByDesc('id')
+            ->limit(14)
+            ->get()
+            ->sortBy('record_date')
+            ->values();
+
+        $crudeDailyChartLabels = $crudeLast14DaysRecords->map(function ($item) {
             return optional($item->record_date)->format('d M');
         })->values();
 
-        $crudeDailyChartValues = $crudeMonthlyRecords->map(function ($item) {
+        $crudeDailyChartValues = $crudeLast14DaysRecords->map(function ($item) {
             return round((float) $item->production, 4);
         })->values();
 
@@ -126,26 +139,35 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
-        $vitolYearlyRecords = VitolRecord::query()
+        $vitolBaseQuery = VitolRecord::query();
+
+        $vitolYearlyRecords = (clone $vitolBaseQuery)
             ->where('year', $selectedYear)
-            ->orderByRaw("FIELD(month, 'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember')")
+            ->orderBy('month')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->map(function ($record) {
+                $record->month_label = $this->monthLabel((int) $record->month);
+                return $record;
+            });
 
         $vitolTotalRecords = $vitolYearlyRecords->count();
         $vitolTotalQuantity = (float) $vitolYearlyRecords->sum('quantity');
-        $vitolTotalCommission = (float) $vitolYearlyRecords->sum('commission');
 
-        $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month')->values();
+        $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month_label')->values();
         $vitolMonthlyChartValues = $vitolYearlyRecords->map(function ($item) {
             return round((float) $item->quantity, 4);
         })->values();
 
         $recentVitolRecords = VitolRecord::query()
             ->orderByDesc('year')
-            ->orderByRaw("FIELD(month, 'Desember','November','Oktober','September','Agustus','Juli','Juni','Mei','April','Maret','Februari','Januari')")
+            ->orderByDesc('month')
             ->limit(8)
-            ->get();
+            ->get()
+            ->map(function ($record) {
+                $record->month_label = $this->monthLabel((int) $record->month);
+                return $record;
+            });
 
         $totalOperationalItems = $gasTotalRecords + $crudeTotalRecords + $vitolTotalRecords;
 
@@ -206,7 +228,6 @@ class DashboardController extends Controller
 
             'vitolTotalRecords' => $vitolTotalRecords,
             'vitolTotalQuantity' => $vitolTotalQuantity,
-            'vitolTotalCommission' => $vitolTotalCommission,
             'vitolMonthlyChartLabels' => $vitolMonthlyChartLabels,
             'vitolMonthlyChartValues' => $vitolMonthlyChartValues,
             'recentVitolRecords' => $recentVitolRecords,
@@ -220,6 +241,11 @@ class DashboardController extends Controller
         $selectedMonth = (int) ($request->input('month') ?: now()->month);
         $selectedYear = (int) ($request->input('year') ?: now()->year);
 
+        /*
+        |--------------------------------------------------------------------------
+        | GAS DAILY
+        |--------------------------------------------------------------------------
+        */
         $gasDailyChartRaw = FlowGasDailyRecord::query()
             ->where('type', 'gas')
             ->select([
@@ -246,36 +272,90 @@ class DashboardController extends Controller
             ->whereMonth('record_date', $selectedMonth)
             ->sum('mscf');
 
-        $crudeMonthlyRecords = CrudeDailyRecord::query()
+        /*
+        |--------------------------------------------------------------------------
+        | GAS MONTHLY = RATA-RATA DARI TOTAL GAS DAILY
+        |--------------------------------------------------------------------------
+        */
+        $gasMonthlyDailySubquery = FlowGasDailyRecord::query()
+            ->where('type', 'gas')
+            ->selectRaw('DATE(record_date) as daily_date')
+            ->selectRaw('MONTH(record_date) as month_number')
+            ->selectRaw('YEAR(record_date) as year_number')
+            ->selectRaw('SUM(COALESCE(mscf, 0)) as daily_total_mscf')
             ->whereYear('record_date', $selectedYear)
-            ->whereMonth('record_date', $selectedMonth)
-            ->orderBy('record_date')
-            ->get();
+            ->groupBy(
+                DB::raw('DATE(record_date)'),
+                DB::raw('MONTH(record_date)'),
+                DB::raw('YEAR(record_date)')
+            );
 
-        $crudeDailyChartLabels = $crudeMonthlyRecords->map(function ($item) {
+        $gasMonthlyChartRaw = DB::query()
+            ->fromSub($gasMonthlyDailySubquery, 'gas_daily_totals')
+            ->selectRaw('month_number, AVG(daily_total_mscf) as avg_daily_mscf')
+            ->groupBy('month_number')
+            ->orderBy('month_number')
+            ->get()
+            ->keyBy('month_number');
+
+        $gasMonthlyChartLabels = collect(range(1, 12))->map(function ($month) {
+            return Carbon::create()->month($month)->translatedFormat('M');
+        })->values();
+
+        $gasMonthlyChartValues = collect(range(1, 12))->map(function ($month) use ($gasMonthlyChartRaw) {
+            return round((float) optional($gasMonthlyChartRaw->get($month))->avg_daily_mscf, 4);
+        })->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CRUDE DAILY = 14 HARI TERAKHIR
+        |--------------------------------------------------------------------------
+        */
+        $crudeLast14DaysRecords = CrudeDailyRecord::query()
+            ->orderByDesc('record_date')
+            ->orderByDesc('id')
+            ->limit(14)
+            ->get()
+            ->sortBy('record_date')
+            ->values();
+
+        $crudeDailyChartLabels = $crudeLast14DaysRecords->map(function ($item) {
             return optional($item->record_date)->format('d M');
         })->values();
 
-        $crudeDailyChartValues = $crudeMonthlyRecords->map(function ($item) {
+        $crudeDailyChartValues = $crudeLast14DaysRecords->map(function ($item) {
             return round((float) $item->production, 4);
         })->values();
 
-        $crudeTotalProduction = (float) $crudeMonthlyRecords->sum('production');
+        $crudeTotalProduction = (float) $crudeLast14DaysRecords->sum('production');
 
+        /*
+        |--------------------------------------------------------------------------
+        | VITOL MONTHLY
+        |--------------------------------------------------------------------------
+        */
         $vitolYearlyRecords = VitolRecord::query()
             ->where('year', $selectedYear)
-            ->orderByRaw("FIELD(month, 'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember')")
+            ->orderBy('month')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->map(function ($record) {
+                $record->month_label = $this->monthLabel((int) $record->month);
+                return $record;
+            });
 
-        $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month')->values();
+        $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month_label')->values();
         $vitolMonthlyChartValues = $vitolYearlyRecords->map(function ($item) {
             return round((float) $item->quantity, 4);
         })->values();
 
         $vitolTotalQuantity = (float) $vitolYearlyRecords->sum('quantity');
-        $vitolTotalCommission = (float) $vitolYearlyRecords->sum('commission');
 
+        /*
+        |--------------------------------------------------------------------------
+        | GAS YEARLY
+        |--------------------------------------------------------------------------
+        */
         $gasYearlyChartRaw = FlowGasDailyRecord::query()
             ->where('type', 'gas')
             ->selectRaw('YEAR(record_date) as year_number, SUM(COALESCE(mscf, 0)) as total_mscf')
@@ -288,22 +368,66 @@ class DashboardController extends Controller
 
         $monthLabel = Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('F Y');
 
+        /*
+        |--------------------------------------------------------------------------
+        | BROADCAST DARI DATABASE
+        |--------------------------------------------------------------------------
+        */
+        $broadcastItems = BroadcastMessage::query()
+            ->visible()
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->get(['label', 'message', 'is_active'])
+            ->map(function ($item) {
+                return [
+                    'label' => $item->label,
+                    'message' => $item->message,
+                    'enabled' => (bool) $item->is_active,
+                ];
+            })
+            ->values();
+
         return view('operational.tv', [
             'selectedMonth' => $selectedMonth,
             'selectedYear' => $selectedYear,
             'monthLabel' => $monthLabel,
+
             'gasTotalMscf' => $gasTotalMscf,
-            'crudeTotalProduction' => $crudeTotalProduction,
-            'vitolTotalQuantity' => $vitolTotalQuantity,
-            'vitolTotalCommission' => $vitolTotalCommission,
             'gasDailyChartLabels' => $gasDailyChartLabels,
             'gasDailyChartValues' => $gasDailyChartValues,
-            'crudeDailyChartLabels' => $crudeDailyChartLabels,
-            'crudeDailyChartValues' => $crudeDailyChartValues,
-            'vitolMonthlyChartLabels' => $vitolMonthlyChartLabels,
-            'vitolMonthlyChartValues' => $vitolMonthlyChartValues,
+            'gasMonthlyChartLabels' => $gasMonthlyChartLabels,
+            'gasMonthlyChartValues' => $gasMonthlyChartValues,
             'gasYearlyChartLabels' => $gasYearlyChartLabels,
             'gasYearlyChartValues' => $gasYearlyChartValues,
+
+            'crudeTotalProduction' => $crudeTotalProduction,
+            'crudeDailyChartLabels' => $crudeDailyChartLabels,
+            'crudeDailyChartValues' => $crudeDailyChartValues,
+
+            'vitolTotalQuantity' => $vitolTotalQuantity,
+            'vitolMonthlyChartLabels' => $vitolMonthlyChartLabels,
+            'vitolMonthlyChartValues' => $vitolMonthlyChartValues,
+
+            'broadcastItems' => $broadcastItems,
         ]);
+    }
+
+    private function monthLabel(int $month): string
+    {
+        return match ($month) {
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+            default => '-',
+        };
     }
 }

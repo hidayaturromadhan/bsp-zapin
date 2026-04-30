@@ -608,6 +608,9 @@
         border: 1px solid rgba(255,255,255,.18);
     }
 
+    /* =====================================================
+       PARTNER LAYOUT — tombol di bawah semua logo
+       ===================================================== */
     .home-partner-preview-wrap {
         display: flex;
         flex-direction: column;
@@ -615,6 +618,7 @@
         gap: 18px;
     }
 
+    /* Grid logo awal (preview) */
     .home-partner-preview {
         display: flex;
         align-items: stretch;
@@ -628,14 +632,48 @@
         overflow: visible;
     }
 
-    .home-partner-preview.is-centered,
-    .home-partner-preview.has-more {
-        justify-content: center;
+    /* Panel expand — logo tambahan, muncul SEBELUM tombol */
+    .home-partner-expand {
+        display: grid;
+        grid-template-rows: 0fr;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition:
+            grid-template-rows .38s cubic-bezier(.4,0,.2,1),
+            opacity .28s ease,
+            transform .28s ease;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
+    .home-partner-expand.is-open {
+        grid-template-rows: 1fr;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .home-partner-expand-inner {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .home-partner-grid-static {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 18px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 4px 0 8px;
+    }
+
+    /* Tombol "Lihat Semua / Tampilkan Lebih Sedikit" */
     .home-partner-more-wrap {
         display: flex;
         justify-content: center;
+        /* Selalu di bawah, urutan diatur lewat DOM (expand di atas, tombol di bawah) */
     }
 
     .home-partner-more {
@@ -673,7 +711,12 @@
         background: rgba(23,63,8,.08);
         font-size: 14px;
         line-height: 1;
-        transition: transform .22s ease;
+        transition: transform .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Ikon berputar saat terbuka */
+    .home-partner-more[aria-expanded="true"] .home-partner-more__icon {
+        transform: rotate(180deg);
     }
 
     .home-relations-card--dark .home-partner-more {
@@ -690,28 +733,6 @@
 
     .home-relations-card--dark .home-partner-more__icon {
         background: rgba(255,255,255,.12);
-    }
-
-    .home-partner-expand {
-        display: grid;
-        grid-template-rows: 0fr;
-        opacity: 0;
-        transform: translateY(-6px);
-        transition: grid-template-rows .34s ease, opacity .26s ease, transform .26s ease, margin-top .26s ease;
-        margin-top: 0;
-    }
-
-    .home-partner-expand.is-open {
-        grid-template-rows: 1fr;
-        opacity: 1;
-        transform: translateY(0);
-        margin-top: 2px;
-    }
-
-    .home-partner-expand-inner {
-        min-height: 0;
-        overflow: hidden;
-        padding-top: 2px;
     }
 
     .home-partner-item {
@@ -766,17 +787,6 @@
         background: #fff;
         border-radius: 8px;
         padding: 6px 8px;
-    }
-
-    .home-partner-grid-static {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 18px;
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 8px 0 4px;
     }
 
     .home-empty {
@@ -970,15 +980,20 @@
                         <div class="bspz-slider__track">
                             @foreach($sliders as $index => $s)
                                 @php
-                                    $hasContent = filled($s->title);
+                                    $sliderTitle = method_exists($s, 'getTitleByLocale')
+                                        ? $s->getTitleByLocale($locale)
+                                        : ($locale === 'en' ? ($s->title_en ?? $s->title) : $s->title);
+
+                                    $hasContent = filled($sliderTitle);
                                 @endphp
+
                                 <article
                                     class="bspz-slider__slide {{ $hasContent ? 'bspz-slider__slide--has-content' : '' }}"
                                     aria-hidden="{{ $index === 0 ? 'false' : 'true' }}"
                                 >
                                     <img
                                         src="{{ asset($s->image_path) }}"
-                                        alt="{{ $s->title ?: 'Slider ' . ($index + 1) }}"
+                                        alt="{{ $sliderTitle ?: 'Slider ' . ($index + 1) }}"
                                         class="bspz-slider__img"
                                         loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                                         draggable="false"
@@ -992,11 +1007,11 @@
                                         <div class="bspz-slider__content">
                                             <div class="bspz-slider__content-inner">
                                                 <div class="bspz-slider__badge">
-                                                    {{ $locale === 'id' ? 'BSP Zapin' : 'BSP Zapin' }}
+                                                    BSP Zapin
                                                 </div>
 
                                                 <h2 class="bspz-slider__title">
-                                                    {{ $s->title }}
+                                                    {{ $sliderTitle }}
                                                 </h2>
 
                                                 <div class="bspz-slider__line"></div>
@@ -1348,6 +1363,7 @@
                         </div>
 
                         <div class="home-partner-preview-wrap">
+                            {{-- Logo preview (selalu tampil) --}}
                             <div class="home-partner-preview {{ $businessHasMore ? 'has-more' : 'is-centered' }}">
                                 @foreach($businessPreviewItems as $partner)
                                     @if($partner->website_url)
@@ -1363,20 +1379,7 @@
                             </div>
 
                             @if($businessHasMore)
-                                <div class="home-partner-more-wrap">
-                                    <button
-                                        type="button"
-                                        class="home-partner-more"
-                                        data-toggle-expand
-                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
-                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}"
-                                        aria-expanded="false"
-                                    >
-                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}</span>
-                                        <span class="home-partner-more__icon">+</span>
-                                    </button>
-                                </div>
-
+                                {{-- Panel expand — logo tambahan, di atas tombol --}}
                                 <div class="home-partner-expand" data-expand-panel>
                                     <div class="home-partner-expand-inner">
                                         <div class="home-partner-grid-static">
@@ -1393,6 +1396,21 @@
                                             @endforeach
                                         </div>
                                     </div>
+                                </div>
+
+                                {{-- Tombol selalu paling bawah --}}
+                                <div class="home-partner-more-wrap">
+                                    <button
+                                        type="button"
+                                        class="home-partner-more"
+                                        data-toggle-expand
+                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
+                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}"
+                                        aria-expanded="false"
+                                    >
+                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}</span>
+                                        <span class="home-partner-more__icon">﹢</span>
+                                    </button>
                                 </div>
                             @endif
                         </div>
@@ -1418,6 +1436,7 @@
                         </div>
 
                         <div class="home-partner-preview-wrap">
+                            {{-- Logo preview (selalu tampil) --}}
                             <div class="home-partner-preview {{ $customerHasMore ? 'has-more' : 'is-centered' }}">
                                 @foreach($customerPreviewItems as $partner)
                                     @if($partner->website_url)
@@ -1433,20 +1452,7 @@
                             </div>
 
                             @if($customerHasMore)
-                                <div class="home-partner-more-wrap">
-                                    <button
-                                        type="button"
-                                        class="home-partner-more"
-                                        data-toggle-expand
-                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
-                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}"
-                                        aria-expanded="false"
-                                    >
-                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}</span>
-                                        <span class="home-partner-more__icon">+</span>
-                                    </button>
-                                </div>
-
+                                {{-- Panel expand — logo tambahan, di atas tombol --}}
                                 <div class="home-partner-expand" data-expand-panel>
                                     <div class="home-partner-expand-inner">
                                         <div class="home-partner-grid-static">
@@ -1464,6 +1470,21 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                {{-- Tombol selalu paling bawah --}}
+                                <div class="home-partner-more-wrap">
+                                    <button
+                                        type="button"
+                                        class="home-partner-more"
+                                        data-toggle-expand
+                                        data-open-text="{{ $locale === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less' }}"
+                                        data-close-text="{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}"
+                                        aria-expanded="false"
+                                    >
+                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}</span>
+                                        <span class="home-partner-more__icon">﹢</span>
+                                    </button>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -1479,11 +1500,12 @@
 
     function initPartnerExpand() {
         document.querySelectorAll('[data-toggle-expand]').forEach(function (button) {
-            var panel = button.closest('.home-partner-preview-wrap')?.querySelector('[data-expand-panel]');
+            var wrap  = button.closest('.home-partner-preview-wrap');
+            var panel = wrap ? wrap.querySelector('[data-expand-panel]') : null;
             if (!panel) return;
 
             var label = button.querySelector('.home-partner-more__label');
-            var icon = button.querySelector('.home-partner-more__icon');
+            var icon  = button.querySelector('.home-partner-more__icon');
 
             button.addEventListener('click', function () {
                 var isOpen = panel.classList.toggle('is-open');
@@ -1496,8 +1518,9 @@
                 }
 
                 if (icon) {
-                    icon.textContent = isOpen ? '−' : '+';
-                    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+                    // Tanda + / − lewat CSS rotate sudah diurus aria-expanded di CSS,
+                    // tapi kita tetap ganti karakter supaya aksesibel
+                    icon.textContent = isOpen ? '−' : '﹢';
                 }
             });
         });

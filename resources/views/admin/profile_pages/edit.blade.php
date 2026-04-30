@@ -274,6 +274,134 @@
                                     </div>
                                 @endif
                             </div>
+                            
+                            @if($templateType === 'about_us')
+                                <div class="ap-field full">
+                                    <label class="ap-label">Hero Text</label>
+                                    <textarea name="hero_text" class="ap-textarea ap-textarea--sm">{{ old('hero_text', $aboutData['hero_text'] ?? '') }}</textarea>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <div class="ap-divider"></div>
+                                    <label class="ap-label">Section 1</label>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Title</label>
+                                    <input type="text" name="section_1_title" class="ap-input"
+                                        value="{{ old('section_1_title', $aboutData['section_1_title'] ?? '') }}">
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Text</label>
+                                    <textarea name="section_1_text" class="ap-textarea">{{ old('section_1_text', $aboutData['section_1_text'] ?? '') }}</textarea>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Image</label>
+                                    <input type="file" name="section_1_image">
+                                    @if(!empty($aboutData['section_1_image']))
+                                        <div class="ap-preview">
+                                            <img src="{{ asset($aboutData['section_1_image']) }}">
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="ap-field full">
+                                    <div class="ap-divider"></div>
+                                    <label class="ap-label">Section 2</label>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Title</label>
+                                    <input type="text" name="section_2_title" class="ap-input"
+                                        value="{{ old('section_2_title', $aboutData['section_2_title'] ?? '') }}">
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Text</label>
+                                    <textarea name="section_2_text" class="ap-textarea">{{ old('section_2_text', $aboutData['section_2_text'] ?? '') }}</textarea>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Image</label>
+                                    <input type="file" name="section_2_image">
+                                    @if(!empty($aboutData['section_2_image']))
+                                        <div class="ap-preview">
+                                            <img src="{{ asset($aboutData['section_2_image']) }}">
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+
+                            @if($templateType === 'vision_mission')
+                                <div class="ap-field full">
+                                    <label class="ap-label">Vision Title</label>
+                                    <input type="text" name="vision_title" class="ap-input"
+                                        value="{{ old('vision_title', $visionMissionData['vision_title'] ?? '') }}">
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Vision Text</label>
+                                    <textarea name="vision_text" class="ap-textarea">{{ old('vision_text', $visionMissionData['vision_text'] ?? '') }}</textarea>
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Mission Title</label>
+                                    <input type="text" name="mission_title" class="ap-input"
+                                        value="{{ old('mission_title', $visionMissionData['mission_title'] ?? '') }}">
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Mission Items</label>
+                                    @foreach(($visionMissionData['mission_items'] ?? []) as $i => $item)
+                                        <input type="text" name="mission_items[]" class="ap-input" style="margin-bottom:8px;"
+                                            value="{{ old('mission_items.'.$i, $item) }}">
+                                    @endforeach
+                                </div>
+                            @endif
+
+
+                            @if($templateType === 'history')
+                                <div class="ap-field full">
+                                    <label class="ap-label">Intro Title</label>
+                                    <input type="text" name="history_intro_title" class="ap-input"
+                                        value="{{ old('history_intro_title', $historyData['intro']['title'] ?? '') }}">
+                                </div>
+
+                                <div class="ap-field full">
+                                    <label class="ap-label">Intro Desc</label>
+                                    <textarea name="history_intro_desc" class="ap-textarea ap-textarea--sm">{{ old('history_intro_desc', $historyData['intro']['desc'] ?? '') }}</textarea>
+                                </div>
+
+                                @foreach(($historyData['sections'] ?? []) as $i => $section)
+                                    <div class="ap-field full">
+                                        <label class="ap-label">Section {{ $i+1 }}</label>
+                                        <input type="text" name="history_section_{{ $i+1 }}_title" class="ap-input"
+                                            value="{{ old('history_section_'.$i.'_title', $section['title'] ?? '') }}">
+                                        <textarea name="history_section_{{ $i+1 }}_content" class="ap-textarea">{{ old('history_section_'.$i.'_content', $section['content'] ?? '') }}</textarea>
+                                    </div>
+                                @endforeach
+
+                                @foreach(($historyData['timeline'] ?? []) as $i => $item)
+                                    <div class="ap-field full">
+                                        <div class="ap-divider"></div>
+                                        <label class="ap-label">Timeline {{ $i+1 }}</label>
+
+                                        <input type="text" name="history_event_{{ $i+1 }}_label" class="ap-input"
+                                            value="{{ old('history_event_'.$i.'_label', $item['label'] ?? '') }}">
+
+                                        <input type="text" name="history_event_{{ $i+1 }}_date" class="ap-input"
+                                            value="{{ old('history_event_'.$i.'_date', $item['date'] ?? '') }}">
+
+                                        <input type="text" name="history_event_{{ $i+1 }}_title" class="ap-input"
+                                            value="{{ old('history_event_'.$i.'_title', $item['title'] ?? '') }}">
+
+                                        <textarea name="history_event_{{ $i+1 }}_content" class="ap-textarea">{{ old('history_event_'.$i.'_content', $item['content'] ?? '') }}</textarea>
+                                    </div>
+                                @endforeach
+                            @endif
 
                             @if($templateType === 'hse')
                                 <div class="ap-field full">

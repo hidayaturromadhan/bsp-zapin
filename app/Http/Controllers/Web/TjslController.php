@@ -15,7 +15,7 @@ class TjslController extends Controller
                 'translations' => fn ($q) => $q->whereIn('locale', [$locale, 'id', 'en']),
                 'images' => fn ($q) => $q->orderBy('sort_order')->orderBy('id'),
             ])
-            ->where('is_active', true)
+            ->published()
             ->orderByDesc('year')
             ->orderBy('sort_order')
             ->orderByDesc('id')

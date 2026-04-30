@@ -5,13 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\PageTranslation;
+use App\Services\NewsAutoTranslator;
 use App\Services\PublicImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ProfilePageController extends Controller
 {
+    private NewsAutoTranslator $translator;
+
+    public function __construct(NewsAutoTranslator $translator)
+    {
+        $this->translator = $translator;
+    }
+
     public function index()
     {
         $pages = Page::query()
@@ -174,14 +183,15 @@ class ProfilePageController extends Controller
 
         $data = $request->validate($rules);
 
-        $this->validateUniqueSlug('id', $data['id_slug'], $page->id);
+        $idSlug = Str::slug($data['id_slug']);
+        $this->validateUniqueSlug('id', $idSlug, $page->id);
 
-        $enTitle = $this->translateTitle($data['id_title'], $data['id_slug']);
-        $enSlug = $this->buildEnglishSlug($data['id_slug'], $enTitle);
+        $enTitle = $this->translateTitle($data['id_title'], $idSlug);
+        $enSlug = $this->buildEnglishSlug($idSlug, $enTitle);
 
         $this->validateUniqueSlug('en', $enSlug, $page->id);
 
-        DB::transaction(function () use ($request, $page, $data, $uploader, $templateType, $enTitle, $enSlug) {
+        DB::transaction(function () use ($request, $page, $data, $uploader, $templateType, $enTitle, $enSlug, $idSlug) {
             $pagePayload = [
                 'is_active' => (bool) ($data['is_active'] ?? false),
             ];
@@ -212,11 +222,7 @@ class ProfilePageController extends Controller
                         $uploader->delete($section1Image);
                     }
 
-                    $section1Image = $uploader->upload(
-                        $request->file('section_1_image'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $section1Image = $uploader->upload($request->file('section_1_image'), 'images/pages/profile', 2);
                 }
 
                 if ($request->hasFile('section_2_image')) {
@@ -224,11 +230,7 @@ class ProfilePageController extends Controller
                         $uploader->delete($section2Image);
                     }
 
-                    $section2Image = $uploader->upload(
-                        $request->file('section_2_image'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $section2Image = $uploader->upload($request->file('section_2_image'), 'images/pages/profile', 2);
                 }
 
                 $idContent = [
@@ -253,15 +255,7 @@ class ProfilePageController extends Controller
                     'section_2_image' => $section2Image,
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } elseif ($templateType === 'vision_mission') {
                 $missionItems = collect($request->input('mission_items', []))
                     ->map(fn ($item) => trim((string) $item))
@@ -285,15 +279,7 @@ class ProfilePageController extends Controller
                     'mission_items' => collect($missionItems)->map(fn ($item) => $this->translateText($item))->values()->all(),
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } elseif ($templateType === 'history') {
                 $idContent = [
                     'template' => 'history',
@@ -339,49 +325,35 @@ class ProfilePageController extends Controller
                         'title' => $this->translateText($idContent['intro']['title']),
                         'desc' => $this->translateText($idContent['intro']['desc']),
                     ],
-                    'sections' => collect($idContent['sections'])->map(function ($section) {
-                        return [
-                            'title' => $this->translateText($section['title'] ?? ''),
-                            'content' => $this->translateText($section['content'] ?? ''),
-                        ];
-                    })->values()->all(),
-                    'timeline' => collect($idContent['timeline'])->map(function ($item) {
-                        return [
-                            'label' => $this->translateText($item['label'] ?? ''),
-                            'date' => $item['date'] ?? '',
-                            'title' => $this->translateText($item['title'] ?? ''),
-                            'content' => $this->translateText($item['content'] ?? ''),
-                        ];
-                    })->values()->all(),
+                    'sections' => collect($idContent['sections'])->map(fn ($section) => [
+                        'title' => $this->translateText($section['title'] ?? ''),
+                        'content' => $this->translateText($section['content'] ?? ''),
+                    ])->values()->all(),
+                    'timeline' => collect($idContent['timeline'])->map(fn ($item) => [
+                        'label' => $this->translateText($item['label'] ?? ''),
+                        'date' => $item['date'] ?? '',
+                        'title' => $this->translateText($item['title'] ?? ''),
+                        'content' => $this->translateText($item['content'] ?? ''),
+                    ])->values()->all(),
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } elseif ($templateType === 'shareholder') {
                 $existingIdTranslation = $page->translations()->where('locale', 'id')->first();
                 $oldContent = $this->decodeShareholderContent($existingIdTranslation?->content);
 
                 $chartImage = $oldContent['chart_image'] ?? null;
+
                 if ($request->hasFile('shareholder_chart_image')) {
                     if ($chartImage) {
                         $uploader->delete($chartImage);
                     }
 
-                    $chartImage = $uploader->upload(
-                        $request->file('shareholder_chart_image'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $chartImage = $uploader->upload($request->file('shareholder_chart_image'), 'images/pages/profile', 2);
                 }
 
                 $items = [];
+
                 for ($i = 1; $i <= 2; $i++) {
                     $oldLogo = $oldContent['items'][$i - 1]['logo'] ?? null;
                     $logo = $oldLogo;
@@ -391,11 +363,7 @@ class ProfilePageController extends Controller
                             $uploader->delete($oldLogo);
                         }
 
-                        $logo = $uploader->upload(
-                            $request->file("shareholder_{$i}_logo"),
-                            'images/pages/profile',
-                            2
-                        );
+                        $logo = $uploader->upload($request->file("shareholder_{$i}_logo"), 'images/pages/profile', 2);
                     }
 
                     $items[] = [
@@ -423,53 +391,36 @@ class ProfilePageController extends Controller
                         'desc' => $this->translateText($idContent['intro']['desc']),
                     ],
                     'chart_image' => $chartImage,
-                    'items' => collect($items)->map(function ($item) {
-                        return [
-                            'percentage' => $item['percentage'] ?? '',
-                            'name' => $this->translateText($item['name'] ?? ''),
-                            'desc' => $this->translateText($item['desc'] ?? ''),
-                            'logo' => $item['logo'] ?? null,
-                        ];
-                    })->values()->all(),
+                    'items' => collect($items)->map(fn ($item) => [
+                        'percentage' => $item['percentage'] ?? '',
+                        'name' => $this->translateText($item['name'] ?? ''),
+                        'desc' => $this->translateText($item['desc'] ?? ''),
+                        'logo' => $item['logo'] ?? null,
+                    ])->values()->all(),
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } elseif ($templateType === 'organization_structure') {
                 $existingIdTranslation = $page->translations()->where('locale', 'id')->first();
                 $oldContent = $this->decodeOrganizationContent($existingIdTranslation?->content);
 
                 $directorPhoto = $oldContent['director']['photo'] ?? null;
+                $commissionerPhoto = $oldContent['commissioner']['photo'] ?? null;
+
                 if ($request->hasFile('director_photo')) {
                     if ($directorPhoto) {
                         $uploader->delete($directorPhoto);
                     }
 
-                    $directorPhoto = $uploader->upload(
-                        $request->file('director_photo'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $directorPhoto = $uploader->upload($request->file('director_photo'), 'images/pages/profile', 2);
                 }
 
-                $commissionerPhoto = $oldContent['commissioner']['photo'] ?? null;
                 if ($request->hasFile('commissioner_photo')) {
                     if ($commissionerPhoto) {
                         $uploader->delete($commissionerPhoto);
                     }
 
-                    $commissionerPhoto = $uploader->upload(
-                        $request->file('commissioner_photo'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $commissionerPhoto = $uploader->upload($request->file('commissioner_photo'), 'images/pages/profile', 2);
                 }
 
                 $idContent = [
@@ -508,30 +459,19 @@ class ProfilePageController extends Controller
                     ],
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } elseif ($templateType === 'hse') {
                 $existingIdTranslation = $page->translations()->where('locale', 'id')->first();
                 $oldContent = $this->decodeHseContent($existingIdTranslation?->content);
 
                 $policyImage = $oldContent['policy_image'] ?? null;
+
                 if ($request->hasFile('hse_policy_image')) {
                     if ($policyImage) {
                         $uploader->delete($policyImage);
                     }
 
-                    $policyImage = $uploader->upload(
-                        $request->file('hse_policy_image'),
-                        'images/pages/profile',
-                        2
-                    );
+                    $policyImage = $uploader->upload($request->file('hse_policy_image'), 'images/pages/profile', 2);
                 }
 
                 $certificates = [
@@ -575,37 +515,19 @@ class ProfilePageController extends Controller
                     'certification' => [
                         'title' => $this->translateText($idContent['certification']['title']),
                         'subtitle' => $this->translateText($idContent['certification']['subtitle']),
-                        'items' => collect($certificates)->map(function ($item) {
-                            return [
-                                'code' => $item['code'] ?? '',
-                                'title' => $this->translateText($item['title'] ?? ''),
-                            ];
-                        })->values()->all(),
+                        'items' => collect($certificates)->map(fn ($item) => [
+                            'code' => $item['code'] ?? '',
+                            'title' => $this->translateText($item['title'] ?? ''),
+                        ])->values()->all(),
                     ],
                 ];
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             } else {
                 $idContent = trim((string) $request->input('id_content'));
                 $enContent = $this->translateText($idContent);
 
-                $this->saveProfileTranslations(
-                    $page->id,
-                    trim((string) $request->input('id_title')),
-                    trim((string) $request->input('id_slug')),
-                    $idContent,
-                    $enTitle,
-                    $enSlug,
-                    $enContent
-                );
+                $this->saveProfileTranslations($page->id, trim((string) $request->input('id_title')), $idSlug, $idContent, $enTitle, $enSlug, $enContent);
             }
         });
 
@@ -714,10 +636,7 @@ class ProfilePageController extends Controller
     {
         $empty = [
             'template' => 'history',
-            'intro' => [
-                'title' => 'Sejarah',
-                'desc' => '',
-            ],
+            'intro' => ['title' => 'Sejarah', 'desc' => ''],
             'sections' => [
                 ['title' => '', 'content' => ''],
                 ['title' => '', 'content' => ''],
@@ -758,24 +677,11 @@ class ProfilePageController extends Controller
     {
         $empty = [
             'template' => 'shareholder',
-            'intro' => [
-                'title' => 'Pemegang Saham',
-                'desc' => '',
-            ],
+            'intro' => ['title' => 'Pemegang Saham', 'desc' => ''],
             'chart_image' => null,
             'items' => [
-                [
-                    'percentage' => '',
-                    'name' => '',
-                    'desc' => '',
-                    'logo' => null,
-                ],
-                [
-                    'percentage' => '',
-                    'name' => '',
-                    'desc' => '',
-                    'logo' => null,
-                ],
+                ['percentage' => '', 'name' => '', 'desc' => '', 'logo' => null],
+                ['percentage' => '', 'name' => '', 'desc' => '', 'logo' => null],
             ],
         ];
 
@@ -793,12 +699,7 @@ class ProfilePageController extends Controller
         $decoded['items'] = array_values($decoded['items'] ?? []);
 
         for ($i = count($decoded['items']); $i < 2; $i++) {
-            $decoded['items'][] = [
-                'percentage' => '',
-                'name' => '',
-                'desc' => '',
-                'logo' => null,
-            ];
+            $decoded['items'][] = ['percentage' => '', 'name' => '', 'desc' => '', 'logo' => null];
         }
 
         return $decoded;
@@ -808,20 +709,9 @@ class ProfilePageController extends Controller
     {
         $empty = [
             'template' => 'organization_structure',
-            'intro' => [
-                'title' => 'Struktur Organisasi',
-                'desc' => '',
-            ],
-            'director' => [
-                'name' => '',
-                'position' => 'Direktur Utama',
-                'photo' => null,
-            ],
-            'commissioner' => [
-                'name' => '',
-                'position' => 'Komisaris Utama',
-                'photo' => null,
-            ],
+            'intro' => ['title' => 'Struktur Organisasi', 'desc' => ''],
+            'director' => ['name' => '', 'position' => 'Direktur Utama', 'photo' => null],
+            'commissioner' => ['name' => '', 'position' => 'Komisaris Utama', 'photo' => null],
         ];
 
         if (! $content) {
@@ -841,33 +731,20 @@ class ProfilePageController extends Controller
         return $decoded;
     }
 
-
     private function decodeHseContent(?string $content): array
     {
         $empty = [
             'template' => 'hse',
-            'intro' => [
-                'title' => 'Health, Safety & Environment',
-                'desc' => '',
-            ],
+            'intro' => ['title' => 'Health, Safety & Environment', 'desc' => ''],
             'policy_title' => 'Kebijakan K3LL',
             'policy_image' => null,
             'certification' => [
                 'title' => 'Bersertifikat Sistem Manajemen Terintegrasi',
                 'subtitle' => 'Ruang Lingkup : Penyediaan Jasa Transportasi Minyak & Gas',
                 'items' => [
-                    [
-                        'code' => 'ISO 9001:2015',
-                        'title' => 'Quality Management System',
-                    ],
-                    [
-                        'code' => 'ISO 14001:2015',
-                        'title' => 'Environmental Management System',
-                    ],
-                    [
-                        'code' => 'ISO 45001:2018',
-                        'title' => 'Occupational Health & Safety Management System',
-                    ],
+                    ['code' => 'ISO 9001:2015', 'title' => 'Quality Management System'],
+                    ['code' => 'ISO 14001:2015', 'title' => 'Environmental Management System'],
+                    ['code' => 'ISO 45001:2018', 'title' => 'Occupational Health & Safety Management System'],
                 ],
             ],
         ];
@@ -907,9 +784,8 @@ class ProfilePageController extends Controller
             'sejarah' => 'History',
             'pemegang-saham' => 'Shareholders',
             'struktur-organisasi' => 'Organization Structure',
-            'health-safety-environment' => 'Health, Safety & Environment',
-            'hse' => 'Health, Safety & Environment',
-            default => $title,
+            'health-safety-environment', 'hse' => 'Health, Safety & Environment',
+            default => $this->translateText($title),
         };
     }
 
@@ -921,15 +797,28 @@ class ProfilePageController extends Controller
             'sejarah' => 'history',
             'pemegang-saham' => 'shareholders',
             'struktur-organisasi' => 'organization-structure',
-            'health-safety-environment' => 'health-safety-environment',
-            'hse' => 'health-safety-environment',
+            'health-safety-environment', 'hse' => 'health-safety-environment',
             default => Str::slug($enTitle) ?: Str::slug($idSlug . '-en'),
         };
     }
 
     private function translateText(?string $text): string
     {
-        return trim((string) $text);
+        $text = trim((string) $text);
+
+        if ($text === '') {
+            return '';
+        }
+
+        try {
+            return $this->translator->translateText($text, 'id', 'en');
+        } catch (\Throwable $e) {
+            Log::error('Profile translate failed', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return $text;
+        }
     }
 
     private function validateUniqueSlug(string $locale, string $slug, int $pageId): void
