@@ -167,11 +167,9 @@ Route::middleware(['auth.session', 'role:reviewer'])
         Route::get('/dashboard', [ReviewerDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/news', [ReviewerNewsController::class, 'index'])->name('news.index');
-        Route::get('/news/{news}/edit', [ReviewerNewsController::class, 'edit'])->name('news.edit');
-        Route::put('/news/{news}', [ReviewerNewsController::class, 'update'])->name('news.update');
-        Route::post('/news/{news}/review', [ReviewerNewsController::class, 'review'])->name('news.review');
+        Route::get('/news/{news}', [ReviewerNewsController::class, 'show'])->name('news.show');
+        Route::get('/news/{news}/preview', [ReviewerNewsController::class, 'preview'])->name('news.preview');
         Route::get('/news/{news}/logs', [ReviewerNewsController::class, 'logs'])->name('news.logs');
-        Route::delete('/news/{news}', [ReviewerNewsController::class, 'destroy'])->name('news.destroy');
 
         Route::get('/tjsl', [ReviewerTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/{tjsl}', [ReviewerTjslController::class, 'show'])->name('tjsl.show');
@@ -193,8 +191,15 @@ Route::middleware(['auth.session', 'role:writer'])
         Route::get('/news', [WriterNewsController::class, 'index'])->name('news.index');
         Route::get('/news/create', [WriterNewsController::class, 'create'])->name('news.create');
         Route::post('/news', [WriterNewsController::class, 'store'])->name('news.store');
+        Route::get('/news/{news}', [WriterNewsController::class, 'show'])->name('news.show');
         Route::get('/news/{news}/edit', [WriterNewsController::class, 'edit'])->name('news.edit');
         Route::put('/news/{news}', [WriterNewsController::class, 'update'])->name('news.update');
+
+        Route::get('/news/{news}/preview', [WriterNewsController::class, 'preview'])->name('news.preview');
+        Route::get('/news/{news}/send-preview-whatsapp', [WriterNewsController::class, 'sendPreviewWhatsapp'])->name('news.send-preview-whatsapp');
+        Route::patch('/news/{news}/publish', [WriterNewsController::class, 'publish'])->name('news.publish');
+        Route::patch('/news/{news}/unpublish', [WriterNewsController::class, 'unpublish'])->name('news.unpublish');
+        Route::delete('/news/{news}', [WriterNewsController::class, 'destroy'])->name('news.destroy');
 
         Route::get('/tjsl', [WriterTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/create', [WriterTjslController::class, 'create'])->name('tjsl.create');
@@ -202,13 +207,10 @@ Route::middleware(['auth.session', 'role:writer'])
         Route::get('/tjsl/{tjsl}', [WriterTjslController::class, 'show'])->name('tjsl.show');
         Route::get('/tjsl/{tjsl}/edit', [WriterTjslController::class, 'edit'])->name('tjsl.edit');
         Route::put('/tjsl/{tjsl}', [WriterTjslController::class, 'update'])->name('tjsl.update');
-
         Route::get('/tjsl/{tjsl}/preview', [WriterTjslController::class, 'preview'])->name('tjsl.preview');
-        Route::get('/tjsl/{tjsl}/send-preview-whatsapp', [WriterTjslController::class, 'sendPreviewWhatsapp'])->name('tjsl.send-preview-whatsapp');
-
+        Route::get('/tjsl/{tjsl}/send-preview-whatsapp', [WriterTjslController::class, 'send-preview-whatsapp'])->name('tjsl.send-preview-whatsapp');
         Route::patch('/tjsl/{tjsl}/publish', [WriterTjslController::class, 'publish'])->name('tjsl.publish');
         Route::patch('/tjsl/{tjsl}/unpublish', [WriterTjslController::class, 'unpublish'])->name('tjsl.unpublish');
-
         Route::delete('/tjsl/{tjsl}', [WriterTjslController::class, 'destroy'])->name('tjsl.destroy');
         Route::delete('/tjsl/{tjsl}/images/{image}', [WriterTjslController::class, 'deleteImage'])->name('tjsl.images.destroy');
     });

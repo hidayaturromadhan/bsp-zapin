@@ -50,4 +50,8 @@ return [
         'reviewer' => env('TJSL_REVIEWER_WA'),
     ],
 
+    'news_whatsapp' => [
+        'reviewer' => env('NEWS_REVIEWER_WA'),
+    ],
+
 ];
