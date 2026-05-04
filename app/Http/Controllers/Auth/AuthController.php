@@ -10,11 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    private int $inactiveLimitMinutes = 3;
-
     public function showLogin(Request $request)
     {
-        // Simpan redirect tujuan (kalau ada dari query ?redirect=)
         if ($request->filled('redirect')) {
             $request->session()->put('login_redirect_url', $request->query('redirect'));
         }
@@ -27,7 +24,10 @@ class AuthController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'force_login' => ['nullable', 'boolean'],
         ]);
+
+        $force = $request->boolean('force_login');
 
         $user = User::where('email', $data['email'])->first();
 
@@ -39,22 +39,36 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
-        if ($user->active_session_id && $this->isDeviceGone($user)) {
+        $currentSessionId = $request->session()->getId();
+
+        if (
+            $user->active_session_id &&
+            $user->active_session_id !== $currentSessionId &&
+            ! $force
+        ) {
+            return back()
+                ->withErrors([
+                    'email' => 'Akun ini masih aktif di perangkat lain.',
+                    'force' => 'Silakan masukkan password kembali, lalu klik tombol Paksa Login di Perangkat Ini.',
+                ])
+                ->withInput([
+                    'email' => $data['email'],
+                    'remember' => $request->boolean('remember'),
+                ]);
+        }
+
+        if (
+            $user->active_session_id &&
+            $user->active_session_id !== $currentSessionId &&
+            $force
+        ) {
             $user->forceFill([
                 'active_session_id' => null,
                 'active_login_at' => null,
             ])->save();
         }
 
-        if ($user->active_session_id) {
-            return back()
-                ->withErrors([
-                    'email' => 'Akun ini masih aktif di perangkat lain.',
-                ])
-                ->onlyInput('email');
-        }
-
-        Auth::login($user);
+        Auth::login($user, $request->boolean('remember'));
 
         $request->session()->regenerate();
 
@@ -69,7 +83,6 @@ class AuthController extends Controller
             'user_name' => $user->name,
         ]);
 
-        // DEFAULT REDIRECT
         $defaultRedirect = match ($user->role) {
             'admin' => route('admin.dashboard'),
             'reviewer' => route('reviewer.dashboard'),
@@ -80,7 +93,6 @@ class AuthController extends Controller
             default => route('web.home', ['locale' => 'id']),
         };
 
-        // AMBIL REDIRECT DARI SESSION
         $redirectUrl = $request->session()->pull('login_redirect_url');
 
         if ($redirectUrl && str_starts_with($redirectUrl, url('/'))) {
@@ -126,7 +138,7 @@ class AuthController extends Controller
             'user_name' => $user->name,
         ]);
 
-        return redirect()->intended(route('wbs.pelapor.dashboard'));
+        return redirect()->route('wbs.pelapor.dashboard');
     }
 
     public function logout(Request $request)
@@ -152,14 +164,5 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
-    }
-
-    private function isDeviceGone(User $user): bool
-    {
-        if (! $user->active_login_at) {
-            return true;
-        }
-
-        return $user->active_login_at->lt(now()->subMinutes($this->inactiveLimitMinutes));
     }
 }

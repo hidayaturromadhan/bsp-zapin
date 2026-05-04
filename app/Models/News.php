@@ -11,6 +11,7 @@ class News extends Model
 {
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PUBLISHED = 'published';
+    public const STATUS_ARCHIVED = 'archived';
 
     protected $table = 'news';
 
@@ -39,6 +40,7 @@ class News extends Model
         return [
             self::STATUS_DRAFT => 'Draft',
             self::STATUS_PUBLISHED => 'Published',
+            self::STATUS_ARCHIVED => 'Archived',
         ];
     }
 
@@ -74,21 +76,9 @@ class News extends Model
         return $this->hasMany(NewsAuditLog::class)->latest();
     }
 
-    public function getTranslationByLocale(string $locale = 'id'): ?NewsTranslation
-    {
-        if (! $this->relationLoaded('translations')) {
-            $this->load('translations');
-        }
-
-        return $this->translations->firstWhere('locale', $locale)
-            ?? $this->translations->firstWhere('id')
-            ?? $this->translations->firstWhere('en')
-            ?? $this->translations->first();
-    }
-
     public function getStatusLabelAttribute(): string
     {
-        return self::statuses()[$this->status] ?? ucfirst((string) $this->status);
+        return self::statuses()[$this->status] ?? ucfirst(str_replace('_', ' ', (string) $this->status));
     }
 
     public function getCanBePublishedByWriterAttribute(): bool
@@ -101,16 +91,23 @@ class News extends Model
         return $this->status === self::STATUS_PUBLISHED;
     }
 
+    public function getTranslationByLocale(string $locale = 'id'): ?NewsTranslation
+    {
+        if (! $this->relationLoaded('translations')) {
+            $this->load('translations');
+        }
+
+        return $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', 'id')
+            ?? $this->translations->firstWhere('locale', 'en')
+            ?? $this->translations->first();
+    }
+
     public function scopeWithoutTjsl(Builder $query): Builder
     {
         return $query->whereHas('category', function ($q) {
             $q->where('slug', '!=', 'tjsl');
         });
-    }
-
-    public function scopeForWriter(Builder $query, int $userId): Builder
-    {
-        return $query->where('created_by', $userId);
     }
 
     public function scopePublicPublished(Builder $query): Builder
@@ -120,5 +117,10 @@ class News extends Model
             ->where('status', self::STATUS_PUBLISHED)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    public function scopeForWriter(Builder $query, int $userId): Builder
+    {
+        return $query->where('created_by', $userId);
     }
 }

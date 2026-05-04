@@ -49,6 +49,8 @@
         width: min(calc(100% - (var(--home-section-gutter) * 2)), var(--home-content-max));
         margin-inline: auto;
         padding: 0;
+        content-visibility: auto;
+        contain-intrinsic-size: 1px 520px;
     }
 
     .home-section-head {
@@ -200,7 +202,6 @@
     .bspz-slider__track {
         display: flex;
         transition: transform 520ms cubic-bezier(.4,0,.2,1);
-        will-change: transform;
     }
 
     .bspz-slider__track.is-dragging {
@@ -213,6 +214,7 @@
         position: relative;
         overflow: hidden;
         isolation: isolate;
+        background: #dfe7db;
     }
 
     .bspz-slider__img {
@@ -265,6 +267,19 @@
         color: #fff;
     }
 
+    .bspz-slider__badge {
+        display: inline-block;
+        padding: 6px 12px;
+        margin-bottom: 16px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        color: rgba(255,255,255,.9);
+    }
+
     .bspz-slider__title {
         margin: 0;
         font-size: clamp(30px, 5vw, 56px);
@@ -272,6 +287,14 @@
         font-weight: 800;
         letter-spacing: -.04em;
         text-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .bspz-slider__line {
+        width: 60px;
+        height: 3px;
+        margin-top: 18px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d4a843, #f2c94c);
     }
 
     .bspz-slider__dots {
@@ -285,9 +308,7 @@
         z-index: 5;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(255,255,255,.10);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: rgba(255,255,255,.14);
     }
 
     .bspz-slider__dot {
@@ -385,8 +406,13 @@
         color: #4b5563;
     }
 
-    .home-overview-text p { margin: 0 0 1em; }
-    .home-overview-text p:last-child { margin-bottom: 0; }
+    .home-overview-text p {
+        margin: 0 0 1em;
+    }
+
+    .home-overview-text p:last-child {
+        margin-bottom: 0;
+    }
 
     .home-overview-actions {
         margin-top: 24px;
@@ -395,7 +421,6 @@
         flex-wrap: wrap;
     }
 
-    /* VIDEO */
     .home-video-shell {
         width: min(100%, 920px);
         margin: 0 auto;
@@ -416,6 +441,56 @@
         background: #000;
     }
 
+    .home-video-poster {
+        position: absolute;
+        inset: 0;
+        border: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .home-video-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .home-video-poster::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, rgba(0,0,0,.44), rgba(0,0,0,.10));
+    }
+
+    .home-video-play {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 2;
+        transform: translate(-50%, -50%);
+        width: 76px;
+        height: 76px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.94);
+        color: #173f08;
+        box-shadow: 0 18px 36px rgba(0,0,0,.22);
+    }
+
+    .home-video-play svg {
+        width: 32px;
+        height: 32px;
+        margin-left: 4px;
+        fill: currentColor;
+    }
+
     .home-video-embed video {
         position: absolute;
         inset: 0;
@@ -433,8 +508,17 @@
         justify-content: center;
     }
 
-    .home-card-grid.cols-1 { --cols: 1; max-width: 420px; margin: 0 auto; }
-    .home-card-grid.cols-2 { --cols: 2; max-width: 860px; margin: 0 auto; }
+    .home-card-grid.cols-1 {
+        --cols: 1;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .home-card-grid.cols-2 {
+        --cols: 2;
+        max-width: 860px;
+        margin: 0 auto;
+    }
 
     .home-news-card {
         background: #fff;
@@ -459,6 +543,7 @@
         overflow: hidden;
         background: #eef5eb;
         flex-shrink: 0;
+        display: block;
     }
 
     .home-news-thumb {
@@ -516,7 +601,9 @@
         color: inherit;
     }
 
-    .home-news-title a:hover { color: #173f08; }
+    .home-news-title a:hover {
+        color: #173f08;
+    }
 
     .home-news-excerpt {
         margin: 0;
@@ -608,9 +695,6 @@
         border: 1px solid rgba(255,255,255,.18);
     }
 
-    /* =====================================================
-       PARTNER LAYOUT — tombol di bawah semua logo
-       ===================================================== */
     .home-partner-preview-wrap {
         display: flex;
         flex-direction: column;
@@ -618,7 +702,6 @@
         gap: 18px;
     }
 
-    /* Grid logo awal (preview) */
     .home-partner-preview {
         display: flex;
         align-items: stretch;
@@ -632,7 +715,6 @@
         overflow: visible;
     }
 
-    /* Panel expand — logo tambahan, muncul SEBELUM tombol */
     .home-partner-expand {
         display: grid;
         grid-template-rows: 0fr;
@@ -669,11 +751,9 @@
         padding: 4px 0 8px;
     }
 
-    /* Tombol "Lihat Semua / Tampilkan Lebih Sedikit" */
     .home-partner-more-wrap {
         display: flex;
         justify-content: center;
-        /* Selalu di bawah, urutan diatur lewat DOM (expand di atas, tombol di bawah) */
     }
 
     .home-partner-more {
@@ -714,7 +794,6 @@
         transition: transform .3s cubic-bezier(.4,0,.2,1);
     }
 
-    /* Ikon berputar saat terbuka */
     .home-partner-more[aria-expanded="true"] .home-partner-more__icon {
         transform: rotate(180deg);
     }
@@ -755,7 +834,9 @@
         cursor: default;
     }
 
-    a.home-partner-item { cursor: pointer; }
+    a.home-partner-item {
+        cursor: pointer;
+    }
 
     .home-partner-item:hover {
         border-color: #b8d6b0;
@@ -835,30 +916,10 @@
         transform: translateY(0);
     }
 
-    .bspz-slider__badge {
-        display: inline-block;
-        padding: 6px 12px;
-        margin-bottom: 16px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        border-radius: 999px;
-        background: rgba(255,255,255,.12);
-        backdrop-filter: blur(6px);
-        color: rgba(255,255,255,.9);
-    }
-
-    .bspz-slider__line {
-        width: 60px;
-        height: 3px;
-        margin-top: 18px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #d4a843, #f2c94c);
-    }
-
     @media (max-width: 1100px) {
-        .home-card-grid:not(.cols-1):not(.cols-2) { --cols: 2; }
+        .home-card-grid:not(.cols-1):not(.cols-2) {
+            --cols: 2;
+        }
     }
 
     @media (max-width: 860px) {
@@ -961,6 +1022,16 @@
         .home-video-embed {
             padding-top: 58%;
         }
+
+        .home-video-play {
+            width: 62px;
+            height: 62px;
+        }
+
+        .home-video-play svg {
+            width: 26px;
+            height: 26px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -996,24 +1067,19 @@
                                         alt="{{ $sliderTitle ?: 'Slider ' . ($index + 1) }}"
                                         class="bspz-slider__img"
                                         loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                        fetchpriority="{{ $index === 0 ? 'high' : 'low' }}"
+                                        decoding="async"
+                                        width="1920"
+                                        height="900"
                                         draggable="false"
                                     >
 
                                     @if($hasContent)
                                         <div class="bspz-slider__overlay"></div>
-                                    @endif
-
-                                    @if($hasContent)
                                         <div class="bspz-slider__content">
                                             <div class="bspz-slider__content-inner">
-                                                <div class="bspz-slider__badge">
-                                                    BSP Zapin
-                                                </div>
-
-                                                <h2 class="bspz-slider__title">
-                                                    {{ $sliderTitle }}
-                                                </h2>
-
+                                                <div class="bspz-slider__badge">BSP Zapin</div>
+                                                <h2 class="bspz-slider__title">{{ $sliderTitle }}</h2>
                                                 <div class="bspz-slider__line"></div>
                                             </div>
                                         </div>
@@ -1039,138 +1105,6 @@
                 </section>
             </div>
         </div>
-
-        <script>
-        (function () {
-            function initBspzSlider(slider) {
-                var track    = slider.querySelector('.bspz-slider__track');
-                var slides   = Array.from(slider.querySelectorAll('.bspz-slider__slide'));
-                var dots     = Array.from(slider.querySelectorAll('.bspz-slider__dot'));
-                var viewport = slider.querySelector('.bspz-slider__viewport');
-                if (!track || !slides.length) return;
-
-                var index    = 0;
-                var timer    = null;
-                var autoplay = slider.getAttribute('data-autoplay') === 'true';
-                var interval = Number(slider.getAttribute('data-interval') || 5000);
-
-                function goTo(i) {
-                    index = (i + slides.length) % slides.length;
-                    track.style.transform = 'translateX(-' + (index * 100) + '%)';
-
-                    slides.forEach(function (s, idx) {
-                        s.setAttribute('aria-hidden', idx === index ? 'false' : 'true');
-                    });
-
-                    dots.forEach(function (d, idx) {
-                        var active = idx === index;
-                        d.classList.toggle('is-active', active);
-                        d.setAttribute('aria-current', active ? 'true' : 'false');
-                    });
-                }
-
-                function next() { goTo(index + 1); }
-                function prev() { goTo(index - 1); }
-
-                function start() {
-                    if (!autoplay || slides.length <= 1) return;
-                    stop();
-                    timer = setInterval(next, interval);
-                }
-
-                function stop() {
-                    if (timer) { clearInterval(timer); timer = null; }
-                }
-
-                dots.forEach(function (dot) {
-                    dot.addEventListener('click', function () {
-                        goTo(Number(dot.getAttribute('data-slide') || 0));
-                        start();
-                    });
-                });
-
-                if (viewport) {
-                    viewport.addEventListener('mouseenter', stop);
-                    viewport.addEventListener('mouseleave', start);
-                }
-
-                var touchStartX = 0;
-                var touchStartY = 0;
-
-                if (viewport) {
-                    viewport.addEventListener('touchstart', function (e) {
-                        touchStartX = e.touches[0].clientX;
-                        touchStartY = e.touches[0].clientY;
-                    }, { passive: true });
-
-                    viewport.addEventListener('touchend', function (e) {
-                        var dx = touchStartX - e.changedTouches[0].clientX;
-                        var dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
-                        if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
-                            dx > 0 ? next() : prev();
-                            start();
-                        }
-                    }, { passive: true });
-                }
-
-                var dragStartX   = 0;
-                var isDragging   = false;
-                var dragMoved    = false;
-                var dragThreshold = 8;
-
-                if (viewport) {
-                    viewport.addEventListener('mousedown', function (e) {
-                        if (e.button !== 0) return;
-                        dragStartX  = e.clientX;
-                        isDragging  = true;
-                        dragMoved   = false;
-                        stop();
-                        track.classList.add('is-dragging');
-                    });
-
-                    window.addEventListener('mousemove', function (e) {
-                        if (!isDragging) return;
-                        var dx = e.clientX - dragStartX;
-                        if (Math.abs(dx) > dragThreshold) dragMoved = true;
-
-                        if (dragMoved) {
-                            var baseOffset = -(index * 100);
-                            var percentDelta = (dx / viewport.offsetWidth) * 100;
-                            track.style.transform = 'translateX(' + (baseOffset + percentDelta) + '%)';
-                        }
-                    });
-
-                    window.addEventListener('mouseup', function (e) {
-                        if (!isDragging) return;
-                        isDragging = false;
-                        track.classList.remove('is-dragging');
-
-                        var dx = e.clientX - dragStartX;
-                        if (dragMoved && Math.abs(dx) > 60) {
-                            dx < 0 ? next() : prev();
-                        } else {
-                            goTo(index);
-                        }
-                        start();
-                    });
-
-                    viewport.addEventListener('click', function (e) {
-                        if (dragMoved) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }
-                    }, true);
-                }
-
-                goTo(0);
-                start();
-            }
-
-            document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('.bspz-slider').forEach(initBspzSlider);
-            });
-        })();
-        </script>
     @else
         <section class="home-section">
             <div class="home-empty">
@@ -1190,7 +1124,14 @@
     <section class="home-section">
         <div class="home-overview">
             <div class="home-overview-media-card">
-                <img src="{{ asset('images/profile/company-overview.jpeg') }}" alt="Company Overview" loading="lazy">
+                <img
+                    src="{{ asset('images/profile/company-overview.jpeg') }}"
+                    alt="Company Overview"
+                    loading="lazy"
+                    decoding="async"
+                    width="900"
+                    height="675"
+                >
             </div>
 
             <div class="home-overview-card">
@@ -1229,16 +1170,26 @@
 
         <div class="home-video-shell">
             <div class="home-video-box">
-                <div class="home-video-embed">
-                    <video
-                        controls
-                        preload="metadata"
-                        playsinline
-                        poster="{{ $companyVideoPoster }}"
-                    >
-                        <source src="{{ $companyVideoUrl }}" type="video/mp4">
-                        Browser Anda tidak mendukung pemutaran video.
-                    </video>
+                <div
+                    class="home-video-embed"
+                    data-video-url="{{ $companyVideoUrl }}"
+                    data-video-poster="{{ $companyVideoPoster }}"
+                >
+                    <button type="button" class="home-video-poster" aria-label="{{ $locale === 'id' ? 'Putar video perusahaan' : 'Play company video' }}">
+                        <img
+                            src="{{ $companyVideoPoster }}"
+                            alt="{{ $locale === 'id' ? 'Poster video perusahaan' : 'Company video poster' }}"
+                            loading="lazy"
+                            decoding="async"
+                            width="1280"
+                            height="720"
+                        >
+                        <span class="home-video-play" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"></path>
+                            </svg>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1265,6 +1216,7 @@
         </div>
 
         @php $latestCount = $latestNews->count(); @endphp
+
         @if($latestCount)
             @php $latestColClass = $latestCount === 1 ? 'cols-1' : ($latestCount === 2 ? 'cols-2' : ''); @endphp
             <div class="home-card-grid {{ $latestColClass }}">
@@ -1274,28 +1226,43 @@
                             ? $news->getTranslationByLocale($locale)
                             : ($news->translations->firstWhere('locale', $locale) ?? $news->translations->firstWhere('locale', 'id'));
                     @endphp
+
                     <article class="home-news-card">
                         @if($news->featured_image)
                             <a href="{{ $translation?->slug ? route('news.show', ['locale' => $locale, 'slug' => $translation->slug]) : '#' }}" class="home-news-thumb-wrap">
-                                <img src="{{ asset($news->featured_image) }}" alt="{{ $translation?->title ?? 'News image' }}" class="home-news-thumb" loading="lazy">
+                                <img
+                                    src="{{ asset($news->featured_image) }}"
+                                    alt="{{ $translation?->title ?? 'News image' }}"
+                                    class="home-news-thumb"
+                                    loading="lazy"
+                                    decoding="async"
+                                    width="640"
+                                    height="360"
+                                >
                             </a>
                         @endif
+
                         <div class="home-news-body">
                             <div class="home-news-meta">
                                 @if($news->category?->name)
                                     <span class="home-news-category">{{ $news->category->name }}</span>
                                 @endif
+
                                 @if($news->published_at)
                                     <span>{{ $news->published_at->format('d M Y') }}</span>
                                 @endif
                             </div>
+
                             <h3 class="home-news-title">
                                 @if($translation?->slug)
-                                    <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $translation->slug]) }}">{{ $translation->title }}</a>
+                                    <a href="{{ route('news.show', ['locale' => $locale, 'slug' => $translation->slug]) }}">
+                                        {{ $translation->title }}
+                                    </a>
                                 @else
                                     {{ $translation?->title ?? ($locale === 'id' ? 'Berita' : 'News') }}
                                 @endif
                             </h3>
+
                             @if(!empty($translation?->excerpt))
                                 <p class="home-news-excerpt">{{ $translation->excerpt }}</p>
                             @endif
@@ -1305,7 +1272,9 @@
             </div>
         @else
             <div class="home-empty">
-                <h3 class="home-empty-title">{{ $locale === 'id' ? 'Belum ada berita terkini' : 'No latest news yet' }}</h3>
+                <h3 class="home-empty-title">
+                    {{ $locale === 'id' ? 'Belum ada berita terkini' : 'No latest news yet' }}
+                </h3>
                 <p class="home-empty-text">
                     {{ $locale === 'id'
                         ? 'Silakan tambahkan berita dari panel admin agar bagian ini tampil.'
@@ -1351,11 +1320,16 @@
                         $businessRemainingItems = $businessPartners->slice($businessPreviewCount)->values();
                         $businessHasMore = $businessRemainingItems->count() > 0;
                     @endphp
+
                     <div class="home-relations-card home-relations-card--dark">
                         <div class="home-relations-head">
                             <div class="home-relations-copy">
                                 <h3>{{ $locale === 'id' ? 'Mitra Bisnis' : 'Business Partners' }}</h3>
-                                <p>{{ $locale === 'id' ? 'Jaringan kemitraan strategis yang mendukung penguatan operasional dan pengembangan bisnis perusahaan.' : 'Strategic partnership networks that support operational strength and business growth.' }}</p>
+                                <p>
+                                    {{ $locale === 'id'
+                                        ? 'Jaringan kemitraan strategis yang mendukung penguatan operasional dan pengembangan bisnis perusahaan.'
+                                        : 'Strategic partnership networks that support operational strength and business growth.' }}
+                                </p>
                             </div>
                             <div class="home-relations-badge home-relations-badge--partner">
                                 {{ $businessPartners->count() }} {{ $locale === 'id' ? 'Mitra' : 'Partners' }}
@@ -1363,34 +1337,64 @@
                         </div>
 
                         <div class="home-partner-preview-wrap">
-                            {{-- Logo preview (selalu tampil) --}}
                             <div class="home-partner-preview {{ $businessHasMore ? 'has-more' : 'is-centered' }}">
                                 @foreach($businessPreviewItems as $partner)
                                     @if($partner->website_url)
                                         <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                            <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                            <img
+                                                src="{{ asset($partner->logo_path) }}"
+                                                alt="{{ $partner->name }}"
+                                                class="home-partner-logo home-partner-logo--boxed"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="160"
+                                                height="90"
+                                            >
                                         </a>
                                     @else
                                         <div class="home-partner-item" title="{{ $partner->name }}">
-                                            <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                            <img
+                                                src="{{ asset($partner->logo_path) }}"
+                                                alt="{{ $partner->name }}"
+                                                class="home-partner-logo home-partner-logo--boxed"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="160"
+                                                height="90"
+                                            >
                                         </div>
                                     @endif
                                 @endforeach
                             </div>
 
                             @if($businessHasMore)
-                                {{-- Panel expand — logo tambahan, di atas tombol --}}
                                 <div class="home-partner-expand" data-expand-panel>
                                     <div class="home-partner-expand-inner">
                                         <div class="home-partner-grid-static">
                                             @foreach($businessRemainingItems as $partner)
                                                 @if($partner->website_url)
                                                     <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                                        <img
+                                                            data-src="{{ asset($partner->logo_path) }}"
+                                                            alt="{{ $partner->name }}"
+                                                            class="home-partner-logo home-partner-logo--boxed js-defer-partner-logo"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            width="160"
+                                                            height="90"
+                                                        >
                                                     </a>
                                                 @else
                                                     <div class="home-partner-item" title="{{ $partner->name }}">
-                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo home-partner-logo--boxed" loading="lazy">
+                                                        <img
+                                                            data-src="{{ asset($partner->logo_path) }}"
+                                                            alt="{{ $partner->name }}"
+                                                            class="home-partner-logo home-partner-logo--boxed js-defer-partner-logo"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            width="160"
+                                                            height="90"
+                                                        >
                                                     </div>
                                                 @endif
                                             @endforeach
@@ -1398,7 +1402,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Tombol selalu paling bawah --}}
                                 <div class="home-partner-more-wrap">
                                     <button
                                         type="button"
@@ -1408,7 +1411,9 @@
                                         data-close-text="{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}"
                                         aria-expanded="false"
                                     >
-                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}</span>
+                                        <span class="home-partner-more__label">
+                                            {{ $locale === 'id' ? 'Lihat Semua Mitra' : 'View All Partners' }}
+                                        </span>
                                         <span class="home-partner-more__icon">﹢</span>
                                     </button>
                                 </div>
@@ -1424,11 +1429,16 @@
                         $customerRemainingItems = $customerPartners->slice($customerPreviewCount)->values();
                         $customerHasMore = $customerRemainingItems->count() > 0;
                     @endphp
+
                     <div class="home-relations-card">
                         <div class="home-relations-head">
                             <div class="home-relations-copy">
                                 <h3>{{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}</h3>
-                                <p>{{ $locale === 'id' ? 'Perusahaan dan institusi yang telah mempercayakan kerja sama kepada BSP Zapin.' : 'Companies and institutions that have entrusted their collaboration with BSP Zapin.' }}</p>
+                                <p>
+                                    {{ $locale === 'id'
+                                        ? 'Perusahaan dan institusi yang telah mempercayakan kerja sama kepada BSP Zapin.'
+                                        : 'Companies and institutions that have entrusted their collaboration with BSP Zapin.' }}
+                                </p>
                             </div>
                             <div class="home-relations-badge home-relations-badge--customer">
                                 {{ $customerPartners->count() }} {{ $locale === 'id' ? 'Pelanggan' : 'Customers' }}
@@ -1436,34 +1446,64 @@
                         </div>
 
                         <div class="home-partner-preview-wrap">
-                            {{-- Logo preview (selalu tampil) --}}
                             <div class="home-partner-preview {{ $customerHasMore ? 'has-more' : 'is-centered' }}">
                                 @foreach($customerPreviewItems as $partner)
                                     @if($partner->website_url)
                                         <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                            <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                            <img
+                                                src="{{ asset($partner->logo_path) }}"
+                                                alt="{{ $partner->name }}"
+                                                class="home-partner-logo"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="160"
+                                                height="90"
+                                            >
                                         </a>
                                     @else
                                         <div class="home-partner-item" title="{{ $partner->name }}">
-                                            <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                            <img
+                                                src="{{ asset($partner->logo_path) }}"
+                                                alt="{{ $partner->name }}"
+                                                class="home-partner-logo"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="160"
+                                                height="90"
+                                            >
                                         </div>
                                     @endif
                                 @endforeach
                             </div>
 
                             @if($customerHasMore)
-                                {{-- Panel expand — logo tambahan, di atas tombol --}}
                                 <div class="home-partner-expand" data-expand-panel>
                                     <div class="home-partner-expand-inner">
                                         <div class="home-partner-grid-static">
                                             @foreach($customerRemainingItems as $partner)
                                                 @if($partner->website_url)
                                                     <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="home-partner-item" title="{{ $partner->name }}">
-                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                                        <img
+                                                            data-src="{{ asset($partner->logo_path) }}"
+                                                            alt="{{ $partner->name }}"
+                                                            class="home-partner-logo js-defer-partner-logo"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            width="160"
+                                                            height="90"
+                                                        >
                                                     </a>
                                                 @else
                                                     <div class="home-partner-item" title="{{ $partner->name }}">
-                                                        <img src="{{ asset($partner->logo_path) }}" alt="{{ $partner->name }}" class="home-partner-logo" loading="lazy">
+                                                        <img
+                                                            data-src="{{ asset($partner->logo_path) }}"
+                                                            alt="{{ $partner->name }}"
+                                                            class="home-partner-logo js-defer-partner-logo"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            width="160"
+                                                            height="90"
+                                                        >
                                                     </div>
                                                 @endif
                                             @endforeach
@@ -1471,7 +1511,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Tombol selalu paling bawah --}}
                                 <div class="home-partner-more-wrap">
                                     <button
                                         type="button"
@@ -1481,7 +1520,9 @@
                                         data-close-text="{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}"
                                         aria-expanded="false"
                                     >
-                                        <span class="home-partner-more__label">{{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}</span>
+                                        <span class="home-partner-more__label">
+                                            {{ $locale === 'id' ? 'Lihat Semua Pelanggan' : 'View All Customers' }}
+                                        </span>
                                         <span class="home-partner-more__icon">﹢</span>
                                     </button>
                                 </div>
@@ -1489,26 +1530,177 @@
                         </div>
                     </div>
                 @endif
+
             </div>
         @endif
     </section>
-
 </div>
 
 <script>
 (function () {
+    function initBspzSlider(slider) {
+        var track = slider.querySelector('.bspz-slider__track');
+        var slides = Array.from(slider.querySelectorAll('.bspz-slider__slide'));
+        var dots = Array.from(slider.querySelectorAll('.bspz-slider__dot'));
+        var viewport = slider.querySelector('.bspz-slider__viewport');
+
+        if (!track || !slides.length) return;
+
+        var index = 0;
+        var timer = null;
+        var autoplay = slider.getAttribute('data-autoplay') === 'true';
+        var interval = Number(slider.getAttribute('data-interval') || 5000);
+
+        function goTo(i) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(-' + (index * 100) + '%)';
+
+            slides.forEach(function (s, idx) {
+                s.setAttribute('aria-hidden', idx === index ? 'false' : 'true');
+            });
+
+            dots.forEach(function (d, idx) {
+                var active = idx === index;
+                d.classList.toggle('is-active', active);
+                d.setAttribute('aria-current', active ? 'true' : 'false');
+            });
+        }
+
+        function next() {
+            goTo(index + 1);
+        }
+
+        function prev() {
+            goTo(index - 1);
+        }
+
+        function start() {
+            if (!autoplay || slides.length <= 1 || document.hidden) return;
+            stop();
+            timer = setInterval(next, interval);
+        }
+
+        function stop() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                goTo(Number(dot.getAttribute('data-slide') || 0));
+                start();
+            });
+        });
+
+        if (viewport) {
+            viewport.addEventListener('mouseenter', stop);
+            viewport.addEventListener('mouseleave', start);
+
+            var touchStartX = 0;
+            var touchStartY = 0;
+
+            viewport.addEventListener('touchstart', function (e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            viewport.addEventListener('touchend', function (e) {
+                var dx = touchStartX - e.changedTouches[0].clientX;
+                var dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
+
+                if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
+                    dx > 0 ? next() : prev();
+                    start();
+                }
+            }, { passive: true });
+
+            var dragStartX = 0;
+            var isDragging = false;
+            var dragMoved = false;
+            var dragThreshold = 8;
+
+            viewport.addEventListener('mousedown', function (e) {
+                if (e.button !== 0) return;
+
+                dragStartX = e.clientX;
+                isDragging = true;
+                dragMoved = false;
+                stop();
+                track.classList.add('is-dragging');
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (!isDragging) return;
+
+                var dx = e.clientX - dragStartX;
+
+                if (Math.abs(dx) > dragThreshold) {
+                    dragMoved = true;
+                }
+
+                if (dragMoved) {
+                    var baseOffset = -(index * 100);
+                    var percentDelta = (dx / viewport.offsetWidth) * 100;
+                    track.style.transform = 'translateX(' + (baseOffset + percentDelta) + '%)';
+                }
+            });
+
+            window.addEventListener('mouseup', function (e) {
+                if (!isDragging) return;
+
+                isDragging = false;
+                track.classList.remove('is-dragging');
+
+                var dx = e.clientX - dragStartX;
+
+                if (dragMoved && Math.abs(dx) > 60) {
+                    dx < 0 ? next() : prev();
+                } else {
+                    goTo(index);
+                }
+
+                start();
+            });
+
+            viewport.addEventListener('click', function (e) {
+                if (dragMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+        }
+
+        document.addEventListener('visibilitychange', function () {
+            document.hidden ? stop() : start();
+        });
+
+        goTo(0);
+        start();
+    }
 
     function initPartnerExpand() {
         document.querySelectorAll('[data-toggle-expand]').forEach(function (button) {
-            var wrap  = button.closest('.home-partner-preview-wrap');
+            var wrap = button.closest('.home-partner-preview-wrap');
             var panel = wrap ? wrap.querySelector('[data-expand-panel]') : null;
+
             if (!panel) return;
 
             var label = button.querySelector('.home-partner-more__label');
-            var icon  = button.querySelector('.home-partner-more__icon');
+            var icon = button.querySelector('.home-partner-more__icon');
 
             button.addEventListener('click', function () {
                 var isOpen = panel.classList.toggle('is-open');
+
+                if (isOpen) {
+                    panel.querySelectorAll('.js-defer-partner-logo').forEach(function (img) {
+                        if (!img.getAttribute('src') && img.dataset.src) {
+                            img.setAttribute('src', img.dataset.src);
+                        }
+                    });
+                }
+
                 button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 
                 if (label) {
@@ -1518,8 +1710,6 @@
                 }
 
                 if (icon) {
-                    // Tanda + / − lewat CSS rotate sudah diurus aria-expanded di CSS,
-                    // tapi kita tetap ganti karakter supaya aksesibel
                     icon.textContent = isOpen ? '−' : '﹢';
                 }
             });
@@ -1528,8 +1718,11 @@
 
     function initReveal() {
         var sections = document.querySelectorAll('.home-section');
+
         if (!('IntersectionObserver' in window)) {
-            sections.forEach(function (s) { s.classList.add('is-visible'); });
+            sections.forEach(function (section) {
+                section.classList.add('is-visible');
+            });
             return;
         }
 
@@ -1545,14 +1738,51 @@
             rootMargin: '0px 0px -40px 0px'
         });
 
-        sections.forEach(function (s) { observer.observe(s); });
+        sections.forEach(function (section) {
+            observer.observe(section);
+        });
+    }
+
+    function initLazyVideo() {
+        document.querySelectorAll('.home-video-embed').forEach(function (box) {
+            var button = box.querySelector('.home-video-poster');
+            var videoUrl = box.getAttribute('data-video-url');
+            var posterUrl = box.getAttribute('data-video-poster');
+
+            if (!button || !videoUrl) return;
+
+            button.addEventListener('click', function () {
+                var video = document.createElement('video');
+
+                video.setAttribute('controls', 'controls');
+                video.setAttribute('playsinline', 'playsinline');
+                video.setAttribute('autoplay', 'autoplay');
+                video.setAttribute('preload', 'metadata');
+
+                if (posterUrl) {
+                    video.setAttribute('poster', posterUrl);
+                }
+
+                var source = document.createElement('source');
+                source.setAttribute('src', videoUrl);
+                source.setAttribute('type', 'video/mp4');
+
+                video.appendChild(source);
+
+                box.innerHTML = '';
+                box.appendChild(video);
+
+                video.play().catch(function () {});
+            });
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.bspz-slider').forEach(initBspzSlider);
         initPartnerExpand();
         initReveal();
+        initLazyVideo();
     });
-
 })();
 </script>
 @endsection

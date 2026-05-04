@@ -474,7 +474,6 @@
         /* ─── Notification Badge ─────────────────────────────────────── */
         .wbs-notif-wrap { position: relative; }
 
-        /* Dot on bell (sidebar menu) */
         .wbs-notif-badge {
             position: absolute;
             top: 7px;
@@ -503,7 +502,6 @@
             100% { transform: scale(2); opacity: 0; }
         }
 
-        /* Count pill */
         .wbs-notif-count {
             position: absolute;
             top: -6px;
@@ -543,7 +541,6 @@
             box-shadow: var(--notif-shadow);
             overflow: hidden;
             z-index: 100;
-            /* Animation */
             opacity: 0;
             transform: translateY(-8px) scale(.97);
             transform-origin: top right;
@@ -631,7 +628,6 @@
 
         .wbs-notif-item.unread:hover { filter: brightness(.97); }
 
-        /* Unread indicator */
         .wbs-notif-item.unread::after {
             content: '';
             position: absolute;
@@ -1005,7 +1001,6 @@
             font-size: 14px;
         }
 
-        /* Chevron icon */
         .wbs-select-chevron {
             position: absolute;
             right: 13px;
@@ -1031,7 +1026,6 @@
             stroke-width: 2.2;
         }
 
-        /* Standalone .wbs-select (without wrapper) — fallback, keeps original style */
         .wbs-select {
             padding-right: 42px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -1095,24 +1089,7 @@
         /* ─── Alerts ────────────────────────────────────────────────── */
         .wbs-alert-success,
         .wbs-alert-danger {
-            padding: 14px 18px;
-            border-radius: var(--r-md);
-            margin-bottom: 18px;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.6;
-        }
-
-        .wbs-alert-success {
-            background: var(--success-bg);
-            border: 1px solid var(--success-border);
-            color: var(--success-text);
-        }
-
-        .wbs-alert-danger {
-            background: var(--danger-alert-bg);
-            border: 1px solid var(--danger-alert-border);
-            color: var(--danger-alert-text);
+            display: none;
         }
 
         /* ─── Meta & Attachment ─────────────────────────────────────── */
@@ -1180,6 +1157,137 @@
 
         form { margin: 0; }
 
+        /* ─── SweetAlert WBS ────────────────────────────────────────── */
+        .swal2-popup.swal2-wbs-popup {
+            width: min(92vw, 520px) !important;
+            border-radius: 24px !important;
+            padding: 30px 30px 28px !important;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif !important;
+            box-shadow: 0 30px 90px rgba(15, 23, 42, .26) !important;
+        }
+
+        .swal2-title.swal2-wbs-title {
+            font-size: 24px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            letter-spacing: -.04em !important;
+            line-height: 1.2 !important;
+            padding: 0 !important;
+        }
+
+        .swal2-html-container.swal2-wbs-html {
+            margin: 12px 0 0 !important;
+            font-size: 15px !important;
+            color: #64748b !important;
+            line-height: 1.7 !important;
+        }
+
+        .swal2-actions {
+            gap: 10px !important;
+            margin-top: 26px !important;
+        }
+
+        .swal2-styled {
+            box-shadow: none !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm,
+        .swal2-cancel.swal2-wbs-cancel {
+            min-height: 44px !important;
+            padding: 0 20px !important;
+            border-radius: 14px !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            border: 1px solid transparent !important;
+            transition: transform .16s ease, background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm:hover,
+        .swal2-cancel.swal2-wbs-cancel:hover {
+            transform: translateY(-1px) !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--primary {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, .22) !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--primary:hover {
+            background: #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--success {
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
+            box-shadow: 0 12px 24px rgba(22, 163, 74, .22) !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--success:hover {
+            background: #15803d !important;
+            border-color: #15803d !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--danger {
+            background: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #ffffff !important;
+            box-shadow: 0 12px 24px rgba(220, 38, 38, .22) !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--danger:hover {
+            background: #b91c1c !important;
+            border-color: #b91c1c !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--warning {
+            background: #d97706 !important;
+            border-color: #d97706 !important;
+            color: #ffffff !important;
+            box-shadow: 0 12px 24px rgba(217, 119, 6, .22) !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm--warning:hover {
+            background: #b45309 !important;
+            border-color: #b45309 !important;
+        }
+
+        .swal2-cancel.swal2-wbs-cancel {
+            background: #ffffff !important;
+            color: #334155 !important;
+            border-color: #dbe3ea !important;
+        }
+
+        .swal2-cancel.swal2-wbs-cancel:hover {
+            background: #f8fafc !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .swal2-icon.swal2-warning {
+            border-color: #f59e0b !important;
+            color: #f59e0b !important;
+        }
+
+        .swal2-icon.swal2-error {
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+        }
+
+        .swal2-icon.swal2-success {
+            border-color: #22c55e !important;
+            color: #22c55e !important;
+        }
+
+        .swal2-icon.swal2-question {
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+
         /* ─── Responsive ────────────────────────────────────────────── */
         @media (max-width: 1280px) {
             .wbs-grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -1227,7 +1335,6 @@
             .wbs-btn { padding: 0 12px; }
             .wbs-btn svg { width: 17px; height: 17px; }
 
-            /* Keep "Website" and "Logout" labels on mobile for clarity */
             .wbs-btn-primary span,
             .wbs-btn-danger span,
             .wbs-btn-home span { display: inline; }
@@ -1236,6 +1343,29 @@
                 right: -8px;
                 width: calc(100vw - 24px);
                 max-width: 380px;
+            }
+
+            .swal2-popup.swal2-wbs-popup {
+                padding: 26px 20px 24px !important;
+                border-radius: 20px !important;
+            }
+
+            .swal2-title.swal2-wbs-title {
+                font-size: 21px !important;
+            }
+
+            .swal2-html-container.swal2-wbs-html {
+                font-size: 14px !important;
+            }
+
+            .swal2-actions {
+                width: 100% !important;
+            }
+
+            .swal2-confirm.swal2-wbs-confirm,
+            .swal2-cancel.swal2-wbs-cancel {
+                flex: 1 1 auto !important;
+                min-width: 120px !important;
             }
         }
 
@@ -1501,7 +1631,7 @@
                     </a>
 
                     <!-- Logout -->
-                    <form action="{{ route('logout') }}" method="POST">
+                    <form action="{{ route('logout') }}" method="POST" class="js-wbs-logout-form">
                         @csrf
                         <button type="submit" class="wbs-btn wbs-btn-danger" aria-label="Logout">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
@@ -1516,32 +1646,12 @@
             </header>
 
             <div class="wbs-content">
-                @if(session('success'))
-                    <div class="wbs-alert-success" role="alert">{{ session('success') }}</div>
-                @endif
-
-                @if(session('pdf_url'))
-                    <div class="wbs-alert-success" role="alert">
-                        PDF berhasil dibuat.
-                        <a href="{{ session('pdf_url') }}" target="_blank" rel="noopener noreferrer" style="font-weight: 800; margin-left: 6px;">Buka PDF ↗</a>
-                    </div>
-                @endif
-
-                @if($errors->any())
-                    <div class="wbs-alert-danger" role="alert">
-                        <div style="font-weight: 800; margin-bottom: 6px;">Terjadi kesalahan:</div>
-                        <ul style="margin: 0; padding-left: 18px;">
-                            @foreach($errors->all() as $error)
-                                <li style="margin-bottom: 4px;">{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 @yield('content')
             </div>
         </main>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
     (function () {
@@ -1556,7 +1666,6 @@
             localStorage.setItem(THEME_KEY, theme);
         }
 
-        // Restore saved theme before paint
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme === 'dark' || savedTheme === 'light') {
             applyTheme(savedTheme);
@@ -1565,6 +1674,92 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            const WbsSwal = Swal.mixin({
+                customClass: {
+                    popup: 'swal2-wbs-popup',
+                    title: 'swal2-wbs-title',
+                    htmlContainer: 'swal2-wbs-html',
+                    confirmButton: 'swal2-wbs-confirm swal2-wbs-confirm--primary',
+                    cancelButton: 'swal2-wbs-cancel'
+                },
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Batal'
+            });
+
+            window.WbsSwal = WbsSwal;
+
+            function submitFormDirectly(form) {
+                form.dataset.confirmed = '1';
+                HTMLFormElement.prototype.submit.call(form);
+            }
+
+            @if(session('success'))
+                WbsSwal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: @json(session('success')),
+                    timer: 2400,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'swal2-wbs-popup',
+                        title: 'swal2-wbs-title',
+                        htmlContainer: 'swal2-wbs-html',
+                        confirmButton: 'swal2-wbs-confirm swal2-wbs-confirm--success',
+                        cancelButton: 'swal2-wbs-cancel'
+                    }
+                });
+            @endif
+
+            @if(session('pdf_url'))
+                WbsSwal.fire({
+                    icon: 'success',
+                    title: 'PDF berhasil dibuat',
+                    html: 'Dokumen PDF berhasil dibuat.<br><br><a href="' + @json(session('pdf_url')) + '" target="_blank" rel="noopener noreferrer" style="font-weight:900;color:#2563eb;text-decoration:none;">Buka PDF ↗</a>',
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        popup: 'swal2-wbs-popup',
+                        title: 'swal2-wbs-title',
+                        htmlContainer: 'swal2-wbs-html',
+                        confirmButton: 'swal2-wbs-confirm swal2-wbs-confirm--success',
+                        cancelButton: 'swal2-wbs-cancel'
+                    }
+                });
+            @endif
+
+            @if($errors->any())
+                const wbsErrors = @json($errors->all());
+                const wbsErrorHtml = '<div style="text-align:left;">' +
+                    '<div style="font-weight:800;margin-bottom:8px;color:#0f172a;">Terjadi kesalahan:</div>' +
+                    '<ul style="margin:0;padding-left:18px;">' +
+                    wbsErrors.map(function (error) {
+                        return '<li style="margin-bottom:5px;">' + String(error).replace(/[&<>"']/g, function (char) {
+                            return {
+                                '&': '&amp;',
+                                '<': '&lt;',
+                                '>': '&gt;',
+                                '"': '&quot;',
+                                "'": '&#039;'
+                            }[char];
+                        }) + '</li>';
+                    }).join('') +
+                    '</ul>' +
+                    '</div>';
+
+                WbsSwal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    html: wbsErrorHtml,
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'swal2-wbs-popup',
+                        title: 'swal2-wbs-title',
+                        htmlContainer: 'swal2-wbs-html',
+                        confirmButton: 'swal2-wbs-confirm swal2-wbs-confirm--danger',
+                        cancelButton: 'swal2-wbs-cancel'
+                    }
+                });
+            @endif
 
             /* ── Theme toggle ──────────────────────────────────── */
             const themeBtn = document.getElementById('wbsThemeToggle');
@@ -1604,13 +1799,6 @@
                 overlay.addEventListener('click', closeSidebar);
             }
 
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    closeSidebar();
-                    closeNotif();
-                }
-            });
-
             /* ── Notification dropdown ─────────────────────────── */
             const notifBtn      = document.getElementById('wbsNotifButton');
             const notifDropdown = document.getElementById('wbsNotifDropdown');
@@ -1621,6 +1809,10 @@
             }
 
             function closeNotif() {
+                if (!notifDropdown || !notifBtn) {
+                    return;
+                }
+
                 notifDropdown.classList.remove('show');
                 notifBtn.setAttribute('aria-expanded', 'false');
             }
@@ -1642,10 +1834,91 @@
                 document.addEventListener('click', closeNotif);
             }
 
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeSidebar();
+                    closeNotif();
+                }
+            });
+
+            document.querySelectorAll('.js-wbs-logout-form').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.dataset.confirmed === '1') {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    WbsSwal.fire({
+                        icon: 'question',
+                        title: 'Logout dari WBS?',
+                        text: 'Anda akan keluar dari sesi saat ini.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Logout',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal2-wbs-popup',
+                            title: 'swal2-wbs-title',
+                            htmlContainer: 'swal2-wbs-html',
+                            confirmButton: 'swal2-wbs-confirm swal2-wbs-confirm--danger',
+                            cancelButton: 'swal2-wbs-cancel'
+                        }
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            submitFormDirectly(form);
+                        }
+                    });
+                });
+            });
+
+            document.querySelectorAll('.js-wbs-confirm-submit').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.dataset.confirmed === '1') {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const title = form.getAttribute('data-title') || 'Lanjutkan proses?';
+                    const text = form.getAttribute('data-text') || 'Pastikan data yang Anda masukkan sudah benar.';
+                    const confirmText = form.getAttribute('data-confirm') || 'Ya, Lanjutkan';
+                    const type = form.getAttribute('data-type') || 'primary';
+
+                    const confirmClassMap = {
+                        primary: 'swal2-wbs-confirm swal2-wbs-confirm--primary',
+                        success: 'swal2-wbs-confirm swal2-wbs-confirm--success',
+                        danger: 'swal2-wbs-confirm swal2-wbs-confirm--danger',
+                        delete: 'swal2-wbs-confirm swal2-wbs-confirm--danger',
+                        warning: 'swal2-wbs-confirm swal2-wbs-confirm--warning'
+                    };
+
+                    WbsSwal.fire({
+                        icon: type === 'danger' || type === 'delete' ? 'warning' : 'question',
+                        title: title,
+                        text: text,
+                        showCancelButton: true,
+                        confirmButtonText: confirmText,
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal2-wbs-popup',
+                            title: 'swal2-wbs-title',
+                            htmlContainer: 'swal2-wbs-html',
+                            confirmButton: confirmClassMap[type] || confirmClassMap.primary,
+                            cancelButton: 'swal2-wbs-cancel'
+                        }
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            submitFormDirectly(form);
+                        }
+                    });
+                });
+            });
         });
     })();
 
-        document.querySelectorAll('.wbs-custom-select').forEach(function (wrapper) {
+    document.querySelectorAll('.wbs-custom-select').forEach(function (wrapper) {
         const select = wrapper.querySelector('select');
         const chevron = wrapper.querySelector('.wbs-select-chevron');
 

@@ -1,5 +1,7 @@
 @extends('layouts.writer')
 
+@section('title', 'Buat News')
+
 @section('content')
 <style>
     .wn-page { max-width: 1180px; }
@@ -98,6 +100,7 @@
         color:#111827;
         font-weight:700;
         cursor:pointer;
+        text-decoration:none;
         transition:.18s ease;
     }
 
@@ -391,17 +394,16 @@
         <a href="{{ route('writer.news.index') }}" class="wn-back">Kembali</a>
     </div>
 
-    @if($errors->any())
-        <div style="margin-bottom:16px;padding:12px 14px;border-radius:12px;background:#fff4f4;color:#b42318;border:1px solid #f3c6c6;font-size:14px;">
-            <ul style="margin:0; padding-left:18px;">
-                @foreach($errors->all() as $error)
-                    <li style="margin:4px 0;">{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('writer.news.store') }}" enctype="multipart/form-data" id="writer-news-form">
+    <form
+        method="POST"
+        action="{{ route('writer.news.store') }}"
+        enctype="multipart/form-data"
+        id="writer-news-form"
+        class="js-confirm-submit"
+        data-title="Simpan dan kirim ke reviewer?"
+        data-text="Pastikan judul, kategori, gambar, dan content builder sudah benar."
+        data-confirm="Ya, Simpan"
+    >
         @csrf
 
         <div class="wn-layout">
@@ -712,21 +714,25 @@
         }
     });
 
-    new Sortable(wrapper, {
-        animation: 180,
-        handle: '.wn-drag-handle',
-        draggable: '[data-block-item]',
-        ghostClass: 'wn-sortable-ghost',
-        chosenClass: 'wn-sortable-chosen',
-        dragClass: 'wn-sortable-drag',
-        onEnd: function () {
-            reindexBlocks();
-        }
-    });
+    if (wrapper && typeof Sortable !== 'undefined') {
+        new Sortable(wrapper, {
+            animation: 180,
+            handle: '.wn-drag-handle',
+            draggable: '[data-block-item]',
+            ghostClass: 'wn-sortable-ghost',
+            chosenClass: 'wn-sortable-chosen',
+            dragClass: 'wn-sortable-drag',
+            onEnd: function () {
+                reindexBlocks();
+            }
+        });
+    }
 
-    form.addEventListener('submit', function () {
-        reindexBlocks();
-    });
+    if (form) {
+        form.addEventListener('submit', function () {
+            reindexBlocks();
+        });
+    }
 
     reindexBlocks();
 })();

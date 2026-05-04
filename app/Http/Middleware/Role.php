@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Role
 {
-    private int $inactiveLimitMinutes = 3;
-
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = Auth::user();
@@ -30,8 +28,6 @@ class Role
         }
 
         if (! $user) {
-            $this->clearBrowserSession($request);
-
             return redirect($this->loginUrl($request))
                 ->withErrors([
                     'email' => 'Silakan login terlebih dahulu.',
@@ -40,38 +36,32 @@ class Role
 
         $currentSessionId = $request->session()->getId();
 
-        if ($user->active_session_id && $this->isDeviceGone($user)) {
-            $oldSessionId = $user->active_session_id;
-
-            $user->forceFill([
-                'active_session_id' => null,
-                'active_login_at' => null,
-            ])->save();
-
-            if ($oldSessionId === $currentSessionId) {
-                $this->clearBrowserSession($request);
-
-                return redirect($this->loginUrl($request))
-                    ->withErrors([
-                        'email' => 'Sesi Anda berakhir karena perangkat tidak aktif.',
-                    ]);
-            }
-        }
-
-        if ($user->active_session_id && $user->active_session_id !== $currentSessionId) {
-            $this->clearBrowserSession($request);
-
-            return redirect($this->loginUrl($request))
-                ->withErrors([
-                    'email' => 'Akun ini sedang aktif di perangkat lain.',
-                ]);
-        }
-
+        /*
+        |--------------------------------------------------------------------------
+        | One Account One Device
+        |--------------------------------------------------------------------------
+        | Tidak ada auto logout karena idle.
+        | Akun hanya valid jika session browser sama dengan active_session_id
+        | yang tersimpan di database.
+        |
+        | Jika user login paksa dari perangkat lain, active_session_id berubah.
+        | Session lama otomatis tidak valid saat akses halaman berikutnya.
+        |--------------------------------------------------------------------------
+        */
         if (! $user->active_session_id) {
             $user->forceFill([
                 'active_session_id' => $currentSessionId,
                 'active_login_at' => now(),
             ])->save();
+        }
+
+        if ($user->active_session_id !== $currentSessionId) {
+            $this->clearBrowserSession($request);
+
+            return redirect($this->loginUrl($request))
+                ->withErrors([
+                    'email' => 'Sesi Anda telah diambil alih oleh perangkat lain. Silakan login kembali.',
+                ]);
         }
 
         $user->forceFill([
@@ -91,15 +81,6 @@ class Role
         }
 
         return $next($request);
-    }
-
-    private function isDeviceGone(User $user): bool
-    {
-        if (! $user->active_login_at) {
-            return true;
-        }
-
-        return $user->active_login_at->lt(now()->subMinutes($this->inactiveLimitMinutes));
     }
 
     private function clearBrowserSession(Request $request): void

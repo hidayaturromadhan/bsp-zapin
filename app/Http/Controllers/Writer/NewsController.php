@@ -29,29 +29,38 @@ class NewsController extends Controller
         $news = News::query()
             ->with([
                 'category',
+                'reviewer',
                 'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
                 'images',
                 'logs.user',
             ])
             ->withoutTjsl()
-            ->forWriter($userId)
+            ->where('created_by', $userId)
             ->when($q !== '', function ($qr) use ($q) {
-                $qr->whereHas('translations', function ($t) use ($q) {
-                    $t->where('title', 'like', "%{$q}%")
-                        ->orWhere('excerpt', 'like', "%{$q}%");
+                $qr->where(function ($sub) use ($q) {
+                    $sub->whereHas('translations', function ($t) use ($q) {
+                        $t->where('title', 'like', "%{$q}%")
+                            ->orWhere('excerpt', 'like', "%{$q}%")
+                            ->orWhere('content', 'like', "%{$q}%");
+                    })->orWhereHas('category', function ($category) use ($q) {
+                        $category->where('name', 'like', "%{$q}%");
+                    });
                 });
             })
             ->when($status !== '', fn ($qr) => $qr->where('status', $status))
+            ->orderByRaw("
+                CASE status
+                    WHEN 'draft' THEN 1
+                    WHEN 'published' THEN 2
+                    WHEN 'archived' THEN 3
+                    ELSE 4
+                END
+            ")
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
 
-        return view('writer.news.index', [
-            'news' => $news,
-            'q' => $q,
-            'status' => $status,
-            'statuses' => News::statuses(),
-        ]);
+        return view('writer.news.index', compact('news', 'q', 'status'));
     }
 
     public function create()
@@ -60,6 +69,7 @@ class NewsController extends Controller
             ->where('is_active', true)
             ->where('slug', '!=', 'tjsl')
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->get();
 
         $blocks = old('blocks', [
@@ -88,7 +98,7 @@ class NewsController extends Controller
             : Str::slug($data['id_title']);
 
         if ($idSlug === '') {
-            $idSlug = Str::slug($data['id_title'] . '-' . time());
+            $idSlug = Str::slug($data['id_title'] . '-' . now()->timestamp);
         }
 
         $blocksId = $this->normalizeBlocks($request, $uploader);
@@ -99,12 +109,18 @@ class NewsController extends Controller
         $translatedBlocks = $translator->translateBlocks($blocksId, 'id', 'en');
         $translatedContent = $this->blocksToHtml($translatedBlocks);
 
-        $enTitle = trim($translatedTitle) !== '' ? trim($translatedTitle) : $data['id_title'];
-        $enExcerpt = trim($translatedExcerpt) !== '' ? trim($translatedExcerpt) : ($data['id_excerpt'] ?? '');
+        $enTitle = trim((string) $translatedTitle) !== ''
+            ? trim((string) $translatedTitle)
+            : $data['id_title'];
+
+        $enExcerpt = trim((string) $translatedExcerpt) !== ''
+            ? trim((string) $translatedExcerpt)
+            : ($data['id_excerpt'] ?? '');
+
         $enSlug = Str::slug($enTitle);
 
         if ($enSlug === '') {
-            $enSlug = Str::slug($data['id_title'] . '-en-' . time());
+            $enSlug = Str::slug($data['id_title'] . '-en-' . now()->timestamp);
         }
 
         $this->validateUniqueSlug('id', $idSlug);
@@ -116,7 +132,9 @@ class NewsController extends Controller
             $payload = [
                 'news_category_id' => $data['news_category_id'],
                 'status' => News::STATUS_DRAFT,
-                'published_at' => null,
+                'published_at' => !empty($data['published_at'])
+                    ? Carbon::parse($data['published_at'], config('app.timezone', 'Asia/Jakarta'))
+                    : null,
                 'is_featured' => false,
                 'is_visible' => false,
                 'reviewed_by' => null,
@@ -133,10 +151,10 @@ class NewsController extends Controller
                 );
             }
 
-            $createdNews = News::create($payload);
+            $news = News::create($payload);
 
             NewsTranslation::create([
-                'news_id' => $createdNews->id,
+                'news_id' => $news->id,
                 'locale' => 'id',
                 'title' => $data['id_title'],
                 'slug' => $idSlug,
@@ -146,7 +164,7 @@ class NewsController extends Controller
             ]);
 
             NewsTranslation::create([
-                'news_id' => $createdNews->id,
+                'news_id' => $news->id,
                 'locale' => 'en',
                 'title' => $enTitle,
                 'slug' => $enSlug,
@@ -162,38 +180,38 @@ class NewsController extends Controller
                     }
 
                     NewsImage::create([
-                        'news_id' => $createdNews->id,
+                        'news_id' => $news->id,
                         'image_path' => $uploader->upload(
                             $image,
                             'images/news/gallery',
                             2
                         ),
                         'caption' => null,
-                        'sort_order' => $index,
+                        'sort_order' => $index + 1,
                     ]);
                 }
             }
 
             if (function_exists('news_log')) {
-                news_log($createdNews->id, 'created', 'Berita dibuat dan disimpan sebagai draft oleh writer');
+                news_log($news->id, 'created', 'News dibuat oleh writer sebagai draft.');
             }
 
             DB::commit();
 
             return redirect()
-                ->route('writer.news.edit', $createdNews)
-                ->with('success', 'Berita berhasil disimpan sebagai draft.');
+                ->route('writer.news.edit', $news)
+                ->with('success', 'News berhasil disimpan sebagai draft.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            Log::error('Writer News store failed', [
+            Log::error('Writer news store failed', [
                 'message' => $e->getMessage(),
                 'user_id' => $user->id,
             ]);
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan berita. Silakan cek kembali data yang diinput.');
+                ->with('error', 'Gagal menyimpan news. Silakan cek kembali data yang diinput.');
         }
     }
 
@@ -204,15 +222,14 @@ class NewsController extends Controller
 
         $news->load([
             'category',
+            'author',
+            'reviewer',
             'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
             'images',
             'logs.user',
         ]);
 
-        return view('writer.news.show', [
-            'newsItem' => $news,
-            'statuses' => News::statuses(),
-        ]);
+        return view('writer.news.show', compact('news'));
     }
 
     public function edit(Request $request, News $news)
@@ -224,6 +241,7 @@ class NewsController extends Controller
             'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
             'images',
             'category',
+            'reviewer',
             'logs.user',
         ]);
 
@@ -231,6 +249,7 @@ class NewsController extends Controller
             ->where('is_active', true)
             ->where('slug', '!=', 'tjsl')
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->get();
 
         $tId = $news->translations->firstWhere('locale', 'id')
@@ -277,8 +296,14 @@ class NewsController extends Controller
         $translatedBlocks = $translator->translateBlocks($blocksId, 'id', 'en');
         $translatedContent = $this->blocksToHtml($translatedBlocks);
 
-        $enTitle = trim($translatedTitle) !== '' ? trim($translatedTitle) : $data['id_title'];
-        $enExcerpt = trim($translatedExcerpt) !== '' ? trim($translatedExcerpt) : ($data['id_excerpt'] ?? '');
+        $enTitle = trim((string) $translatedTitle) !== ''
+            ? trim((string) $translatedTitle)
+            : $data['id_title'];
+
+        $enExcerpt = trim((string) $translatedExcerpt) !== ''
+            ? trim((string) $translatedExcerpt)
+            : ($data['id_excerpt'] ?? '');
+
         $enSlug = Str::slug($enTitle);
 
         if ($enSlug === '') {
@@ -293,16 +318,14 @@ class NewsController extends Controller
 
             $payload = [
                 'news_category_id' => $data['news_category_id'],
-                'status' => $news->status ?: News::STATUS_DRAFT,
+                'published_at' => !empty($data['published_at'])
+                    ? Carbon::parse($data['published_at'], config('app.timezone', 'Asia/Jakarta'))
+                    : $news->published_at,
                 'is_visible' => $news->status === News::STATUS_PUBLISHED,
                 'reviewed_by' => null,
                 'reviewed_at' => null,
                 'review_note' => null,
             ];
-
-            if ($news->status !== News::STATUS_PUBLISHED) {
-                $payload['published_at'] = null;
-            }
 
             if ($request->hasFile('featured_image')) {
                 $uploader->delete($news->featured_image);
@@ -360,18 +383,18 @@ class NewsController extends Controller
             }
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'updated', 'Berita diperbarui oleh writer');
+                news_log($news->id, 'updated', 'News diperbarui oleh writer.');
             }
 
             DB::commit();
 
             return redirect()
                 ->route('writer.news.edit', $news)
-                ->with('success', 'Perubahan berita berhasil disimpan.');
+                ->with('success', 'Perubahan news berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            Log::error('Writer News update failed', [
+            Log::error('Writer news update failed', [
                 'message' => $e->getMessage(),
                 'news_id' => $news->id,
                 'user_id' => $request->session()->get('user_id'),
@@ -379,7 +402,7 @@ class NewsController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui berita. Silakan cek kembali data yang diinput.');
+                ->with('error', 'Gagal memperbarui news. Silakan cek kembali data yang diinput.');
         }
     }
 
@@ -390,15 +413,21 @@ class NewsController extends Controller
 
         $news->load([
             'category',
+            'author',
             'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
             'images',
-            'author',
         ]);
 
-        return view('writer.news.preview', [
-            'newsItem' => $news,
-            'locale' => 'id',
-            'translation' => $news->getTranslationByLocale('id'),
+        $locale = 'id';
+        $translation = $news->getTranslationByLocale($locale);
+
+        return view('web.news.preview', [
+            'news' => $news,
+            'locale' => $locale,
+            'translation' => $translation,
+            'metaTitle' => ($translation?->title ?: 'Preview News') . ' - BSP Zapin',
+            'metaDescription' => $translation?->excerpt ?: 'Preview News BSP Zapin',
+            'metaImage' => $news->featured_image ? asset($news->featured_image) : asset('images/logo.png'),
         ]);
     }
 
@@ -407,30 +436,47 @@ class NewsController extends Controller
         $this->authorizeWriter($request, $news);
         abort_if(optional($news->category)->slug === 'tjsl', 404);
 
-        $news->loadMissing([
-            'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
+        $news->load([
             'category',
+            'author',
+            'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
         ]);
 
         $translation = $news->getTranslationByLocale('id');
 
         if (! $translation || trim((string) $translation->title) === '') {
-            return redirect()
-                ->route('writer.news.edit', $news)
-                ->with('error', 'Judul berita wajib diisi sebelum mengirim preview ke reviewer.');
+            return back()->with('error', 'Judul news wajib tersedia sebelum mengirim preview ke reviewer.');
         }
 
-        $phone = config('services.news_whatsapp.reviewer');
+        $phone = config('services.news_whatsapp.reviewer')
+            ?: config('services.tjsl_whatsapp.reviewer');
 
-        $waUrl = $this->makeWhatsappLink(
-            $phone,
-            $this->buildPreviewWhatsappMessage($news, $translation->title)
-        );
+        if (! $phone) {
+            return back()->with('error', 'Nomor WhatsApp reviewer belum dikonfigurasi di config/services.php.');
+        }
+
+        $previewUrl = route('reviewer.news.preview', $news);
+
+        $message = "Assalamu’alaikum Warahmatullahi Wabarakatuh, Pak MTQ.\n\n"
+            . "Mohon izin, saya ingin meminta waktu Bapak untuk meninjau draft konten berita sebelum dipublikasikan pada website resmi PT Bumi Siak Pusako Zapin.\n\n"
+            . "Berikut informasi kontennya:\n"
+            . "• Jenis Konten : News / Berita\n"
+            . "• Judul        : {$translation->title}\n"
+            . "• Kategori     : " . ($news->category?->name ?? '-') . "\n"
+            . "• Status       : " . ($news->status_label ?? ucfirst((string) $news->status)) . "\n"
+            . "• Writer       : " . ($news->author?->name ?? '-') . "\n\n"
+            . "Bapak dapat melihat tampilan preview melalui tautan berikut:\n"
+            . "{$previewUrl}\n\n"
+            . "Catatan:\n"
+            . "Tautan preview hanya dapat diakses setelah login sebagai reviewer.\n\n"
+            . "Apabila terdapat masukan atau koreksi, mohon dapat disampaikan agar konten dapat segera saya sesuaikan sebelum dipublish.\n\n"
+            . "Atas perhatian dan waktu Bapak, saya ucapkan terima kasih.\n\n"
+            . "Wassalamu’alaikum Warahmatullahi Wabarakatuh.";
+
+        $waUrl = $this->makeWhatsappLink($phone, $message);
 
         if (! $waUrl) {
-            return redirect()
-                ->route('writer.news.show', $news)
-                ->with('error', 'Nomor WhatsApp reviewer belum dikonfigurasi di file .env.');
+            return back()->with('error', 'Nomor WhatsApp reviewer tidak valid.');
         }
 
         return redirect()->away($waUrl);
@@ -441,41 +487,51 @@ class NewsController extends Controller
         $this->authorizeWriter($request, $news);
         abort_if(optional($news->category)->slug === 'tjsl', 404);
 
-        $news->loadMissing('translations');
+        $news->loadMissing([
+            'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
+        ]);
 
         $translation = $news->getTranslationByLocale('id');
 
         if (! $translation || trim((string) $translation->title) === '') {
             return redirect()
                 ->route('writer.news.edit', $news)
-                ->with('error', 'Judul berita wajib diisi sebelum publish.');
+                ->with('error', 'Judul news wajib diisi sebelum publish.');
+        }
+
+        if (! $translation->content || trim(strip_tags((string) $translation->content)) === '') {
+            return redirect()
+                ->route('writer.news.edit', $news)
+                ->with('error', 'Konten news wajib diisi sebelum publish.');
         }
 
         try {
+            $publishAt = $news->published_at ?: now();
+
             $news->update([
                 'status' => News::STATUS_PUBLISHED,
-                'published_at' => now(),
                 'is_visible' => true,
+                'published_at' => $publishAt,
                 'reviewed_by' => null,
                 'reviewed_at' => null,
                 'review_note' => null,
             ]);
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'published', 'Berita dipublish oleh writer');
+                news_log($news->id, 'published', 'News dipublish langsung oleh writer.');
             }
 
             return redirect()
                 ->route('writer.news.show', $news)
-                ->with('success', 'Berita berhasil dipublish ke website publik.');
+                ->with('success', 'News berhasil dipublish ke website publik.');
         } catch (\Throwable $e) {
-            Log::error('Writer News publish failed', [
+            Log::error('Writer news publish failed', [
                 'message' => $e->getMessage(),
                 'news_id' => $news->id,
                 'user_id' => $request->session()->get('user_id'),
             ]);
 
-            return back()->with('error', 'Gagal publish berita.');
+            return back()->with('error', 'Gagal publish news.');
         }
     }
 
@@ -485,31 +541,34 @@ class NewsController extends Controller
         abort_if(optional($news->category)->slug === 'tjsl', 404);
 
         if ($news->status !== News::STATUS_PUBLISHED) {
-            return back()->with('error', 'Berita ini belum dalam status published.');
+            return back()->with('error', 'News ini belum dalam status published.');
         }
 
         try {
             $news->update([
                 'status' => News::STATUS_DRAFT,
-                'published_at' => null,
                 'is_visible' => false,
+                'published_at' => null,
+                'reviewed_by' => null,
+                'reviewed_at' => null,
+                'review_note' => null,
             ]);
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'unpublished', 'Berita ditarik dari publik oleh writer');
+                news_log($news->id, 'unpublished', 'News ditarik dari website publik oleh writer.');
             }
 
             return redirect()
                 ->route('writer.news.show', $news)
-                ->with('success', 'Berita berhasil ditarik dari website publik dan kembali menjadi draft.');
+                ->with('success', 'News berhasil ditarik dari website publik dan kembali menjadi draft.');
         } catch (\Throwable $e) {
-            Log::error('Writer News unpublish failed', [
+            Log::error('Writer news unpublish failed', [
                 'message' => $e->getMessage(),
                 'news_id' => $news->id,
                 'user_id' => $request->session()->get('user_id'),
             ]);
 
-            return back()->with('error', 'Gagal unpublish berita.');
+            return back()->with('error', 'Gagal unpublish news.');
         }
     }
 
@@ -524,7 +583,7 @@ class NewsController extends Controller
             $news->load(['images', 'translations']);
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'deleted', 'Berita dihapus oleh writer');
+                news_log($news->id, 'deleted', 'News dihapus oleh writer.');
             }
 
             $uploader->delete($news->featured_image);
@@ -544,17 +603,17 @@ class NewsController extends Controller
 
             return redirect()
                 ->route('writer.news.index')
-                ->with('success', 'Berita berhasil dihapus.');
+                ->with('success', 'News berhasil dihapus.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            Log::error('Writer News destroy failed', [
+            Log::error('Writer news destroy failed', [
                 'message' => $e->getMessage(),
                 'news_id' => $news->id,
                 'user_id' => $request->session()->get('user_id'),
             ]);
 
-            return back()->with('error', 'Gagal menghapus berita.');
+            return back()->with('error', 'Gagal menghapus news.');
         }
     }
 
@@ -562,9 +621,26 @@ class NewsController extends Controller
     {
         return $request->validate([
             'news_category_id' => ['required', 'exists:news_categories,id'],
-            'featured_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'published_at' => ['nullable', 'date'],
+
+            'featured_image' => [
+                'nullable',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'mimetypes:image/jpeg,image/png,image/webp',
+                'max:4096',
+            ],
+
             'gallery_images' => ['nullable', 'array'],
-            'gallery_images.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'gallery_images.*' => [
+                'nullable',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'mimetypes:image/jpeg,image/png,image/webp',
+                'max:4096',
+            ],
 
             'id_title' => ['required', 'string', 'max:190'],
             'id_slug' => ['nullable', 'string', 'max:190'],
@@ -578,7 +654,14 @@ class NewsController extends Controller
             'blocks.*.existing_image' => ['nullable', 'string'],
 
             'block_images' => ['nullable', 'array'],
-            'block_images.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'block_images.*' => [
+                'nullable',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'mimetypes:image/jpeg,image/png,image/webp',
+                'max:4096',
+            ],
         ]);
     }
 
@@ -587,27 +670,37 @@ class NewsController extends Controller
         $blocks = $request->input('blocks', []);
         $result = [];
 
+        if (! is_array($blocks)) {
+            return [];
+        }
+
         foreach ($blocks as $index => $block) {
             $type = $block['type'] ?? 'text';
 
             if ($type === 'heading') {
                 $title = trim((string) ($block['title'] ?? ''));
+
                 if ($title !== '') {
                     $result[] = [
                         'type' => 'heading',
                         'title' => $title,
                     ];
                 }
+
+                continue;
             }
 
             if ($type === 'text') {
                 $body = trim((string) ($block['body'] ?? ''));
+
                 if ($body !== '') {
                     $result[] = [
                         'type' => 'text',
                         'body' => $body,
                     ];
                 }
+
+                continue;
             }
 
             if ($type === 'image') {
@@ -639,27 +732,46 @@ class NewsController extends Controller
         $html = '';
 
         foreach ($blocks as $block) {
-            if (($block['type'] ?? null) === 'heading') {
-                $html .= '<h2>' . e($block['title'] ?? '') . '</h2>';
+            $type = $block['type'] ?? null;
+
+            if ($type === 'heading') {
+                $title = trim((string) ($block['title'] ?? ''));
+
+                if ($title !== '') {
+                    $html .= '<h2>' . e($title) . '</h2>';
+                }
+
+                continue;
             }
 
-            if (($block['type'] ?? null) === 'text') {
-                $paragraphs = preg_split("/\n{2,}/", trim((string) ($block['body'] ?? '')));
-                foreach ($paragraphs as $paragraph) {
-                    $paragraph = trim($paragraph);
-                    if ($paragraph !== '') {
-                        $html .= '<p>' . nl2br(e($paragraph)) . '</p>';
+            if ($type === 'text') {
+                $body = trim((string) ($block['body'] ?? ''));
+
+                if ($body !== '') {
+                    $paragraphs = preg_split("/\n{2,}/", $body);
+
+                    foreach ($paragraphs as $paragraph) {
+                        $paragraph = trim((string) $paragraph);
+
+                        if ($paragraph !== '') {
+                            $html .= '<p>' . nl2br(e($paragraph)) . '</p>';
+                        }
                     }
                 }
+
+                continue;
             }
 
-            if (($block['type'] ?? null) === 'image' && ! empty($block['image'])) {
+            if ($type === 'image' && ! empty($block['image'])) {
                 $caption = trim((string) ($block['caption'] ?? ''));
+
                 $html .= '<figure>';
-                $html .= '<img src="' . asset($block['image']) . '" alt="' . e($caption) . '">';
+                $html .= '<img src="' . asset($block['image']) . '" alt="' . e($caption ?: 'News image') . '">';
+
                 if ($caption !== '') {
                     $html .= '<figcaption>' . e($caption) . '</figcaption>';
                 }
+
                 $html .= '</figure>';
             }
         }
@@ -669,38 +781,17 @@ class NewsController extends Controller
 
     private function validateUniqueSlug(string $locale, string $slug, ?int $excludeNewsId = null): void
     {
-        $q = NewsTranslation::query()
+        $query = NewsTranslation::query()
             ->where('locale', $locale)
             ->where('slug', $slug);
 
         if ($excludeNewsId) {
-            $q->where('news_id', '!=', $excludeNewsId);
+            $query->where('news_id', '!=', $excludeNewsId);
         }
 
-        if ($q->exists()) {
+        if ($query->exists()) {
             abort(422, "Slug ({$slug}) sudah dipakai untuk locale {$locale}.");
         }
-    }
-
-    private function buildPreviewWhatsappMessage(News $news, string $title): string
-    {
-        $previewUrl = route('login', [
-            'redirect' => route('reviewer.news.preview', $news),
-        ]);
-
-        return "Assalamu’alaikum Warahmatullahi Wabarakatuh, Pak MTQ.\n\n"
-            . "Mohon izin, saya ingin meminta waktu Bapak untuk melakukan peninjauan terhadap draft berita sebelum dipublikasikan pada website resmi.\n\n"
-            . "Berikut detail berita:\n"
-            . "• Judul Berita : {$title}\n"
-            . "• Kategori     : " . ($news->category?->name ?? '-') . "\n"
-            . "• Status       : {$news->status_label}\n\n"
-            . "Silakan mengakses preview melalui tautan berikut:\n"
-            . "{$previewUrl}\n\n"
-            . "Catatan:\n"
-            . "Link di atas akan mengarahkan Bapak ke halaman login terlebih dahulu. Setelah login sebagai reviewer, Bapak akan langsung diarahkan ke halaman preview berita tersebut.\n\n"
-            . "Apabila terdapat masukan atau koreksi, mohon informasikan kepada saya melalui WhatsApp ini.\n\n"
-            . "Atas perhatian dan waktu Bapak, saya ucapkan terima kasih.\n\n"
-            . "Wassalamu’alaikum Warahmatullahi Wabarakatuh.";
     }
 
     private function makeWhatsappLink(?string $phone, string $message): ?string
@@ -724,8 +815,13 @@ class NewsController extends Controller
     {
         $userId = (int) $request->session()->get('user_id');
 
-        abort_if($userId <= 0, 403);
-        abort_if((int) $news->created_by !== $userId, 403);
+        if ($userId <= 0) {
+            abort(403);
+        }
+
+        if ((int) $news->created_by !== $userId) {
+            abort(403);
+        }
     }
 
     private function sessionUser(Request $request): ?User

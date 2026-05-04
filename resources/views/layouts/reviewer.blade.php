@@ -634,6 +634,168 @@
             .a-page-title{font-size:24px}
             .a-card{padding:15px;border-radius:16px}
         }
+
+        /* ============================================================
+        CUSTOM PAGINATION - REVIEWER
+        Support Laravel default Tailwind pagination + Bootstrap pagination
+        ============================================================ */
+
+        .r-pagination {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .r-pagination nav[role="navigation"] {
+            width: 100%;
+        }
+
+        .r-pagination nav[role="navigation"] > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .r-pagination nav[role="navigation"] > div:first-child {
+            display: none;
+        }
+
+        .r-pagination nav[role="navigation"] p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-soft);
+        }
+
+        .r-pagination nav[role="navigation"] span[aria-current="page"] span,
+        .r-pagination nav[role="navigation"] a,
+        .r-pagination nav[role="navigation"] span[aria-disabled="true"] span {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 13px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+            text-decoration: none;
+            transition: transform .16s ease, background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+        }
+
+        .r-pagination nav[role="navigation"] a:hover {
+            transform: translateY(-1px);
+            background: var(--primary-soft);
+            border-color: rgba(23,63,8,.25);
+            color: var(--primary);
+            box-shadow: 0 8px 18px rgba(15,23,42,.06);
+        }
+
+        .r-pagination nav[role="navigation"] span[aria-current="page"] span {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(23,63,8,.20);
+        }
+
+        .r-pagination nav[role="navigation"] span[aria-disabled="true"] span {
+            background: #f8fafc;
+            color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .r-pagination nav[role="navigation"] svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Laravel Bootstrap pagination */
+        .r-pagination .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: wrap;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .r-pagination .page-item {
+            margin: 0;
+        }
+
+        .r-pagination .page-link {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 13px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 900;
+            text-decoration: none;
+            transition: transform .16s ease, background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+        }
+
+        .r-pagination .page-link:hover {
+            transform: translateY(-1px);
+            background: var(--primary-soft);
+            border-color: rgba(23,63,8,.25);
+            color: var(--primary);
+            box-shadow: 0 8px 18px rgba(15,23,42,.06);
+        }
+
+        .r-pagination .page-item.active .page-link {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(23,63,8,.20);
+        }
+
+        .r-pagination .page-item.disabled .page-link {
+            background: #f8fafc;
+            color: #cbd5e1;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        @media (max-width: 760px) {
+            .r-pagination {
+                justify-content: center;
+            }
+
+            .r-pagination nav[role="navigation"] > div {
+                justify-content: center;
+            }
+
+            .r-pagination nav[role="navigation"] p {
+                width: 100%;
+                text-align: center;
+            }
+
+            .r-pagination nav[role="navigation"] a,
+            .r-pagination nav[role="navigation"] span[aria-current="page"] span,
+            .r-pagination nav[role="navigation"] span[aria-disabled="true"] span,
+            .r-pagination .page-link {
+                min-width: 36px;
+                height: 36px;
+                padding: 0 11px;
+                font-size: 12px;
+                border-radius: 11px;
+            }
+        }
     </style>
 
     @stack('styles')
