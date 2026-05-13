@@ -643,6 +643,242 @@
         line-height: 1.65;
     }
 
+
+    .wn-gallery-preview,
+    .wn-gallery-current {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .wn-gallery-current-title {
+        margin-top: 14px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .wn-gallery-item,
+    .wn-block-image-preview {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #f8fafc;
+        padding: 10px;
+    }
+
+    .wn-gallery-item img,
+    .wn-block-image-preview img {
+        width: 100%;
+        height: 118px;
+        object-fit: cover;
+        display: block;
+        border-radius: 12px;
+        background: #e5e7eb;
+    }
+
+    .wn-gallery-item-name {
+        margin-top: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #334155;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wn-gallery-item-action,
+    .wn-block-image-remove {
+        margin-top: 8px;
+        width: 100%;
+        min-height: 34px;
+        border: 1px solid #fecdd3;
+        border-radius: 11px;
+        background: #fff1f2;
+        color: #be123c;
+        font-size: 12px;
+        font-weight: 900;
+        cursor: pointer;
+        transition: background .16s ease, border-color .16s ease, transform .16s ease;
+    }
+
+    .wn-gallery-item-action:hover,
+    .wn-block-image-remove:hover {
+        background: #ffe4e6;
+        border-color: #fda4af;
+        transform: translateY(-1px);
+    }
+
+    .wn-block-image-preview {
+        margin-top: 12px;
+        max-width: 220px;
+    }
+
+    .wn-block-image-preview-label {
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    /* CATEGORY CUSTOM SELECT - override native browser dropdown */
+    .wn-select-wrap[data-custom-select] {
+        position: relative;
+        min-height: 58px;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        z-index: 20;
+    }
+
+    .wn-select-wrap[data-custom-select]::before,
+    .wn-select-wrap[data-custom-select]::after {
+        display: none;
+    }
+
+    .wn-select-wrap[data-custom-select] .wn-select-custom {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        min-height: 1px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        left: 14px;
+        bottom: 0;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    .wn-select-button {
+        width: 100%;
+        min-height: 58px;
+        border: 1px solid #d1d5db;
+        border-radius: 15px;
+        background: linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+        padding: 0 54px 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        color: #111827;
+        cursor: pointer;
+        text-align: left;
+        transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .wn-select-button:hover {
+        border-color: #9fb79a;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbf7 100%);
+    }
+
+    .wn-select-wrap.is-open .wn-select-button,
+    .wn-select-button:focus {
+        outline: none;
+        border-color: #173f08;
+        box-shadow: 0 0 0 4px rgba(23,63,8,.09);
+        background: #fff;
+    }
+
+    .wn-select-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .wn-select-icon {
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        background: #eef6eb;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: transform .18s ease, background .18s ease;
+    }
+
+    .wn-select-icon::after {
+        content: '';
+        position: absolute;
+        top: 9px;
+        left: 10px;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #173f08;
+        border-bottom: 2px solid #173f08;
+        transform: rotate(45deg);
+    }
+
+    .wn-select-wrap.is-open .wn-select-icon {
+        background: #e3f1df;
+    }
+
+    .wn-select-wrap.is-open .wn-select-icon::after {
+        top: 12px;
+        transform: rotate(225deg);
+    }
+
+    .wn-select-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        z-index: 999;
+        display: none;
+        padding: 8px;
+        border: 1px solid #d7e2d2;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 20px 40px rgba(15,23,42,.14);
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    .wn-select-wrap.is-open .wn-select-menu {
+        display: grid;
+        gap: 4px;
+    }
+
+    .wn-select-option {
+        width: 100%;
+        min-height: 42px;
+        border: 0;
+        border-radius: 11px;
+        background: #fff;
+        padding: 0 12px;
+        text-align: left;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 750;
+        color: #111827;
+        cursor: pointer;
+        transition: background .16s ease, color .16s ease;
+    }
+
+    .wn-select-option:hover,
+    .wn-select-option.is-active {
+        background: #eef6eb;
+        color: #173f08;
+    }
+
+    .wn-select-option.is-selected {
+        background: #173f08;
+        color: #fff;
+        font-weight: 900;
+    }
+
+
     .hidden {
         display: none !important;
     }
@@ -770,15 +1006,42 @@
                     <div class="wn-grid">
                         <div class="wn-field full">
                             <label class="wn-label">Kategori</label>
-                            <div class="wn-select-wrap">
-                                <select name="news_category_id" class="wn-select-custom" required>
+                            @php
+                                $selectedCategoryId = old('news_category_id', $news->news_category_id);
+                                $selectedCategory = $categories->firstWhere('id', (int) $selectedCategoryId);
+                            @endphp
+
+                            <div class="wn-select-wrap" data-custom-select>
+                                <select name="news_category_id" class="wn-select-custom" data-custom-select-native required>
                                     <option value="">Pilih kategori</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" {{ (string) old('news_category_id', $news->news_category_id) === (string) $category->id ? 'selected' : '' }}>
+                                        <option value="{{ $category->id }}" {{ (string) $selectedCategoryId === (string) $category->id ? 'selected' : '' }}>
                                             {{ $category->name }}
                                         </option>
                                     @endforeach
                                 </select>
+
+                                <button type="button" class="wn-select-button" data-custom-select-button aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="wn-select-label" data-custom-select-label>
+                                        {{ $selectedCategory ? $selectedCategory->name : 'Pilih kategori' }}
+                                    </span>
+                                    <span class="wn-select-icon" aria-hidden="true"></span>
+                                </button>
+
+                                <div class="wn-select-menu" data-custom-select-menu role="listbox">
+                                    <button type="button" class="wn-select-option {{ empty($selectedCategoryId) ? 'is-selected' : '' }}" data-value="">
+                                        Pilih kategori
+                                    </button>
+                                    @foreach($categories as $category)
+                                        <button
+                                            type="button"
+                                            class="wn-select-option {{ (string) $selectedCategoryId === (string) $category->id ? 'is-selected' : '' }}"
+                                            data-value="{{ $category->id }}"
+                                        >
+                                            {{ $category->name }}
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
 
@@ -888,8 +1151,32 @@
                             </div>
 
                             <div class="wn-gallery-note">
-                                Kamu bisa memilih lebih dari satu gambar untuk galeri tambahan.
+                                Kamu bisa memilih lebih dari satu gambar untuk galeri tambahan. File baru dan gambar lama bisa dihapus sebelum disimpan.
                             </div>
+
+                            <div id="selected_gallery_preview" class="wn-gallery-preview hidden"></div>
+
+                            <div id="remove_gallery_container"></div>
+
+                            @if($news->images->count())
+                                <div class="wn-gallery-current-title">Galeri saat ini</div>
+                                <div class="wn-gallery-current" id="current_gallery_list">
+                                    @foreach($news->images as $image)
+                                        <div class="wn-gallery-item" data-current-gallery-item="{{ $image->id }}">
+                                            <img src="{{ asset($image->image_path) }}" alt="Gallery image">
+                                            <div class="wn-gallery-item-name">Gambar Galeri #{{ $loop->iteration }}</div>
+                                            <button
+                                                type="button"
+                                                class="wn-gallery-item-action"
+                                                data-remove-gallery-image
+                                                data-image-id="{{ $image->id }}"
+                                            >
+                                                Hapus dari Galeri
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -946,11 +1233,38 @@
 
                                 <div class="wn-field block-image {{ $blockType === 'image' ? '' : 'hidden' }}">
                                     <label class="wn-label">Upload Image</label>
-                                    <input type="file" name="block_images[{{ $i }}]" class="wn-input" accept=".jpg,.jpeg,.png,.webp" data-file-field="image">
+                                    <input
+                                        type="file"
+                                        name="block_images[{{ $i }}]"
+                                        id="block_image_{{ $i }}"
+                                        class="wn-file-input"
+                                        accept=".jpg,.jpeg,.png,.webp"
+                                        data-file-field="image"
+                                        data-block-file-input
+                                    >
+
+                                    <div class="wn-file-upload">
+                                        <label for="block_image_{{ $i }}" class="wn-file-trigger" data-block-file-trigger>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                                                <path d="M12 16V4"/>
+                                                <path d="M7 9l5-5 5 5"/>
+                                                <path d="M5 20h14"/>
+                                            </svg>
+                                            <span>Pilih Gambar</span>
+                                        </label>
+
+                                        <div class="wn-file-name" data-block-file-name>
+                                            <span>{{ !empty($block['image']) ? 'Biarkan kosong jika tidak ingin mengganti gambar' : 'Belum ada file dipilih' }}</span>
+                                        </div>
+                                    </div>
 
                                     @if(!empty($block['image']))
                                         <input type="hidden" name="blocks[{{ $i }}][existing_image]" value="{{ $block['image'] }}" data-field="existing_image">
-                                        <img src="{{ asset($block['image']) }}" alt="Block image" class="wn-thumb">
+                                        <div class="wn-block-image-preview" data-existing-block-preview>
+                                            <div class="wn-block-image-preview-label">Gambar saat ini</div>
+                                            <img src="{{ asset($block['image']) }}" alt="Block image">
+                                            <button type="button" class="wn-block-image-remove" data-remove-existing-block-image>Hapus Gambar Ini</button>
+                                        </div>
                                     @endif
                                 </div>
 
@@ -991,7 +1305,28 @@
 
                                 <div class="wn-field block-image hidden">
                                     <label class="wn-label">Upload Image</label>
-                                    <input type="file" name="block_images[0]" class="wn-input" accept=".jpg,.jpeg,.png,.webp" data-file-field="image">
+                                    <input
+                                        type="file"
+                                        name="block_images[0]"
+                                        id="block_image_0"
+                                        class="wn-file-input"
+                                        accept=".jpg,.jpeg,.png,.webp"
+                                        data-file-field="image"
+                                        data-block-file-input
+                                    >
+                                    <div class="wn-file-upload">
+                                        <label for="block_image_0" class="wn-file-trigger" data-block-file-trigger>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                                                <path d="M12 16V4"/>
+                                                <path d="M7 9l5-5 5 5"/>
+                                                <path d="M5 20h14"/>
+                                            </svg>
+                                            <span>Pilih Gambar</span>
+                                        </label>
+                                        <div class="wn-file-name" data-block-file-name>
+                                            <span>Belum ada file dipilih</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="wn-field block-image hidden" style="margin-bottom:0;">
@@ -1063,6 +1398,80 @@
     const featuredName = document.getElementById('featured_image_name');
     const galleryInput = document.getElementById('gallery_images');
     const galleryName = document.getElementById('gallery_images_name');
+    const selectedGalleryPreview = document.getElementById('selected_gallery_preview');
+    const currentGalleryList = document.getElementById('current_gallery_list');
+    const removeGalleryContainer = document.getElementById('remove_gallery_container');
+    let selectedGalleryFiles = [];
+
+
+
+    function initCategoryCustomSelect() {
+        document.querySelectorAll('[data-custom-select]').forEach((selectWrap) => {
+            const nativeSelect = selectWrap.querySelector('[data-custom-select-native]');
+            const button = selectWrap.querySelector('[data-custom-select-button]');
+            const label = selectWrap.querySelector('[data-custom-select-label]');
+            const menu = selectWrap.querySelector('[data-custom-select-menu]');
+
+            if (!nativeSelect || !button || !label || !menu) return;
+
+            function closeSelect() {
+                selectWrap.classList.remove('is-open');
+                button.setAttribute('aria-expanded', 'false');
+            }
+
+            function openSelect() {
+                document.querySelectorAll('[data-custom-select].is-open').forEach((item) => {
+                    if (item !== selectWrap) {
+                        item.classList.remove('is-open');
+                        const itemButton = item.querySelector('[data-custom-select-button]');
+                        if (itemButton) itemButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                selectWrap.classList.add('is-open');
+                button.setAttribute('aria-expanded', 'true');
+            }
+
+            function syncSelected(value, text) {
+                nativeSelect.value = value;
+                label.textContent = text || 'Pilih kategori';
+
+                menu.querySelectorAll('[data-value]').forEach((optionButton) => {
+                    optionButton.classList.toggle('is-selected', optionButton.getAttribute('data-value') === value);
+                });
+
+                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            button.addEventListener('click', function () {
+                if (selectWrap.classList.contains('is-open')) {
+                    closeSelect();
+                } else {
+                    openSelect();
+                }
+            });
+
+            menu.addEventListener('click', function (e) {
+                const optionButton = e.target.closest('[data-value]');
+                if (!optionButton) return;
+
+                syncSelected(optionButton.getAttribute('data-value'), optionButton.textContent.trim());
+                closeSelect();
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!selectWrap.contains(e.target)) {
+                    closeSelect();
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeSelect();
+                }
+            });
+        });
+    }
 
     function blockTemplate(type, index) {
         return `
@@ -1097,7 +1506,28 @@
 
                 <div class="wn-field block-image ${type === 'image' ? '' : 'hidden'}">
                     <label class="wn-label">Upload Image</label>
-                    <input type="file" name="block_images[${index}]" class="wn-input" accept=".jpg,.jpeg,.png,.webp" data-file-field="image">
+                    <input
+                        type="file"
+                        name="block_images[${index}]"
+                        id="block_image_${index}"
+                        class="wn-file-input"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        data-file-field="image"
+                        data-block-file-input
+                    >
+                    <div class="wn-file-upload">
+                        <label for="block_image_${index}" class="wn-file-trigger" data-block-file-trigger>
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                                <path d="M12 16V4"/>
+                                <path d="M7 9l5-5 5 5"/>
+                                <path d="M5 20h14"/>
+                            </svg>
+                            <span>Pilih Gambar</span>
+                        </label>
+                        <div class="wn-file-name" data-block-file-name>
+                            <span>Belum ada file dipilih</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="wn-field block-image ${type === 'image' ? '' : 'hidden'}" style="margin-bottom:0;">
@@ -1127,6 +1557,13 @@
             item.querySelectorAll('[name]').forEach((field) => {
                 if (field.hasAttribute('data-file-field')) {
                     field.name = `block_images[${index}]`;
+                    field.id = `block_image_${index}`;
+
+                    const trigger = item.querySelector('[data-block-file-trigger]');
+                    if (trigger) {
+                        trigger.setAttribute('for', field.id);
+                    }
+
                     return;
                 }
 
@@ -1137,6 +1574,56 @@
 
                 field.name = `blocks[${index}][${key}]`;
             });
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function syncGalleryInputFiles() {
+        if (!galleryInput) return;
+
+        const transfer = new DataTransfer();
+        selectedGalleryFiles.forEach((file) => transfer.items.add(file));
+        galleryInput.files = transfer.files;
+    }
+
+    function renderSelectedGalleryPreview() {
+        if (!selectedGalleryPreview) return;
+
+        selectedGalleryPreview.innerHTML = '';
+
+        if (!selectedGalleryFiles.length) {
+            selectedGalleryPreview.classList.add('hidden');
+            return;
+        }
+
+        selectedGalleryPreview.classList.remove('hidden');
+
+        selectedGalleryFiles.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'wn-gallery-item';
+
+            const image = document.createElement('img');
+            image.alt = file.name;
+            image.src = URL.createObjectURL(file);
+            image.onload = function () {
+                URL.revokeObjectURL(image.src);
+            };
+
+            item.innerHTML = `
+                <div class="wn-gallery-item-name">${escapeHtml(file.name)}</div>
+                <button type="button" class="wn-gallery-item-action" data-remove-selected-gallery="${index}">Hapus dari pilihan</button>
+            `;
+
+            item.prepend(image);
+            selectedGalleryPreview.appendChild(item);
         });
     }
 
@@ -1175,7 +1662,45 @@
 
     if (galleryInput && galleryName) {
         galleryInput.addEventListener('change', function () {
+            selectedGalleryFiles = Array.from(this.files || []);
+            syncGalleryInputFiles();
             updateMultipleFileName(this, galleryName);
+            renderSelectedGalleryPreview();
+        });
+    }
+
+    if (selectedGalleryPreview) {
+        selectedGalleryPreview.addEventListener('click', function (e) {
+            const button = e.target.closest('[data-remove-selected-gallery]');
+            if (!button) return;
+
+            const index = Number(button.getAttribute('data-remove-selected-gallery'));
+            selectedGalleryFiles.splice(index, 1);
+            syncGalleryInputFiles();
+            updateMultipleFileName(galleryInput, galleryName);
+            renderSelectedGalleryPreview();
+        });
+    }
+
+    if (currentGalleryList && removeGalleryContainer) {
+        currentGalleryList.addEventListener('click', function (e) {
+            const button = e.target.closest('[data-remove-gallery-image]');
+            if (!button) return;
+
+            const imageId = button.getAttribute('data-image-id');
+            const item = button.closest('[data-current-gallery-item]');
+
+            if (!imageId) return;
+
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'remove_gallery_image_ids[]';
+            hidden.value = imageId;
+            removeGalleryContainer.appendChild(hidden);
+
+            if (item) {
+                item.remove();
+            }
         });
     }
 
@@ -1191,20 +1716,46 @@
 
     if (wrapper) {
         wrapper.addEventListener('click', function (e) {
-            const removeButton = e.target.closest('[data-remove-block]');
+            const removeBlockButton = e.target.closest('[data-remove-block]');
 
-            if (!removeButton) {
+            if (removeBlockButton) {
+                const item = removeBlockButton.closest('[data-block-item]');
+
+                if (item) {
+                    item.remove();
+                    reindexBlocks();
+                }
+
                 return;
             }
 
-            const item = removeButton.closest('[data-block-item]');
+            const removeExistingImageButton = e.target.closest('[data-remove-existing-block-image]');
 
-            if (!item) {
-                return;
+            if (removeExistingImageButton) {
+                const item = removeExistingImageButton.closest('[data-block-item]');
+                const preview = removeExistingImageButton.closest('[data-existing-block-preview]');
+                const existingInput = item ? item.querySelector('[data-field="existing_image"]') : null;
+
+                if (existingInput) {
+                    existingInput.value = '';
+                }
+
+                if (preview) {
+                    preview.remove();
+                }
             }
+        });
 
-            item.remove();
-            reindexBlocks();
+        wrapper.addEventListener('change', function (e) {
+            const input = e.target.closest('[data-block-file-input]');
+            if (!input) return;
+
+            const item = input.closest('[data-block-item]');
+            const target = item ? item.querySelector('[data-block-file-name]') : null;
+
+            if (target) {
+                updateSingleFileName(input, target, 'Belum ada file dipilih');
+            }
         });
     }
 
@@ -1228,6 +1779,7 @@
         });
     }
 
+    initCategoryCustomSelect();
     reindexBlocks();
 })();
 </script>

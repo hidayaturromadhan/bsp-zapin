@@ -93,6 +93,15 @@ class ReportController extends Controller
             });
 
             WbsNotificationService::notifyAdminsReportCreated($report);
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUEUE EMAIL NOTIFIKASI ADMIN
+            |--------------------------------------------------------------------------
+            | Email admin tidak dikirim langsung saat pelapor submit laporan.
+            | Email dimasukkan ke tabel jobs dan diproses oleh queue worker / cron.
+            |--------------------------------------------------------------------------
+            */
             $this->sendReportNotificationToAdmin($report, 'created');
 
             return redirect()
@@ -193,6 +202,14 @@ class ReportController extends Controller
             });
 
             WbsNotificationService::notifyAdminsReportUpdatedByPelapor($report);
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUEUE EMAIL NOTIFIKASI ADMIN
+            |--------------------------------------------------------------------------
+            | Email admin saat pelapor update laporan juga masuk antrean queue.
+            |--------------------------------------------------------------------------
+            */
             $this->sendReportNotificationToAdmin($report, 'updated');
 
             return redirect()
@@ -356,10 +373,28 @@ class ReportController extends Controller
             $report->refresh();
             $report->load('user');
 
-            Mail::to(config('wbs.admin_email'))
-                ->send(new WbsReportSubmittedMail($report, $action));
+            $adminEmail = config('wbs.admin_email');
+
+            if (! $adminEmail) {
+                Log::warning('Email admin WBS belum dikonfigurasi.', [
+                    'report_id' => $report->id,
+                    'action' => $action,
+                ]);
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUEUE EMAIL WBS KE ADMIN
+            |--------------------------------------------------------------------------
+            | Email dimasukkan ke tabel jobs dan dikirim oleh queue worker.
+            |--------------------------------------------------------------------------
+            */
+            Mail::to($adminEmail)
+                ->queue(new WbsReportSubmittedMail($report, $action));
         } catch (Throwable $mailError) {
-            Log::error('Gagal mengirim email notifikasi laporan WBS ke admin', [
+            Log::error('Gagal memasukkan email notifikasi laporan WBS ke queue admin', [
                 'message' => $mailError->getMessage(),
                 'report_id' => $report->id,
                 'action' => $action,

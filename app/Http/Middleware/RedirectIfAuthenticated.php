@@ -15,19 +15,41 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                $user = Auth::guard($guard)->user();
 
-                $locale = $request->route('locale') ?? session('locale', 'id');
+                /*
+                |--------------------------------------------------------------------------
+                | Pelapor Belum Verifikasi Email
+                |--------------------------------------------------------------------------
+                | Kalau user sudah login dan akses login/register lagi,
+                | arahkan ke halaman OTP.
+                |--------------------------------------------------------------------------
+                */
+                if ($user->role === 'pelapor' && ! $user->email_verified_at) {
+                    if (! $request->routeIs('verification.otp.form')) {
+                        return redirect()->route('verification.otp.form');
+                    }
 
-                if (! in_array($locale, ['id', 'en'], true)) {
-                    $locale = 'id';
+                    return $next($request);
                 }
 
-                return redirect()->route('home', [
-                    'locale' => $locale
-                ]);
+                return redirect()->to($this->redirectPath($user));
             }
         }
 
         return $next($request);
+    }
+
+    private function redirectPath($user): string
+    {
+        return match ($user->role) {
+            'admin' => route('admin.dashboard'),
+            'reviewer' => route('reviewer.dashboard'),
+            'writer' => route('writer.dashboard'),
+            'operational' => route('operational.dashboard'),
+            'wbs_admin', 'wbs_officer' => route('wbs.admin.dashboard'),
+            'pelapor' => route('wbs.pelapor.dashboard'),
+            default => route('web.home', ['locale' => 'id']),
+        };
     }
 }

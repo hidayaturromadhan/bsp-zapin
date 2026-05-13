@@ -34,42 +34,96 @@ class DashboardController extends Controller
             ])
             ->count();
 
+        $laporanBulanIni = WbsReport::query()
+            ->whereNotNull('submitted_at')
+            ->whereBetween('submitted_at', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ])
+            ->count();
+
+        $laporanHariIni = WbsReport::query()
+            ->whereNotNull('submitted_at')
+            ->whereDate('submitted_at', today())
+            ->count();
+
+        $butuhTindakLanjut = WbsReport::query()
+            ->whereIn('status', [
+                WbsReport::STATUS_LAPORAN_MASUK,
+                WbsReport::STATUS_DITELAAH,
+                WbsReport::STATUS_PERLU_KLARIFIKASI,
+                WbsReport::STATUS_DALAM_PROSES,
+                WbsReport::STATUS_DALAM_INVESTIGASI,
+            ])
+            ->count();
+
         $latestReports = WbsReport::query()
             ->with('user')
             ->latest('id')
             ->take(8)
             ->get();
 
+        /*
+         * Grafik kategori dibatasi maksimal 6 kategori.
+         * Jika lebih dari 6, sisanya digabung menjadi "Lainnya".
+         */
         $categoryRaw = WbsReport::query()
             ->selectRaw('category, COUNT(*) as total')
             ->groupBy('category')
             ->orderByDesc('total')
             ->get();
 
-        $categoryLabels = $categoryRaw
-            ->map(fn ($item) => WbsReport::categoryOptions()[$item->category] ?? ucfirst(str_replace('_', ' ', $item->category)))
+        $categoryOptions = WbsReport::categoryOptions();
+
+        $categoryLimited = $categoryRaw->take(6);
+        $categoryOthers = $categoryRaw->slice(6)->sum('total');
+
+        $categoryLabels = $categoryLimited
+            ->map(fn ($item) => $categoryOptions[$item->category] ?? ucfirst(str_replace('_', ' ', $item->category)))
             ->values();
 
-        $categoryValues = $categoryRaw
+        $categoryValues = $categoryLimited
             ->pluck('total')
             ->map(fn ($value) => (int) $value)
             ->values();
 
+        if ($categoryOthers > 0) {
+            $categoryLabels->push('Lainnya');
+            $categoryValues->push((int) $categoryOthers);
+        }
+
+        /*
+         * Grafik status dibatasi maksimal 6 status.
+         * Jika lebih dari 6, sisanya digabung menjadi "Lainnya".
+         */
         $statusRaw = WbsReport::query()
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->orderByDesc('total')
             ->get();
 
-        $statusLabels = $statusRaw
-            ->map(fn ($item) => WbsReport::statusOptions()[$item->status] ?? ucfirst(str_replace('_', ' ', $item->status)))
+        $statusOptions = WbsReport::statusOptions();
+
+        $statusLimited = $statusRaw->take(6);
+        $statusOthers = $statusRaw->slice(6)->sum('total');
+
+        $statusLabels = $statusLimited
+            ->map(fn ($item) => $statusOptions[$item->status] ?? ucfirst(str_replace('_', ' ', $item->status)))
             ->values();
 
-        $statusValues = $statusRaw
+        $statusValues = $statusLimited
             ->pluck('total')
             ->map(fn ($value) => (int) $value)
             ->values();
 
+        if ($statusOthers > 0) {
+            $statusLabels->push('Lainnya');
+            $statusValues->push((int) $statusOthers);
+        }
+
+        /*
+         * Trend laporan dibatasi 6 bulan terakhir agar grafik tetap bersih.
+         */
         $monthlyRaw = WbsReport::query()
             ->selectRaw('DATE_FORMAT(submitted_at, "%Y-%m") as month_key, COUNT(*) as total')
             ->whereNotNull('submitted_at')
@@ -93,15 +147,23 @@ class DashboardController extends Controller
         return view('wbs.admin.dashboard', [
             'pageTitle' => 'Dashboard Admin WBS',
             'user' => Auth::user(),
+
             'totalReports' => $totalReports,
             'laporanMasuk' => $laporanMasuk,
             'dalamProses' => $dalamProses,
             'selesai' => $selesai,
+            'laporanBulanIni' => $laporanBulanIni,
+            'laporanHariIni' => $laporanHariIni,
+            'butuhTindakLanjut' => $butuhTindakLanjut,
+
             'latestReports' => $latestReports,
+
             'categoryLabels' => $categoryLabels,
             'categoryValues' => $categoryValues,
+
             'statusLabels' => $statusLabels,
             'statusValues' => $statusValues,
+
             'monthlyLabels' => $monthlyLabels,
             'monthlyValues' => $monthlyValues,
         ]);

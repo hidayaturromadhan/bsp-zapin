@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operational;
 use App\Http\Controllers\Controller;
 use App\Models\CrudeDailyRecord;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CrudeDailyRecordController extends Controller
 {
@@ -19,45 +20,45 @@ class CrudeDailyRecordController extends Controller
 
         $query = CrudeDailyRecord::query();
 
-        if (!empty($filters['date'])) {
-            $query->whereDate('record_date', $filters['date']);
-        }
-
-        if (!empty($filters['month'])) {
-            $query->whereMonth('record_date', (int) $filters['month']);
-        }
-
-        if (!empty($filters['year'])) {
-            $query->whereYear('record_date', (int) $filters['year']);
-        }
-
-        if (!empty($filters['search'])) {
-            $query->where('notes', 'like', '%' . trim((string) $filters['search']) . '%');
-        }
+        $this->applyFilters($query, $filters, true);
 
         $records = $query
             ->orderByDesc('record_date')
-            ->paginate(20)
+            ->orderByDesc('id')
+            ->paginate(10)
             ->withQueryString();
 
         $summaryQuery = CrudeDailyRecord::query();
-
-        if (!empty($filters['date'])) {
-            $summaryQuery->whereDate('record_date', $filters['date']);
-        }
-
-        if (!empty($filters['month'])) {
-            $summaryQuery->whereMonth('record_date', (int) $filters['month']);
-        }
-
-        if (!empty($filters['year'])) {
-            $summaryQuery->whereYear('record_date', (int) $filters['year']);
-        }
+        $this->applyFilters($summaryQuery, $filters, false);
 
         $summary = [
             'count' => (clone $summaryQuery)->count(),
-            'total_production' => (float) (clone $summaryQuery)->sum('production'),
+            'total_vacuum_truck' => (float) (clone $summaryQuery)->sum('vacuum_truck'),
+            'total_road_tank' => (float) (clone $summaryQuery)->sum('road_tank'),
         ];
+
+        $chartQuery = CrudeDailyRecord::query();
+        $this->applyFilters($chartQuery, $filters, false);
+
+        $chartRaw = $chartQuery
+            ->selectRaw('DATE(record_date) as chart_date')
+            ->selectRaw('SUM(COALESCE(vacuum_truck, 0)) as total_vacuum_truck')
+            ->selectRaw('SUM(COALESCE(road_tank, 0)) as total_road_tank')
+            ->groupBy(DB::raw('DATE(record_date)'))
+            ->orderBy(DB::raw('DATE(record_date)'))
+            ->get();
+
+        $chartLabels = $chartRaw
+            ->map(fn ($item) => date('d M', strtotime($item->chart_date)))
+            ->values();
+
+        $chartVacuumTruckValues = $chartRaw
+            ->map(fn ($item) => round((float) $item->total_vacuum_truck, 4))
+            ->values();
+
+        $chartRoadTankValues = $chartRaw
+            ->map(fn ($item) => round((float) $item->total_road_tank, 4))
+            ->values();
 
         $yearOptions = CrudeDailyRecord::query()
             ->selectRaw('YEAR(record_date) as year')
@@ -77,6 +78,9 @@ class CrudeDailyRecordController extends Controller
             'summary' => $summary,
             'yearOptions' => $yearOptions,
             'monthOptions' => $this->monthOptions(),
+            'chartLabels' => $chartLabels,
+            'chartVacuumTruckValues' => $chartVacuumTruckValues,
+            'chartRoadTankValues' => $chartRoadTankValues,
         ]);
     }
 
@@ -91,9 +95,23 @@ class CrudeDailyRecordController extends Controller
     {
         $validated = $request->validate([
             'record_date' => ['required', 'date', 'unique:crude_daily_records,record_date'],
-            'production' => ['required', 'numeric'],
+            'vacuum_truck' => ['required', 'numeric', 'min:0'],
+            'road_tank' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Field production tetap diisi untuk kompatibilitas data lama/dashboard lain.
+        | Namun di tampilan grafik crude yang baru, yang ditampilkan hanya:
+        | - Vacuum Truck
+        | - Road Tank
+        |--------------------------------------------------------------------------
+        */
+        $validated['production'] = round(
+            (float) $validated['vacuum_truck'] + (float) $validated['road_tank'],
+            4
+        );
 
         CrudeDailyRecord::create($validated);
 
@@ -116,9 +134,15 @@ class CrudeDailyRecordController extends Controller
     {
         $validated = $request->validate([
             'record_date' => ['required', 'date', 'unique:crude_daily_records,record_date,' . $crude->id],
-            'production' => ['required', 'numeric'],
+            'vacuum_truck' => ['required', 'numeric', 'min:0'],
+            'road_tank' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $validated['production'] = round(
+            (float) $validated['vacuum_truck'] + (float) $validated['road_tank'],
+            4
+        );
 
         $crude->update($validated);
 
@@ -145,11 +169,40 @@ class CrudeDailyRecordController extends Controller
             ->with('success', 'Data produksi crude berhasil dihapus.');
     }
 
+    private function applyFilters($query, array $filters, bool $includeSearch = true): void
+    {
+        if (! empty($filters['date'])) {
+            $query->whereDate('record_date', $filters['date']);
+        }
+
+        if (! empty($filters['month'])) {
+            $query->whereMonth('record_date', (int) $filters['month']);
+        }
+
+        if (! empty($filters['year'])) {
+            $query->whereYear('record_date', (int) $filters['year']);
+        }
+
+        if ($includeSearch && ! empty($filters['search'])) {
+            $query->where('notes', 'like', '%' . trim((string) $filters['search']) . '%');
+        }
+    }
+
     private function monthOptions(): array
     {
         return [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
-            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
     }
 }

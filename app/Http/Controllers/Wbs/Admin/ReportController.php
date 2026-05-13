@@ -23,8 +23,10 @@ class ReportController extends Controller
         $status = trim((string) $request->query('status'));
         $category = trim((string) $request->query('category'));
         $userId = trim((string) $request->query('user_id'));
+        $month = trim((string) $request->query('month'));
+        $year = trim((string) $request->query('year'));
 
-        $reports = $this->filteredReportsQuery($search, $status, $category, $userId)
+        $reports = $this->filteredReportsQuery($search, $status, $category, $userId, $month, $year)
             ->paginate(10)
             ->withQueryString();
 
@@ -40,11 +42,15 @@ class ReportController extends Controller
             'pelaporUsers' => $pelaporUsers,
             'statusOptions' => WbsReport::statusOptions(),
             'categoryOptions' => WbsReport::categoryOptions(),
+            'monthOptions' => $this->monthOptions(),
+            'yearOptions' => $this->yearOptions(),
             'filters' => [
                 'search' => $search,
                 'status' => $status,
                 'category' => $category,
                 'user_id' => $userId,
+                'month' => $month,
+                'year' => $year,
             ],
         ]);
     }
@@ -110,6 +116,15 @@ class ReportController extends Controller
             DB::commit();
 
             WbsNotificationService::notifyPelaporReportUpdatedByAdmin($report);
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUEUE EMAIL UPDATE STATUS KE PELAPOR
+            |--------------------------------------------------------------------------
+            | Email tidak dikirim langsung saat admin update status.
+            | Email dimasukkan ke tabel jobs dan diproses oleh queue worker / cron.
+            |--------------------------------------------------------------------------
+            */
             $this->sendReportUpdatedNotificationToPelapor($report);
 
             return redirect()
@@ -141,6 +156,8 @@ class ReportController extends Controller
         DB::beginTransaction();
 
         try {
+            $report->load('attachments');
+
             foreach ($report->attachments as $attachment) {
                 $this->deletePhysicalFile($attachment->file_path);
             }
@@ -163,6 +180,11 @@ class ReportController extends Controller
                 ->with('success', 'Laporan berhasil dihapus.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
+            Log::error('Gagal menghapus laporan WBS admin', [
+                'message' => $e->getMessage(),
+                'report_id' => $report->id,
+            ]);
 
             return back()->withErrors([
                 'report' => 'Gagal menghapus laporan.',
@@ -206,8 +228,10 @@ class ReportController extends Controller
         $status = trim((string) $request->query('status'));
         $category = trim((string) $request->query('category'));
         $userId = trim((string) $request->query('user_id'));
+        $month = trim((string) $request->query('month'));
+        $year = trim((string) $request->query('year'));
 
-        $reports = $this->filteredReportsQuery($search, $status, $category, $userId)->get();
+        $reports = $this->filteredReportsQuery($search, $status, $category, $userId, $month, $year)->get();
 
         if ($reports->isEmpty()) {
             return redirect()
@@ -226,9 +250,13 @@ class ReportController extends Controller
                 'status' => $status,
                 'category' => $category,
                 'user_id' => $userId,
+                'month' => $month,
+                'year' => $year,
             ],
             'statusOptions' => WbsReport::statusOptions(),
             'categoryOptions' => WbsReport::categoryOptions(),
+            'monthOptions' => $this->monthOptions(),
+            'yearOptions' => $this->yearOptions(),
             'selectedPelapor' => $selectedPelapor,
             'generatedAt' => now(),
         ])->setPaper('a4', 'landscape');
@@ -251,8 +279,14 @@ class ReportController extends Controller
             ->with('pdf_url', asset($relativePath));
     }
 
-    protected function filteredReportsQuery(?string $search, ?string $status, ?string $category, ?string $userId): Builder
-    {
+    protected function filteredReportsQuery(
+        ?string $search,
+        ?string $status,
+        ?string $category,
+        ?string $userId,
+        ?string $month = null,
+        ?string $year = null
+    ): Builder {
         return WbsReport::query()
             ->with('user')
             ->withCount('attachments')
@@ -270,7 +304,42 @@ class ReportController extends Controller
             ->when(filled($status), fn (Builder $query) => $query->where('status', $status))
             ->when(filled($category), fn (Builder $query) => $query->where('category', $category))
             ->when(filled($userId), fn (Builder $query) => $query->where('user_id', $userId))
+            ->when(filled($month), fn (Builder $query) => $query->whereMonth('submitted_at', (int) $month))
+            ->when(filled($year), fn (Builder $query) => $query->whereYear('submitted_at', (int) $year))
             ->latest('id');
+    }
+
+    protected function monthOptions(): array
+    {
+        return [
+            '1' => 'Januari',
+            '2' => 'Februari',
+            '3' => 'Maret',
+            '4' => 'April',
+            '5' => 'Mei',
+            '6' => 'Juni',
+            '7' => 'Juli',
+            '8' => 'Agustus',
+            '9' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        ];
+    }
+
+    protected function yearOptions(): array
+    {
+        $currentYear = (int) now()->format('Y');
+        $startYear = $currentYear - 5;
+        $endYear = $currentYear + 1;
+
+        $years = [];
+
+        for ($year = $endYear; $year >= $startYear; $year--) {
+            $years[(string) $year] = (string) $year;
+        }
+
+        return $years;
     }
 
     protected function deletePhysicalFile(?string $relativePath): void
@@ -292,12 +361,25 @@ class ReportController extends Controller
             $report->refresh();
             $report->load('user');
 
-            if ($report->user && $report->user->email) {
-                Mail::to($report->user->email)
-                    ->send(new WbsReportUpdatedMail($report));
+            if (! $report->user || ! $report->user->email) {
+                Log::warning('Email pelapor tidak tersedia untuk notifikasi update WBS.', [
+                    'report_id' => $report->id,
+                ]);
+
+                return;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUEUE EMAIL UPDATE STATUS KE PELAPOR
+            |--------------------------------------------------------------------------
+            | Email dimasukkan ke tabel jobs dan dikirim oleh queue worker.
+            |--------------------------------------------------------------------------
+            */
+            Mail::to($report->user->email)
+                ->queue(new WbsReportUpdatedMail($report));
         } catch (\Throwable $mailError) {
-            Log::error('Gagal mengirim email notifikasi update WBS ke pelapor', [
+            Log::error('Gagal memasukkan email notifikasi update WBS ke queue pelapor', [
                 'message' => $mailError->getMessage(),
                 'report_id' => $report->id,
             ]);

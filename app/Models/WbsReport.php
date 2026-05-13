@@ -70,13 +70,14 @@ class WbsReport extends Model
     public static function categoryOptions(): array
     {
         return [
-            'korupsi' => 'Korupsi',
-            'suap' => 'Suap',
-            'gratifikasi' => 'Gratifikasi',
-            'benturan_kepentingan' => 'Benturan Kepentingan',
-            'pencurian' => 'Pencurian',
-            'kecurangan' => 'Kecurangan',
-            'pelanggaran_hukum_peraturan' => 'Pelanggaran Hukum / Peraturan Perusahaan',
+            'fraud_keuangan' => 'Fraud & Keuangan',
+            'penyuapan_korupsi' => 'Penyuapan & Korupsi',
+            'pelanggaran_pengadaan_tender' => 'Pelanggaran Pengadaan & Tender',
+            'pencurian_penyalahgunaan_aset' => 'Pencurian & Penyalahgunaan Aset',
+            'pelanggaran_etika_perilaku' => 'Pelanggaran Etika & Perilaku',
+            'pelanggaran_hukum_regulasi' => 'Pelanggaran Hukum & Regulasi',
+            'k3ll' => 'K3LL',
+            'keamanan_informasi_data' => 'Keamanan Informasi Data',
         ];
     }
 

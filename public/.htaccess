@@ -23,3 +23,132 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+
+# ==========================================================
+# CACHE STATIC ASSETS
+# ==========================================================
+# Tujuan:
+# - Video MP4 tidak di-download ulang terus-menerus
+# - Gambar, CSS, JS lebih ringan saat display TV berjalan 24 jam
+# - Tidak mengganggu routing Laravel
+# ==========================================================
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Video
+    ExpiresByType video/mp4 "access plus 30 days"
+    ExpiresByType video/webm "access plus 30 days"
+    ExpiresByType video/ogg "access plus 30 days"
+
+    # Images
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpg "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+
+    # Fonts
+    ExpiresByType font/woff "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType application/font-woff "access plus 30 days"
+    ExpiresByType application/font-woff2 "access plus 30 days"
+
+    # CSS & JS
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType text/javascript "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType application/x-javascript "access plus 7 days"
+
+    # Documents
+    ExpiresByType application/pdf "access plus 7 days"
+
+    # Default
+    ExpiresDefault "access plus 1 day"
+</IfModule>
+
+
+# ==========================================================
+# CACHE CONTROL HEADERS
+# ==========================================================
+
+<IfModule mod_headers.c>
+    # Video cache lebih lama agar display TV tidak sering buffering ulang
+    <FilesMatch "\.(mp4|webm|ogg)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # Image cache
+    <FilesMatch "\.(png|jpg|jpeg|gif|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # Font cache
+    <FilesMatch "\.(woff|woff2|ttf|otf|eot)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # CSS & JS cache
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+
+    # PDF dan dokumen export
+    <FilesMatch "\.(pdf|xlsx|xls|doc|docx)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
+
+# ==========================================================
+# COMPRESSION UNTUK FILE TEXT
+# ==========================================================
+# Jangan kompres video karena MP4 sudah terkompres.
+# Yang dikompres hanya CSS, JS, HTML, JSON, XML.
+# ==========================================================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+
+# ==========================================================
+# BASIC SECURITY HEADERS
+# ==========================================================
+# Aman untuk Laravel dan tidak mengubah flow aplikasi.
+# ==========================================================
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+
+# ==========================================================
+# MIME TYPES
+# ==========================================================
+# Membantu server mengenali file video dan asset dengan benar.
+# ==========================================================
+
+<IfModule mod_mime.c>
+    AddType video/mp4 .mp4
+    AddType video/webm .webm
+    AddType video/ogg .ogv
+    AddType image/webp .webp
+    AddType font/woff .woff
+    AddType font/woff2 .woff2
+</IfModule>

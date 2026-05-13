@@ -5,55 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $pageTitle ?? 'WBS' }}</title>
 
-    <!-- SEO Meta -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
+
     <meta name="description" content="Whistleblowing System – Laporkan pelanggaran secara aman dan terpercaya.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#2563eb">
 
-    <!-- Professional Fonts: Syne (display) + Plus Jakarta Sans (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* ─── Design Tokens ─────────────────────────────────────────── */
         :root {
-            /* Sidebar */
             --sidebar-w: 268px;
             --topbar-h: 72px;
 
-            /* Radius */
             --r-xs: 8px;
             --r-sm: 12px;
             --r-md: 16px;
             --r-lg: 20px;
             --r-xl: 24px;
 
-            /* Transition */
             --ease: cubic-bezier(.4,0,.2,1);
             --dur: 200ms;
 
-            /* Shadows */
             --shadow-xs: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
             --shadow-sm: 0 4px 12px rgba(15,23,42,.07), 0 2px 4px rgba(15,23,42,.04);
             --shadow-md: 0 10px 30px rgba(15,23,42,.10), 0 4px 8px rgba(15,23,42,.05);
             --shadow-lg: 0 20px 60px rgba(15,23,42,.15), 0 8px 24px rgba(15,23,42,.08);
 
-            /* Brand */
             --brand: #2563eb;
             --brand-dark: #1d4ed8;
             --brand-light: #eff6ff;
             --brand-border: #bfdbfe;
             --brand-glow: rgba(37,99,235,.18);
 
-            /* Danger */
             --danger: #ef4444;
             --danger-dark: #dc2626;
             --danger-glow: rgba(239,68,68,.15);
         }
 
-        /* ─── Light Theme ───────────────────────────────────────────── */
         [data-theme="light"] {
             --bg:             #f0f4fa;
             --surface:        #ffffff;
@@ -80,7 +73,6 @@
             --logo-filter:    none;
         }
 
-        /* ─── Dark Theme ────────────────────────────────────────────── */
         [data-theme="dark"] {
             --bg:             #0b0f1a;
             --surface:        #111827;
@@ -104,7 +96,10 @@
             --danger-alert-border: #7f1d1d;
             --danger-alert-text:   #fca5a5;
             --icon-btn-bg:    #161d2e;
-            --logo-filter:    brightness(0) invert(1);
+
+            /* FIX: logo PNG jangan di-invert */
+            --logo-filter:    none;
+
             --shadow-xs: 0 1px 3px rgba(0,0,0,.25);
             --shadow-sm: 0 4px 12px rgba(0,0,0,.3);
             --shadow-md: 0 10px 30px rgba(0,0,0,.4);
@@ -114,7 +109,6 @@
             --brand-glow: rgba(37,99,235,.25);
         }
 
-        /* ─── Reset & Base ──────────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; }
 
         html {
@@ -138,13 +132,11 @@
         button, input, select, textarea { font: inherit; }
         img { max-width: 100%; display: block; }
 
-        /* ─── Layout ────────────────────────────────────────────────── */
         .wbs-layout {
             display: flex;
             min-height: 100vh;
         }
 
-        /* ─── Sidebar ───────────────────────────────────────────────── */
         .wbs-sidebar {
             width: var(--sidebar-w);
             background: var(--sidebar-bg);
@@ -161,7 +153,6 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar overlay (mobile) */
         .wbs-sidebar-overlay {
             display: none;
             position: fixed;
@@ -178,7 +169,6 @@
             opacity: 1;
         }
 
-        /* Brand area */
         .wbs-sidebar-brand {
             padding: 22px 20px;
             border-bottom: 1px solid var(--border);
@@ -188,16 +178,31 @@
             flex-shrink: 0;
         }
 
-        .wbs-brand-logo-img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            border-radius: var(--r-sm);
-            filter: var(--logo-filter);
-            flex-shrink: 0;
+        [data-theme="dark"] .wbs-sidebar-brand {
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, .12), transparent 34%),
+                var(--sidebar-bg);
         }
 
-        /* Fallback icon if img fails */
+        .wbs-brand-logo-img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            border-radius: 14px;
+            filter: var(--logo-filter);
+            flex-shrink: 0;
+            padding: 5px;
+            background: #ffffff;
+            border: 1px solid rgba(148, 163, 184, .22);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, .08);
+        }
+
+        [data-theme="dark"] .wbs-brand-logo-img {
+            background: #ffffff;
+            border-color: rgba(255, 255, 255, .12);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
+        }
+
         .wbs-brand-icon-fallback {
             width: 40px;
             height: 40px;
@@ -230,7 +235,6 @@
             font-weight: 500;
         }
 
-        /* Nav sections */
         .wbs-sidebar-section {
             padding: 20px 12px 0;
             flex: 1;
@@ -285,7 +289,6 @@
 
         .wbs-menu-item.active svg { opacity: 1; }
 
-        /* Pulse dot for unread */
         .wbs-menu-dot {
             width: 8px;
             height: 8px;
@@ -312,7 +315,6 @@
             100% { transform: scale(1.7); opacity: 0; }
         }
 
-        /* User panel */
         .wbs-sidebar-user {
             margin-top: auto;
             border-top: 1px solid var(--border);
@@ -361,7 +363,6 @@
             text-overflow: ellipsis;
         }
 
-        /* ─── Main ──────────────────────────────────────────────────── */
         .wbs-main {
             flex: 1;
             display: flex;
@@ -371,7 +372,6 @@
             transition: margin-left var(--dur) var(--ease);
         }
 
-        /* ─── Topbar ────────────────────────────────────────────────── */
         .wbs-topbar {
             position: sticky;
             top: 0;
@@ -403,7 +403,6 @@
             flex-shrink: 0;
         }
 
-        /* Hamburger */
         .wbs-menu-toggle {
             width: 40px;
             height: 40px;
@@ -422,7 +421,6 @@
         .wbs-menu-toggle:hover { background: var(--surface-hover); }
         .wbs-menu-toggle svg { width: 18px; height: 18px; }
 
-        /* Breadcrumb */
         .wbs-breadcrumb {
             display: flex;
             align-items: center;
@@ -447,7 +445,6 @@
             opacity: .5;
         }
 
-        /* Icon buttons */
         .wbs-icon-btn {
             width: 40px;
             height: 40px;
@@ -471,7 +468,6 @@
 
         .wbs-icon-btn svg { width: 17px; height: 17px; }
 
-        /* ─── Notification Badge ─────────────────────────────────────── */
         .wbs-notif-wrap { position: relative; }
 
         .wbs-notif-badge {
@@ -528,7 +524,6 @@
             transform: scale(1.12);
         }
 
-        /* ─── Notification Dropdown ─────────────────────────────────── */
         .wbs-notif-dropdown {
             position: absolute;
             top: calc(100% + 10px);
@@ -621,11 +616,8 @@
         }
 
         .wbs-notif-item:last-child { border-bottom: none; }
-
         .wbs-notif-item:hover { background: var(--surface-hover); }
-
         .wbs-notif-item.unread { background: var(--notif-unread); }
-
         .wbs-notif-item.unread:hover { filter: brightness(.97); }
 
         .wbs-notif-item.unread::after {
@@ -678,7 +670,6 @@
             opacity: .35;
         }
 
-        /* ─── Buttons ───────────────────────────────────────────────── */
         .wbs-btn {
             display: inline-flex;
             align-items: center;
@@ -733,14 +724,12 @@
             border-color: var(--danger-dark);
         }
 
-        /* ─── Theme Toggle ──────────────────────────────────────────── */
         #wbsThemeToggle .icon-moon { display: none; }
         #wbsThemeToggle .icon-sun  { display: block; }
 
         [data-theme="dark"] #wbsThemeToggle .icon-moon { display: block; }
         [data-theme="dark"] #wbsThemeToggle .icon-sun  { display: none; }
 
-        /* ─── Content Area ──────────────────────────────────────────── */
         .wbs-content {
             padding: 28px 28px 40px;
             flex: 1;
@@ -756,12 +745,10 @@
             color: var(--text-primary);
         }
 
-        /* ─── Grid ──────────────────────────────────────────────────── */
         .wbs-grid   { display: grid; gap: 20px; }
         .wbs-grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
         .wbs-grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
 
-        /* ─── Cards & Stats ─────────────────────────────────────────── */
         .wbs-stat,
         .wbs-card {
             background: var(--surface);
@@ -815,6 +802,7 @@
 
         .wbs-custom-select {
             position: relative;
+            width: 100%;
         }
 
         .wbs-custom-select select {
@@ -885,7 +873,6 @@
             transform: translateY(-50%) rotate(180deg);
         }
 
-        /* ─── Toolbar ───────────────────────────────────────────────── */
         .wbs-toolbar {
             display: flex;
             align-items: flex-end;
@@ -903,7 +890,6 @@
             align-items: flex-end;
         }
 
-        /* ─── Form Controls ─────────────────────────────────────────── */
         .wbs-field { min-width: 180px; }
 
         .wbs-field label,
@@ -955,12 +941,6 @@
         }
 
         .form-group { margin-bottom: 16px; }
-
-        /* ─── Custom Select ─────────────────────────────────────────── */
-        .wbs-custom-select {
-            position: relative;
-            width: 100%;
-        }
 
         .wbs-custom-select select,
         .wbs-select {
@@ -1033,7 +1013,6 @@
             background-position: right 13px center;
         }
 
-        /* ─── Table ─────────────────────────────────────────────────── */
         .wbs-table-wrap {
             overflow-x: auto;
             border-radius: var(--r-lg);
@@ -1070,7 +1049,6 @@
 
         .wbs-table tbody tr:hover { background: var(--surface-hover); }
 
-        /* ─── Badge ─────────────────────────────────────────────────── */
         .wbs-badge {
             display: inline-flex;
             align-items: center;
@@ -1086,13 +1064,11 @@
             border: 1px solid var(--brand-border);
         }
 
-        /* ─── Alerts ────────────────────────────────────────────────── */
         .wbs-alert-success,
         .wbs-alert-danger {
             display: none;
         }
 
-        /* ─── Meta & Attachment ─────────────────────────────────────── */
         .wbs-meta-grid { display: grid; gap: 12px; }
 
         .wbs-meta-item {
@@ -1145,7 +1121,6 @@
             font-size: 12.5px;
         }
 
-        /* ─── Pagination & Empty ────────────────────────────────────── */
         .wbs-pagination { margin-top: 18px; }
 
         .wbs-empty {
@@ -1157,7 +1132,6 @@
 
         form { margin: 0; }
 
-        /* ─── SweetAlert WBS ────────────────────────────────────────── */
         .swal2-popup.swal2-wbs-popup {
             width: min(92vw, 520px) !important;
             border-radius: 24px !important;
@@ -1288,7 +1262,6 @@
             color: #2563eb !important;
         }
 
-        /* ─── Responsive ────────────────────────────────────────────── */
         @media (max-width: 1280px) {
             .wbs-grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
         }
@@ -1377,7 +1350,6 @@
             .wbs-content { padding: 14px 12px 28px; }
         }
 
-        /* ─── Scrollbar styling (webkit) ────────────────────────────── */
         .wbs-sidebar::-webkit-scrollbar,
         .wbs-notif-list::-webkit-scrollbar { width: 4px; }
 
@@ -1390,12 +1362,565 @@
             border-radius: 4px;
         }
 
-        /* ─── Focus-visible ─────────────────────────────────────────── */
         :focus-visible {
             outline: 2.5px solid var(--brand);
             outline-offset: 2px;
             border-radius: var(--r-xs);
         }
+
+        @media (max-width: 1180px) {
+        .wbs-content {
+            padding: 24px 22px 36px;
+        }
+
+        .wbs-grid-4 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .wbs-grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .wbs-toolbar {
+            align-items: stretch;
+        }
+
+        .wbs-toolbar-left,
+        .wbs-toolbar-right {
+            width: 100%;
+        }
+
+        .wbs-toolbar-right {
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        :root {
+            --sidebar-w: 0px;
+        }
+
+        .wbs-sidebar {
+            width: 286px;
+            transform: translateX(-286px);
+            box-shadow: none;
+        }
+
+        .wbs-sidebar.open {
+            transform: translateX(0);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .wbs-main {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .wbs-menu-toggle {
+            display: inline-flex;
+        }
+
+        .wbs-topbar {
+            padding: 0 18px;
+        }
+
+        .wbs-content {
+            padding: 22px 18px 34px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            overflow-x: hidden;
+        }
+
+        .wbs-layout {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .wbs-main {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .wbs-topbar {
+            height: 64px;
+            padding: 0 14px;
+            gap: 10px;
+        }
+
+        .wbs-topbar-left {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .wbs-topbar-right {
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .wbs-breadcrumb {
+            min-width: 0;
+            gap: 6px;
+            font-size: 12.5px;
+        }
+
+        .wbs-breadcrumb span:first-child,
+        .wbs-breadcrumb .sep {
+            display: none;
+        }
+
+        .wbs-breadcrumb strong {
+            max-width: 150px;
+            font-size: 13px;
+        }
+
+        .wbs-menu-toggle,
+        .wbs-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+        }
+
+        .wbs-btn {
+            min-height: 38px;
+            padding: 0 12px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .wbs-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .wbs-btn-home {
+            display: none;
+        }
+
+        .wbs-topbar-right > form .wbs-btn {
+            width: 38px;
+            height: 38px;
+            min-height: 38px;
+            padding: 0;
+        }
+
+        .wbs-topbar-right > form .wbs-btn span {
+            display: none;
+        }
+
+        .wbs-content {
+            padding: 18px 14px 30px;
+        }
+
+        .wbs-page-title {
+            font-size: 22px;
+            line-height: 1.25;
+            margin-bottom: 16px;
+        }
+
+        .wbs-card,
+        .wbs-stat {
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .wbs-card-title {
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .wbs-card-subtitle {
+            font-size: 13.5px;
+        }
+
+        .wbs-grid,
+        .wbs-grid-2,
+        .wbs-grid-4 {
+            grid-template-columns: 1fr !important;
+            gap: 16px;
+        }
+
+        .wbs-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .wbs-toolbar-left,
+        .wbs-toolbar-right {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .wbs-toolbar .wbs-btn,
+        .wbs-toolbar-left .wbs-btn,
+        .wbs-toolbar-right .wbs-btn {
+            width: 100%;
+        }
+
+        .wbs-field {
+            min-width: 100%;
+            width: 100%;
+        }
+
+        .wbs-input,
+        .wbs-textarea,
+        .input,
+        .textarea,
+        .wbs-select,
+        .wbs-select-display {
+            min-height: 46px;
+            font-size: 14px;
+            border-radius: 14px;
+        }
+
+        .wbs-textarea,
+        .textarea {
+            min-height: 120px;
+        }
+
+        .wbs-custom-select {
+            width: 100%;
+        }
+
+        .wbs-select-options {
+            max-height: 230px;
+            border-radius: 16px;
+            z-index: 999;
+        }
+
+        .wbs-select-option {
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            font-size: 13.5px;
+        }
+
+        .wbs-table-wrap {
+            border-radius: 18px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .wbs-table {
+            min-width: 760px;
+        }
+
+        .wbs-table th,
+        .wbs-table td {
+            padding: 12px 14px;
+            font-size: 12.8px;
+        }
+
+        .wbs-table th {
+            font-size: 10.8px;
+            white-space: nowrap;
+        }
+
+        .wbs-badge {
+            min-height: 24px;
+            padding: 0 9px;
+            font-size: 10.8px;
+        }
+
+        .wbs-meta-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .wbs-meta-item {
+            padding: 12px;
+            border-radius: 14px;
+        }
+
+        .wbs-attachment-item {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .wbs-attachment-item .wbs-btn {
+            width: 100%;
+        }
+
+        .wbs-pagination {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .wbs-pagination-links {
+            justify-content: center;
+        }
+
+        .wbs-notif-dropdown {
+            position: fixed;
+            top: 72px;
+            left: 12px;
+            right: 12px;
+            width: auto;
+            max-width: none;
+            border-radius: 20px;
+        }
+
+        .wbs-notif-list {
+            max-height: 360px;
+        }
+
+        .wbs-notif-head {
+            padding: 14px 16px;
+        }
+
+        .wbs-notif-item {
+            padding: 13px 16px;
+        }
+
+        .wbs-notif-title {
+            font-size: 13px;
+        }
+
+        .wbs-notif-message {
+            font-size: 12.3px;
+        }
+
+        .wbs-sidebar {
+            width: 286px;
+            transform: translateX(-286px);
+        }
+
+        .wbs-sidebar-brand {
+            padding: 18px 16px;
+        }
+
+        .wbs-brand-logo-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+        }
+
+        .wbs-brand-text h1 {
+            font-size: 15px;
+        }
+
+        .wbs-brand-text p {
+            font-size: 11.5px;
+        }
+
+        .wbs-sidebar-section {
+            padding: 16px 10px 0;
+        }
+
+        .wbs-menu-item {
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 13.5px;
+        }
+
+        .wbs-sidebar-user {
+            padding: 14px 12px;
+        }
+
+        .swal2-popup.swal2-wbs-popup {
+            width: calc(100vw - 28px) !important;
+            padding: 24px 18px 22px !important;
+            border-radius: 20px !important;
+        }
+
+        .swal2-title.swal2-wbs-title {
+            font-size: 20px !important;
+            line-height: 1.25 !important;
+        }
+
+        .swal2-html-container.swal2-wbs-html {
+            font-size: 14px !important;
+            line-height: 1.65 !important;
+        }
+
+        .swal2-actions {
+            width: 100% !important;
+            gap: 8px !important;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm,
+        .swal2-cancel.swal2-wbs-cancel {
+            min-height: 42px !important;
+            flex: 1 1 0 !important;
+            padding: 0 14px !important;
+            font-size: 13px !important;
+            border-radius: 13px !important;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .wbs-topbar {
+            height: 60px;
+            padding: 0 10px;
+        }
+
+        .wbs-content {
+            padding: 14px 10px 26px;
+        }
+
+        .wbs-breadcrumb strong {
+            max-width: 118px;
+        }
+
+        .wbs-menu-toggle,
+        .wbs-icon-btn {
+            width: 36px;
+            height: 36px;
+        }
+
+        .wbs-topbar-right > form .wbs-btn {
+            width: 36px;
+            height: 36px;
+            min-height: 36px;
+        }
+
+        .wbs-notif-count {
+            top: -5px;
+            right: -5px;
+            min-width: 17px;
+            height: 17px;
+            font-size: 9px;
+        }
+
+        .wbs-page-title {
+            font-size: 20px;
+        }
+
+        .wbs-card,
+        .wbs-stat {
+            padding: 16px;
+            border-radius: 18px;
+        }
+
+        .wbs-stat-value {
+            font-size: 28px;
+        }
+
+        .wbs-card-title {
+            font-size: 17px;
+        }
+
+        .wbs-input,
+        .wbs-textarea,
+        .input,
+        .textarea,
+        .wbs-select,
+        .wbs-select-display {
+            min-height: 44px;
+            padding: 10px 12px;
+            font-size: 13.5px;
+        }
+
+        .wbs-select-display {
+            padding-right: 40px;
+        }
+
+        .wbs-table {
+            min-width: 720px;
+        }
+
+        .wbs-table th,
+        .wbs-table td {
+            padding: 11px 12px;
+        }
+
+        .wbs-btn {
+            width: auto;
+            min-height: 38px;
+            font-size: 12.8px;
+        }
+
+        .wbs-notif-dropdown {
+            top: 66px;
+            left: 8px;
+            right: 8px;
+            border-radius: 18px;
+        }
+
+        .wbs-notif-list {
+            max-height: 330px;
+        }
+
+        .wbs-sidebar {
+            width: 280px;
+            transform: translateX(-280px);
+        }
+
+        .wbs-sidebar.open {
+            transform: translateX(0);
+        }
+    }
+
+    @media (max-width: 420px) {
+        .wbs-content {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .wbs-breadcrumb strong {
+            max-width: 96px;
+        }
+
+        .wbs-card,
+        .wbs-stat {
+            padding: 14px;
+        }
+
+        .wbs-table {
+            min-width: 680px;
+        }
+
+        .wbs-notif-dropdown {
+            left: 6px;
+            right: 6px;
+        }
+
+        .swal2-confirm.swal2-wbs-confirm,
+        .swal2-cancel.swal2-wbs-cancel {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .wbs-breadcrumb strong {
+            max-width: 78px;
+        }
+
+        .wbs-menu-toggle,
+        .wbs-icon-btn {
+            width: 34px;
+            height: 34px;
+        }
+
+        .wbs-topbar-right > form .wbs-btn {
+            width: 34px;
+            height: 34px;
+            min-height: 34px;
+        }
+
+        .wbs-card,
+        .wbs-stat {
+            padding: 12px;
+            border-radius: 16px;
+        }
+
+        .wbs-sidebar {
+            width: 264px;
+            transform: translateX(-264px);
+        }
+
+        .wbs-sidebar.open {
+            transform: translateX(0);
+        }
+    }
     </style>
 </head>
 <body>
@@ -1425,21 +1950,18 @@
             : collect();
     @endphp
 
-    <!-- Sidebar overlay (mobile) -->
     <div class="wbs-sidebar-overlay" id="wbsSidebarOverlay"></div>
 
     <div class="wbs-layout">
-        <!-- ── Sidebar ───────────────────────────────────────────── -->
         <aside class="wbs-sidebar" id="wbsSidebar">
             <div class="wbs-sidebar-brand">
-                {{-- Logo from public --}}
                 <img
                     src="{{ asset('images/logo.png') }}"
                     alt="WBS Logo"
                     class="wbs-brand-logo-img"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"
                 >
-                {{-- Fallback SVG icon --}}
+
                 <div class="wbs-brand-icon-fallback">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
                         <path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3Z"></path>
@@ -1526,11 +2048,9 @@
             </div>
         </aside>
 
-        <!-- ── Main ─────────────────────────────────────────────── -->
         <main class="wbs-main">
             <header class="wbs-topbar">
                 <div class="wbs-topbar-left">
-                    <!-- Hamburger (mobile only) -->
                     <button type="button" class="wbs-menu-toggle" id="wbsMenuToggle" aria-label="Buka menu" aria-expanded="false">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
                             <path d="M4 7h16"></path>
@@ -1547,7 +2067,6 @@
                 </div>
 
                 <div class="wbs-topbar-right">
-                    <!-- Notification Bell -->
                     <div class="wbs-notif-wrap">
                         <button type="button" class="wbs-icon-btn" id="wbsNotifButton"
                                 aria-label="Notifikasi{{ $wbsUnreadNotifications > 0 ? ' (' . $wbsUnreadNotifications . ' belum dibaca)' : '' }}"
@@ -1566,7 +2085,6 @@
                             @endif
                         </button>
 
-                        <!-- Dropdown -->
                         <div class="wbs-notif-dropdown" id="wbsNotifDropdown" role="dialog" aria-label="Panel Notifikasi">
                             <div class="wbs-notif-head">
                                 <div class="wbs-notif-head-left">
@@ -1608,20 +2126,17 @@
                         </div>
                     </div>
 
-                    <!-- Theme Toggle -->
                     <button type="button" class="wbs-icon-btn" id="wbsThemeToggle" aria-label="Ganti tema">
-                        <!-- Sun (shown in dark mode) -->
                         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
                             <circle cx="12" cy="12" r="4.5"></circle>
                             <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
                         </svg>
-                        <!-- Moon (shown in light mode) -->
+
                         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
                         </svg>
                     </button>
 
-                    <!-- Website Link -->
                     <a href="{{ route('web.home', ['locale' => 'id']) }}" class="wbs-btn wbs-btn-light wbs-btn-home" aria-label="Kembali ke Website">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
                             <path d="M3 10.5 12 3l9 7.5"></path>
@@ -1630,7 +2145,6 @@
                         <span>Website</span>
                     </a>
 
-                    <!-- Logout -->
                     <form action="{{ route('logout') }}" method="POST" class="js-wbs-logout-form">
                         @csrf
                         <button type="submit" class="wbs-btn wbs-btn-danger" aria-label="Logout">
@@ -1657,7 +2171,6 @@
     (function () {
         'use strict';
 
-        /* ── Theme ─────────────────────────────────────────────── */
         const html = document.documentElement;
         const THEME_KEY = 'wbs-theme';
 
@@ -1761,7 +2274,6 @@
                 });
             @endif
 
-            /* ── Theme toggle ──────────────────────────────────── */
             const themeBtn = document.getElementById('wbsThemeToggle');
             if (themeBtn) {
                 themeBtn.addEventListener('click', function () {
@@ -1770,7 +2282,6 @@
                 });
             }
 
-            /* ── Sidebar (mobile) ──────────────────────────────── */
             const sidebar  = document.getElementById('wbsSidebar');
             const overlay  = document.getElementById('wbsSidebarOverlay');
             const menuBtn  = document.getElementById('wbsMenuToggle');
@@ -1799,7 +2310,6 @@
                 overlay.addEventListener('click', closeSidebar);
             }
 
-            /* ── Notification dropdown ─────────────────────────── */
             const notifBtn      = document.getElementById('wbsNotifButton');
             const notifDropdown = document.getElementById('wbsNotifDropdown');
 

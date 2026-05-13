@@ -6,11 +6,12 @@
 
     <style>
         @page {
+            size: A4 portrait;
             margin: 24px 24px 34px 24px;
         }
 
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: "Times New Roman", Times, serif;
             font-size: 10px;
             color: #111827;
             line-height: 1.45;
@@ -53,7 +54,7 @@
 
         .company-title {
             margin: 0;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             color: #173f08;
             line-height: 1.2;
@@ -61,7 +62,7 @@
 
         .company-subtitle {
             margin: 2px 0 0;
-            font-size: 9.5px;
+            font-size: 10px;
             color: #6b7280;
             font-style: italic;
         }
@@ -84,7 +85,7 @@
 
         .document-title {
             margin: 0;
-            font-size: 18px;
+            font-size: 19px;
             line-height: 1.25;
             font-weight: bold;
             color: #111827;
@@ -92,7 +93,7 @@
 
         .document-subtitle {
             margin: 4px 0 0;
-            font-size: 10px;
+            font-size: 10.5px;
             color: #4b5563;
         }
 
@@ -105,75 +106,9 @@
             letter-spacing: .04em;
         }
 
-        .filter-box {
-            margin-bottom: 12px;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            background: #f9fafb;
-            border-radius: 6px;
-        }
-
-        .filter-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .filter-table td {
-            border: none;
-            padding: 4px 6px;
-            vertical-align: top;
-            font-size: 9.5px;
-        }
-
-        .filter-label {
-            width: 95px;
-            font-weight: bold;
-            color: #374151;
-        }
-
-        .filter-value {
-            color: #111827;
-        }
-
-        .summary-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-        }
-
-        .summary-grid td {
-            width: 25%;
-            padding: 9px 10px;
-            border: 1px solid #dbe8d5;
-            background: #f8fbf7;
-            vertical-align: top;
-        }
-
-        .summary-label {
-            font-size: 8.5px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
-        .summary-value {
-            font-size: 14px;
-            font-weight: bold;
-            color: #173f08;
-            line-height: 1.2;
-        }
-
-        .summary-small {
-            font-size: 9px;
-            color: #4b5563;
-            margin-top: 2px;
-        }
-
         .table-note {
             margin: 0 0 7px;
-            font-size: 9px;
+            font-size: 9.2px;
             color: #6b7280;
         }
 
@@ -186,7 +121,7 @@
         .report-table th,
         .report-table td {
             border: 1px solid #d1d5db;
-            padding: 6px 6px;
+            padding: 5px 5px;
             vertical-align: top;
             text-align: left;
             word-wrap: break-word;
@@ -197,13 +132,13 @@
             background: #173f08;
             color: #ffffff;
             font-weight: bold;
-            font-size: 8.8px;
+            font-size: 8px;
             text-transform: uppercase;
-            letter-spacing: .025em;
+            letter-spacing: .015em;
         }
 
         .report-table td {
-            font-size: 8.8px;
+            font-size: 8px;
             color: #111827;
         }
 
@@ -212,11 +147,11 @@
         }
 
         .col-number {
-            width: 12%;
+            width: 13%;
         }
 
         .col-pelapor {
-            width: 13%;
+            width: 12%;
         }
 
         .col-email {
@@ -224,11 +159,11 @@
         }
 
         .col-category {
-            width: 11%;
+            width: 12%;
         }
 
         .col-title {
-            width: 22%;
+            width: 21%;
         }
 
         .col-status {
@@ -246,9 +181,9 @@
 
         .status-badge {
             display: inline-block;
-            padding: 2px 6px;
+            padding: 2px 5px;
             border-radius: 999px;
-            font-size: 8px;
+            font-size: 7.6px;
             font-weight: bold;
             background: #eef5eb;
             color: #173f08;
@@ -257,8 +192,8 @@
 
         .attachment-count {
             display: inline-block;
-            min-width: 18px;
-            padding: 2px 5px;
+            min-width: 16px;
+            padding: 2px 4px;
             border-radius: 999px;
             background: #eff6ff;
             color: #1d4ed8;
@@ -300,10 +235,6 @@
             text-align: right;
         }
 
-        .text-muted {
-            color: #6b7280;
-        }
-
         .text-bold {
             font-weight: bold;
         }
@@ -313,20 +244,6 @@
 <body>
 @php
     $logoPath = public_path('images/logo.png');
-
-    $totalReports = $reports->count();
-    $totalAttachments = $reports->sum('attachments_count');
-
-    $statusSummary = $reports
-        ->groupBy('status_label')
-        ->map(fn ($items) => $items->count());
-
-    $categorySummary = $reports
-        ->groupBy('category_label')
-        ->map(fn ($items) => $items->count());
-
-    $dominantStatus = $statusSummary->sortDesc()->keys()->first() ?: '-';
-    $dominantCategory = $categorySummary->sortDesc()->keys()->first() ?: '-';
 @endphp
 
 <div class="footer">
@@ -363,7 +280,6 @@
                 <td class="document-meta">
                     <div><strong>Tanggal Export</strong></div>
                     <div>{{ $generatedAt->format('d-m-Y H:i:s') }}</div>
-                    <div style="margin-top: 4px;">Format: PDF</div>
                 </td>
             </tr>
         </table>
@@ -372,59 +288,8 @@
     <div class="document-title-box">
         <h2 class="document-title">Export Laporan WBS</h2>
         <p class="document-subtitle">
-            Rekap laporan Whistleblowing System berdasarkan filter yang dipilih pada panel admin.
+            Rekap laporan Whistleblowing System.
         </p>
-    </div>
-
-    <div class="section-title">Ringkasan Export</div>
-
-    <table class="summary-grid">
-        <tr>
-            <td>
-                <div class="summary-label">Total Laporan</div>
-                <div class="summary-value">{{ $totalReports }}</div>
-                <div class="summary-small">Data dalam export</div>
-            </td>
-
-            <td>
-                <div class="summary-label">Total Lampiran</div>
-                <div class="summary-value">{{ $totalAttachments }}</div>
-                <div class="summary-small">Seluruh file terlampir</div>
-            </td>
-
-            <td>
-                <div class="summary-label">Status Dominan</div>
-                <div class="summary-value" style="font-size: 11px;">{{ $dominantStatus }}</div>
-                <div class="summary-small">{{ $dominantStatus !== '-' ? ($statusSummary[$dominantStatus] ?? 0) . ' laporan' : '-' }}</div>
-            </td>
-
-            <td>
-                <div class="summary-label">Kategori Dominan</div>
-                <div class="summary-value" style="font-size: 11px;">{{ $dominantCategory }}</div>
-                <div class="summary-small">{{ $dominantCategory !== '-' ? ($categorySummary[$dominantCategory] ?? 0) . ' laporan' : '-' }}</div>
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">Filter Data</div>
-
-    <div class="filter-box">
-        <table class="filter-table">
-            <tr>
-                <td class="filter-label">Search</td>
-                <td class="filter-value">: {{ $filters['search'] ?: '-' }}</td>
-
-                <td class="filter-label">Pelapor</td>
-                <td class="filter-value">: {{ $selectedPelapor?->name ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td class="filter-label">Status</td>
-                <td class="filter-value">: {{ $filters['status'] ? ($statusOptions[$filters['status']] ?? $filters['status']) : '-' }}</td>
-
-                <td class="filter-label">Kategori</td>
-                <td class="filter-value">: {{ $filters['category'] ? ($categoryOptions[$filters['category']] ?? $filters['category']) : '-' }}</td>
-            </tr>
-        </table>
     </div>
 
     <div class="section-title">Daftar Laporan</div>

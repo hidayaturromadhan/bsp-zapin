@@ -2,10 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Auth
+use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\SessionHeartbeatController;
-
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 // WBS
 use App\Http\Controllers\Web\WbsController;
@@ -37,6 +39,7 @@ use App\Http\Controllers\Operational\CrudeDailyRecordController;
 use App\Http\Controllers\Operational\VitolRecordController;
 use App\Http\Controllers\Web\OperationalController;
 use App\Http\Controllers\Operational\BroadcastMessageController;
+use App\Http\Controllers\Operational\DisplayTokenController;
 
 // Reviewer
 use App\Http\Controllers\Reviewer\DashboardController as ReviewerDashboardController;
@@ -85,6 +88,20 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:3,1')
         ->name('register.post');
 
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])
+        ->name('password.forgot.form');
+
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
+        ->middleware('throttle:3,1')
+        ->name('password.forgot.send');
+
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])
+        ->name('password.reset.form');
+
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+        ->middleware('throttle:5,1')
+        ->name('password.reset.update');
+
     Route::get('/auth/google', [GoogleController::class, 'redirect'])
         ->middleware('throttle:10,1')
         ->name('google.redirect');
@@ -94,6 +111,44 @@ Route::middleware('guest')->group(function () {
         ->name('google.callback');
 });
 
+/*
+|--------------------------------------------------------------------------
+| PUBLIC OPERATIONAL DISPLAY TV TOKEN
+|--------------------------------------------------------------------------
+| Akses Display TV tanpa login, tetapi wajib menggunakan token aktif.
+| Contoh:
+| /operational/display/{token}
+|--------------------------------------------------------------------------
+*/
+Route::get('/operational/display/{token}', [OperationalDashboardController::class, 'publicTv'])
+    ->middleware('throttle:60,1')
+    ->name('operational.display.public');
+
+/*
+|--------------------------------------------------------------------------
+| EMAIL VERIFICATION OTP
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'auth.session'])->group(function () {
+    Route::get('/verify-email-otp', [EmailVerificationOtpController::class, 'show'])
+        ->name('verification.otp.form');
+
+    Route::post('/verify-email-otp', [EmailVerificationOtpController::class, 'verify'])
+        ->middleware('throttle:5,1')
+        ->name('verification.otp.verify');
+
+    Route::post('/verify-email-otp/resend', [EmailVerificationOtpController::class, 'resend'])
+        ->middleware('throttle:3,1')
+        ->name('verification.otp.resend');
+});
+
+/*
+|--------------------------------------------------------------------------
+| LOGOUT
+|--------------------------------------------------------------------------
+| Wajib di luar middleware guest.
+|--------------------------------------------------------------------------
+*/
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -128,8 +183,7 @@ Route::middleware(['auth', 'role:operational'])
         Route::get('/flow-gas/{flowGas}/edit', [FlowGasDailyRecordController::class, 'edit'])->name('flow-gas.edit');
         Route::put('/flow-gas/{flowGas}', [FlowGasDailyRecordController::class, 'update'])->name('flow-gas.update');
         Route::delete('/flow-gas/{flowGas}', [FlowGasDailyRecordController::class, 'destroy'])->name('flow-gas.destroy');
-
-        Route::get('/flow-gas-export/monthly', [FlowGasExportController::class, 'monthly'])->name('flow-gas.export.monthly');
+        Route::get('/flow-gas/export-excel', [FlowGasDailyRecordController::class, 'exportExcel'])->name('flow-gas.export-excel');
 
         Route::get('/crude', [CrudeDailyRecordController::class, 'index'])->name('crude.index');
         Route::get('/crude/create', [CrudeDailyRecordController::class, 'create'])->name('crude.create');
@@ -153,6 +207,14 @@ Route::middleware(['auth', 'role:operational'])
         Route::put('/broadcast/{broadcast}', [BroadcastMessageController::class, 'update'])->name('broadcast.update');
         Route::patch('/broadcast/{broadcast}', [BroadcastMessageController::class, 'update'])->name('broadcast.patch');
         Route::delete('/broadcast/{broadcast}', [BroadcastMessageController::class, 'destroy'])->name('broadcast.destroy');
+
+        Route::get('/display-tokens', [DisplayTokenController::class, 'index'])->name('display-tokens.index');
+        Route::post('/display-tokens', [DisplayTokenController::class, 'store'])->name('display-tokens.store');
+        Route::put('/display-tokens/{displayToken}', [DisplayTokenController::class, 'update'])->name('display-tokens.update');
+        Route::post('/display-tokens/{displayToken}/reset', [DisplayTokenController::class, 'reset'])->name('display-tokens.reset');
+        Route::post('/display-tokens/{displayToken}/activate', [DisplayTokenController::class, 'activate'])->name('display-tokens.activate');
+        Route::post('/display-tokens/{displayToken}/deactivate', [DisplayTokenController::class, 'deactivate'])->name('display-tokens.deactivate');
+        Route::delete('/display-tokens/{displayToken}', [DisplayTokenController::class, 'destroy'])->name('display-tokens.destroy');
     });
 
 /*
@@ -166,26 +228,15 @@ Route::middleware(['auth.session', 'role:reviewer'])
     ->group(function () {
         Route::get('/dashboard', [ReviewerDashboardController::class, 'index'])->name('dashboard');
 
-        /*
-        |--------------------------------------------------------------------------
-        | NEWS REVIEWER
-        |--------------------------------------------------------------------------
-        */
         Route::get('/news', [ReviewerNewsController::class, 'index'])->name('news.index');
         Route::get('/news/{news}/preview', [ReviewerNewsController::class, 'preview'])->name('news.preview');
         Route::get('/news/{news}/logs', [ReviewerNewsController::class, 'logs'])->name('news.logs');
         Route::get('/news/{news}', [ReviewerNewsController::class, 'show'])->name('news.show');
 
-        /*
-        |--------------------------------------------------------------------------
-        | TJSL REVIEWER
-        |--------------------------------------------------------------------------
-        */
         Route::get('/tjsl', [ReviewerTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/{tjsl}/preview', [ReviewerTjslController::class, 'preview'])->name('tjsl.preview');
         Route::get('/tjsl/{tjsl}', [ReviewerTjslController::class, 'show'])->name('tjsl.show');
     });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -198,22 +249,12 @@ Route::middleware(['auth.session', 'role:writer'])
     ->group(function () {
         Route::get('/dashboard', [WriterDashboardController::class, 'index'])->name('dashboard');
 
-        /*
-        |--------------------------------------------------------------------------
-        | NEWS WRITER
-        |--------------------------------------------------------------------------
-        */
         Route::get('/news', [WriterNewsController::class, 'index'])->name('news.index');
         Route::get('/news/create', [WriterNewsController::class, 'create'])->name('news.create');
         Route::post('/news', [WriterNewsController::class, 'store'])->name('news.store');
 
         Route::get('/news/{news}/edit', [WriterNewsController::class, 'edit'])->name('news.edit');
 
-        /*
-         * PENTING:
-         * Update news pakai POST asli ke /writer/news/{news}/update
-         * supaya upload file tidak bentrok dengan route detail /writer/news/{news}.
-         */
         Route::post('/news/{news}/update', [WriterNewsController::class, 'update'])->name('news.update');
 
         Route::get('/news/{news}/preview', [WriterNewsController::class, 'preview'])->name('news.preview');
@@ -222,16 +263,8 @@ Route::middleware(['auth.session', 'role:writer'])
         Route::patch('/news/{news}/unpublish', [WriterNewsController::class, 'unpublish'])->name('news.unpublish');
         Route::delete('/news/{news}', [WriterNewsController::class, 'destroy'])->name('news.destroy');
 
-        /*
-         * Route detail wajib paling bawah.
-         */
         Route::get('/news/{news}', [WriterNewsController::class, 'show'])->name('news.show');
 
-        /*
-        |--------------------------------------------------------------------------
-        | TJSL WRITER
-        |--------------------------------------------------------------------------
-        */
         Route::get('/tjsl', [WriterTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/create', [WriterTjslController::class, 'create'])->name('tjsl.create');
         Route::post('/tjsl', [WriterTjslController::class, 'store'])->name('tjsl.store');
@@ -263,13 +296,11 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::get('/news/{news}/logs', [AdminNewsController::class, 'logs'])->name('news.logs');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | WBS NOTIFICATIONS (GLOBAL - ADMIN & PELAPOR)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth.session', 'role:pelapor,wbs_admin'])
     ->prefix('wbs/notifications')
     ->name('wbs.notifications.')
@@ -283,7 +314,7 @@ Route::middleware(['auth.session', 'role:pelapor,wbs_admin'])
 | WBS PELAPOR
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:pelapor'])
+Route::middleware(['auth.session', 'role:pelapor', 'pelapor.verified'])
     ->prefix('wbs')
     ->name('wbs.')
     ->group(function () {
@@ -329,12 +360,6 @@ Route::middleware(['auth.session', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-
-        /*
-        |--------------------------------------------------------------------------
-        | PARTNERS
-        |--------------------------------------------------------------------------
-        */
         Route::get('/partners', [AdminPartnerController::class, 'index'])->name('partners.index');
         Route::get('/partners/create', [AdminPartnerController::class, 'create'])->name('partners.create');
         Route::post('/partners', [AdminPartnerController::class, 'store'])->name('partners.store');
@@ -344,11 +369,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/partners/{partner}', [AdminPartnerController::class, 'update'])->name('partners.patch');
         Route::delete('/partners/{partner}', [AdminPartnerController::class, 'destroy'])->name('partners.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | SLIDERS
-        |--------------------------------------------------------------------------
-        */
         Route::get('/sliders', [SliderController::class, 'index'])->name('sliders.index');
         Route::get('/sliders/create', [SliderController::class, 'create'])->name('sliders.create');
         Route::post('/sliders', [SliderController::class, 'store'])->name('sliders.store');
@@ -358,21 +378,11 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/sliders/{slider}', [SliderController::class, 'update'])->name('sliders.patch');
         Route::delete('/sliders/{slider}', [SliderController::class, 'destroy'])->name('sliders.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | PROFILE PAGES
-        |--------------------------------------------------------------------------
-        */
         Route::get('/profile-pages', [AdminProfilePageController::class, 'index'])->name('profile-pages.index');
         Route::get('/profile-pages/{page}/edit', [AdminProfilePageController::class, 'edit'])->name('profile-pages.edit');
         Route::put('/profile-pages/{page}', [AdminProfilePageController::class, 'update'])->name('profile-pages.update');
         Route::patch('/profile-pages/{page}', [AdminProfilePageController::class, 'update'])->name('profile-pages.patch');
 
-        /*
-        |--------------------------------------------------------------------------
-        | PAGES
-        |--------------------------------------------------------------------------
-        */
         Route::get('/pages', [AdminPageController::class, 'index'])->name('pages.index');
         Route::get('/pages/{page}/edit', [AdminPageController::class, 'edit'])->name('pages.edit');
         Route::put('/pages/{page}', [AdminPageController::class, 'update'])->name('pages.update');
@@ -381,11 +391,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::post('/pages/{page}/versions/{version}/restore', [AdminPageController::class, 'restoreVersion'])->name('pages.versions.restore');
         Route::post('/pages/{page}/bundles/{bundle}/restore', [AdminPageController::class, 'restoreBundle'])->name('pages.bundles.restore');
 
-        /*
-        |--------------------------------------------------------------------------
-        | MENUS
-        |--------------------------------------------------------------------------
-        */
         Route::get('/menus', [MenuController::class, 'index'])->name('menus.index');
         Route::get('/menus/create', [MenuController::class, 'create'])->name('menus.create');
         Route::post('/menus', [MenuController::class, 'store'])->name('menus.store');
@@ -396,20 +401,9 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
         Route::delete('/menus/{menu}/delete', [MenuController::class, 'destroy'])->name('menus.delete');
 
-        /*
-        |--------------------------------------------------------------------------
-        | TJSL
-        |--------------------------------------------------------------------------
-        */
         Route::get('/tjsl', [AdminTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/{tjsl}', [AdminTjslController::class, 'show'])->name('tjsl.show');
 
-        /*
-        |--------------------------------------------------------------------------
-        | GCG
-        | Sesuai layout admin: admin.gcg.*
-        |--------------------------------------------------------------------------
-        */
         Route::get('/gcg', [GcgCategoryController::class, 'index'])->name('gcg.index');
         Route::get('/gcg/create', [GcgCategoryController::class, 'create'])->name('gcg.create');
         Route::post('/gcg', [GcgCategoryController::class, 'store'])->name('gcg.store');
@@ -418,12 +412,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/gcg/{gcg}', [GcgCategoryController::class, 'update'])->name('gcg.patch');
         Route::delete('/gcg/{gcg}', [GcgCategoryController::class, 'destroy'])->name('gcg.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | GCG CATEGORIES
-        | Route lama tetap disediakan agar kode lama tidak rusak
-        |--------------------------------------------------------------------------
-        */
         Route::get('/gcg-categories', [GcgCategoryController::class, 'index'])->name('gcg-categories.index');
         Route::get('/gcg-categories/create', [GcgCategoryController::class, 'create'])->name('gcg-categories.create');
         Route::post('/gcg-categories', [GcgCategoryController::class, 'store'])->name('gcg-categories.store');
@@ -432,11 +420,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/gcg-categories/{gcgCategory}', [GcgCategoryController::class, 'update'])->name('gcg-categories.patch');
         Route::delete('/gcg-categories/{gcgCategory}', [GcgCategoryController::class, 'destroy'])->name('gcg-categories.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | GCG HIGHLIGHT ITEMS
-        |--------------------------------------------------------------------------
-        */
         Route::get('/gcg-highlight-items', [GcgHighlightItemController::class, 'index'])->name('gcg-highlight-items.index');
         Route::get('/gcg-highlight-items/create', [GcgHighlightItemController::class, 'create'])->name('gcg-highlight-items.create');
         Route::post('/gcg-highlight-items', [GcgHighlightItemController::class, 'store'])->name('gcg-highlight-items.store');
@@ -445,12 +428,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/gcg-highlight-items/{gcgHighlightItem}', [GcgHighlightItemController::class, 'update'])->name('gcg-highlight-items.patch');
         Route::delete('/gcg-highlight-items/{gcgHighlightItem}', [GcgHighlightItemController::class, 'destroy'])->name('gcg-highlight-items.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | INVESTOR RELATIONS
-        | Sesuai layout admin: admin.investor-relations.*
-        |--------------------------------------------------------------------------
-        */
         Route::get('/investor-relations', [InvestorDocumentController::class, 'index'])->name('investor-relations.index');
         Route::get('/investor-relations/create', [InvestorDocumentController::class, 'create'])->name('investor-relations.create');
         Route::post('/investor-relations', [InvestorDocumentController::class, 'store'])->name('investor-relations.store');
@@ -459,12 +436,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/investor-relations/{investorRelation}', [InvestorDocumentController::class, 'update'])->name('investor-relations.patch');
         Route::delete('/investor-relations/{investorRelation}', [InvestorDocumentController::class, 'destroy'])->name('investor-relations.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | INVESTOR DOCUMENTS
-        | Route lama tetap disediakan agar kode lama tidak rusak
-        |--------------------------------------------------------------------------
-        */
         Route::get('/investor-documents', [InvestorDocumentController::class, 'index'])->name('investor-documents.index');
         Route::get('/investor-documents/create', [InvestorDocumentController::class, 'create'])->name('investor-documents.create');
         Route::post('/investor-documents', [InvestorDocumentController::class, 'store'])->name('investor-documents.store');
@@ -473,11 +444,6 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/investor-documents/{investorDocument}', [InvestorDocumentController::class, 'update'])->name('investor-documents.patch');
         Route::delete('/investor-documents/{investorDocument}', [InvestorDocumentController::class, 'destroy'])->name('investor-documents.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | INVESTOR HIGHLIGHT ITEMS
-        |--------------------------------------------------------------------------
-        */
         Route::get('/investor-highlight-items', [InvestorHighlightItemController::class, 'index'])->name('investor-highlight-items.index');
         Route::get('/investor-highlight-items/create', [InvestorHighlightItemController::class, 'create'])->name('investor-highlight-items.create');
         Route::post('/investor-highlight-items', [InvestorHighlightItemController::class, 'store'])->name('investor-highlight-items.store');
@@ -557,10 +523,6 @@ Route::prefix('{locale}')
 |--------------------------------------------------------------------------
 | Redirect URL Publik Tanpa Locale ke Locale Default
 |--------------------------------------------------------------------------
-| Contoh:
-| /documents/gcg  -> /id/documents/gcg
-| /profile        -> /id/profile
-| /news           -> /id/news
 */
 Route::get('/documents/{path?}', function (?string $path = null) {
     return redirect('/id/documents' . ($path ? '/' . $path : ''), 302);
@@ -582,7 +544,6 @@ Route::get('/contact/{path?}', function (?string $path = null) {
 |--------------------------------------------------------------------------
 | Fallback Aman
 |--------------------------------------------------------------------------
-| Semua URL ngawur langsung dipental ke homepage Indonesia.
 */
 Route::fallback(function () {
     return redirect('/id', 302);

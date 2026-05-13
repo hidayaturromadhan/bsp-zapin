@@ -87,11 +87,11 @@ html,body{
     position:relative;
     z-index:2;
     width:100%;
-    min-height:calc(100vh - 78px);  /* <-- key fix: fill height */
+    min-height:calc(100vh - 78px);
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:48px 16px 56px;         /* generous padding top/bottom */
+    padding:48px 16px 56px;
 }
 
 /* ─── Card ──────────────────────────────────────────────────── */
@@ -244,10 +244,51 @@ html,body{
 .password-toggle.is-visible .eye{display:none}
 .password-toggle.is-visible .eye-off{display:block}
 
-/* ─── Remember me ───────────────────────────────────────────── */
-.form-check{display:flex;align-items:center;gap:8px;margin-bottom:20px}
-.form-check input[type="checkbox"]{width:16px;height:16px;accent-color:var(--g500);cursor:pointer;flex-shrink:0}
-.form-check label{font-size:13px;color:var(--text3);cursor:pointer;user-select:none}
+/* ─── Remember me + forgot ─────────────────────────────────── */
+.form-options{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+
+.form-check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+}
+
+.form-check input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    accent-color:var(--g500);
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.form-check label{
+    font-size:13px;
+    color:var(--text3);
+    cursor:pointer;
+    user-select:none;
+}
+
+.forgot-link{
+    font-size:13px;
+    color:var(--g700);
+    font-weight:800;
+    text-decoration:none;
+    transition:color .13s;
+    white-space:nowrap;
+}
+
+.forgot-link:hover{
+    color:var(--g900);
+    text-decoration:underline;
+}
 
 /* ─── Submit ────────────────────────────────────────────────── */
 .btn-submit{
@@ -311,6 +352,12 @@ html,body{
     .login-title{font-size:20px}
     .form-input{height:50px;font-size:15px}
     .btn-submit,.btn-google{min-height:50px;font-size:15px}
+
+    .form-options{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:10px;
+    }
 }
 
 @media(min-width:481px) and (max-width:768px){
@@ -393,9 +440,17 @@ html,body{
                         </div>
                     </div>
 
-                    <div class="form-check">
-                        <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
-                        <label for="remember">Ingat saya di perangkat ini</label>
+                    <div class="form-options">
+                        <div class="form-check">
+                            <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                            <label for="remember">Ingat saya di perangkat ini</label>
+                        </div>
+
+                        @if(Route::has('password.forgot.form'))
+                            <a href="{{ route('password.forgot.form') }}" class="forgot-link">
+                                Lupa Password?
+                            </a>
+                        @endif
                     </div>
 
                     <button type="submit" class="btn-submit {{ $errors->has('force') ? 'is-force' : '' }}">

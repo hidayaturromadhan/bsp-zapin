@@ -10,76 +10,125 @@ use Intervention\Image\ImageManager;
 
 class PublicImageUploader
 {
+    /**
+     * Upload gambar ke folder public, resize, compress, dan convert otomatis ke WEBP.
+     *
+     * Parameter tetap dibuat kompatibel dengan controller lama:
+     * upload($file, $directory, $qualityLevel, $maxWidth)
+     */
     public function upload(
         UploadedFile $file,
         string $directory = 'images/uploads',
         int $qualityLevel = 2,
         ?int $maxWidth = null
     ): string {
-        $publicDirectory = public_path(trim($directory, '/'));
+        $this->validateImageFile($file);
+
+        $directory = trim($directory, '/');
+        $publicDirectory = public_path($directory);
 
         if (! File::exists($publicDirectory)) {
             File::makeDirectory($publicDirectory, 0755, true);
         }
 
-        $extension = strtolower($file->getClientOriginalExtension());
-        $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)
-            ? $extension
-            : 'jpg';
-
-        $filename = Str::uuid() . '.' . ($extension === 'jpeg' ? 'jpg' : $extension);
+        /*
+         * Semua gambar disimpan sebagai WEBP.
+         * Walaupun user upload jpg/png/webp, output tetap .webp.
+         */
+        $filename = Str::uuid() . '.webp';
         $fullPath = $publicDirectory . DIRECTORY_SEPARATOR . $filename;
 
-        $quality = $this->resolveQuality($qualityLevel, $extension);
+        $quality = $this->resolveQuality($qualityLevel);
         $width = $maxWidth ?? $this->resolveMaxWidth($directory);
 
         $manager = new ImageManager(new Driver());
         $image = $manager->read($file->getRealPath());
 
+        /*
+         * Resize hanya kalau gambar lebih besar dari batas.
+         * Tidak memperbesar gambar kecil.
+         */
         if ($width && $image->width() > $width) {
             $image->scaleDown(width: $width);
         }
 
-        if (in_array($extension, ['jpg', 'jpeg'], true)) {
-            $image->toJpeg($quality)->save($fullPath);
-        } elseif ($extension === 'png') {
-            $image->toPng()->save($fullPath);
-        } elseif ($extension === 'webp') {
-            $image->toWebp($quality)->save($fullPath);
-        } else {
-            $image->toJpeg($quality)->save($fullPath);
-        }
+        /*
+         * Convert dan compress ke WEBP.
+         */
+        $image->toWebp($quality)->save($fullPath);
 
-        return trim($directory, '/') . '/' . $filename;
+        return $directory . '/' . $filename;
     }
 
+    /**
+     * Hapus gambar lama dari public folder.
+     */
     public function delete(?string $relativePath): void
     {
         if (! $relativePath) {
             return;
         }
 
-        $fullPath = public_path(ltrim($relativePath, '/'));
+        $relativePath = ltrim($relativePath, '/');
 
-        if (File::exists($fullPath)) {
+        /*
+         * Pengaman agar tidak bisa menghapus path mencurigakan.
+         */
+        if (
+            str_contains($relativePath, '..') ||
+            str_starts_with($relativePath, '/') ||
+            str_starts_with($relativePath, '\\')
+        ) {
+            return;
+        }
+
+        $fullPath = public_path($relativePath);
+
+        if (File::exists($fullPath) && File::isFile($fullPath)) {
             File::delete($fullPath);
         }
     }
 
-    private function resolveQuality(int $qualityLevel, string $extension): int
+    /**
+     * Validasi tambahan di level service.
+     * Validasi utama tetap sebaiknya ada di controller/form request.
+     */
+    private function validateImageFile(UploadedFile $file): void
     {
-        if ($extension === 'png') {
-            return 100;
+        if (! $file->isValid()) {
+            abort(422, 'File gambar tidak valid atau gagal diupload.');
         }
 
+        $allowedMimes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+        ];
+
+        if (! in_array($file->getMimeType(), $allowedMimes, true)) {
+            abort(422, 'Format gambar harus JPG, JPEG, PNG, atau WEBP.');
+        }
+    }
+
+    /**
+     * Level kualitas:
+     * 1 = kualitas tinggi, ukuran lebih besar
+     * 2 = standar aman
+     * 3 = lebih kecil untuk kompres kuat
+     */
+    private function resolveQuality(int $qualityLevel): int
+    {
         return match ($qualityLevel) {
-            1 => 92,
-            2 => 85,
-            3 => 78,
-            default => 85,
+            1 => 88,
+            2 => 80,
+            3 => 72,
+            default => 80,
         };
     }
 
+    /**
+     * Batas lebar gambar berdasarkan folder.
+     */
     private function resolveMaxWidth(string $directory): int
     {
         $directory = trim($directory, '/');

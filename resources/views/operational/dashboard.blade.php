@@ -10,10 +10,12 @@
                 <span class="op-breadcrumb-sep">›</span>
                 <span>Dashboard</span>
             </div>
+
             <h1 class="op-page-title">Dashboard Operasional</h1>
+
             <p class="op-page-desc">
-                Dashboard ini menampilkan ringkasan seluruh data operasional: Flow Gas, Crude, dan VITOL
-                dalam satu halaman yang rapi, mudah dibaca, dan responsive.
+                Dashboard ini menampilkan ringkasan seluruh data operasional: Flow Gas, Crude Oil,
+                dan VITOL dalam satu halaman yang rapi, mudah dibaca, dan responsive.
             </p>
         </div>
     </div>
@@ -32,9 +34,12 @@
         <div class="op-card-head">
             <div>
                 <h2 class="op-card-title">Filter Dashboard</h2>
-                <div class="op-card-desc">Filter bulan dan tahun untuk membaca data Flow Gas, Crude, dan VITOL.</div>
+                <div class="op-card-desc">
+                    Filter bulan dan tahun untuk membaca data Flow Gas, Crude Oil, dan VITOL.
+                </div>
             </div>
-            <a href="{{ route('operational.tv', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" class="op-btn op-btn--primary" target="_blank">
+
+            <a href="{{ route('operational.tv', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" class="op-btn op-btn--primary" target="_blank" rel="noopener noreferrer">
                 TV Display
             </a>
         </div>
@@ -75,7 +80,7 @@
         <div class="op-stat">
             <div class="op-stat-label">Total Item Operasional</div>
             <div class="op-stat-value">{{ number_format($totalOperationalItems, 0, ',', '.') }}</div>
-            <div class="op-stat-sub">Gabungan data Flow Gas, Crude, dan VITOL pada filter aktif.</div>
+            <div class="op-stat-sub">Gabungan data Flow Gas, Crude Oil, dan VITOL pada filter aktif.</div>
         </div>
 
         <div class="op-stat">
@@ -87,13 +92,27 @@
         <div class="op-stat">
             <div class="op-stat-label">Crude Production</div>
             <div class="op-stat-value">{{ number_format($crudeTotalProduction, 4, ',', '.') }}</div>
-            <div class="op-stat-sub">Total produksi crude pada bulan dan tahun terpilih.</div>
+            <div class="op-stat-sub">Total Vacuum Truck + Road Tank pada periode aktif.</div>
         </div>
 
         <div class="op-stat">
             <div class="op-stat-label">VITOL Quantity</div>
             <div class="op-stat-value">{{ number_format($vitolTotalQuantity, 4, ',', '.') }}</div>
             <div class="op-stat-sub">Total quantity VITOL pada tahun terpilih.</div>
+        </div>
+    </div>
+
+    <div class="op-grid-2" style="margin-bottom:20px;">
+        <div class="op-stat">
+            <div class="op-stat-label">Vacuum Truck</div>
+            <div class="op-stat-value">{{ number_format($crudeTotalVacuumTruck ?? 0, 4, ',', '.') }}</div>
+            <div class="op-stat-sub">Total produksi crude dari Vacuum Truck pada periode aktif.</div>
+        </div>
+
+        <div class="op-stat">
+            <div class="op-stat-label">Road Tank</div>
+            <div class="op-stat-value">{{ number_format($crudeTotalRoadTank ?? 0, 4, ',', '.') }}</div>
+            <div class="op-stat-sub">Total produksi crude dari Road Tank pada periode aktif.</div>
         </div>
     </div>
 
@@ -105,6 +124,7 @@
                     <div class="op-card-desc">Grafik harian Flow Gas berdasarkan total MSCF pada bulan terpilih.</div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 <canvas id="flowGasDailyChart" height="220"></canvas>
             </div>
@@ -113,10 +133,13 @@
         <div class="op-card">
             <div class="op-card-head">
                 <div>
-                    <h2 class="op-card-title">Crude Daily</h2>
-                    <div class="op-card-desc">Grafik produksi crude untuk 14 hari terakhir.</div>
+                    <h2 class="op-card-title">Crude Oil Daily</h2>
+                    <div class="op-card-desc">
+                        Grafik stacked bar 14 hari terakhir berdasarkan Vacuum Truck dan Road Tank.
+                    </div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 <canvas id="crudeDailyChart" height="220"></canvas>
             </div>
@@ -131,6 +154,7 @@
                     <div class="op-card-desc">Rata-rata daily MSCF per bulan pada tahun terpilih.</div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 <canvas id="flowGasMonthlyChart" height="220"></canvas>
             </div>
@@ -143,6 +167,7 @@
                     <div class="op-card-desc">Rekap quantity VITOL per bulan pada tahun terpilih.</div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 <canvas id="vitolMonthlyChart" height="220"></canvas>
             </div>
@@ -156,6 +181,7 @@
                 <div class="op-card-desc">Perbandingan total MSCF Flow Gas antar tahun.</div>
             </div>
         </div>
+
         <div class="op-card-body">
             <canvas id="flowGasYearlyChart" height="120"></canvas>
         </div>
@@ -189,6 +215,7 @@
                     <div class="op-card-desc">Menampilkan total Flowcomp A dan Flowcomp B.</div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 @if($gasCategorySummary->count())
                     <div class="op-table-wrap">
@@ -226,9 +253,10 @@
             <div class="op-card-head">
                 <div>
                     <h2 class="op-card-title">Crude Terbaru</h2>
-                    <div class="op-card-desc">8 data produksi crude terbaru.</div>
+                    <div class="op-card-desc">8 data produksi crude terbaru berdasarkan Vacuum Truck dan Road Tank.</div>
                 </div>
             </div>
+
             <div class="op-card-body">
                 @if($recentCrudeRecords->count())
                     <div class="op-table-wrap">
@@ -236,15 +264,25 @@
                             <thead>
                                 <tr>
                                     <th>Tanggal</th>
-                                    <th>Produksi</th>
+                                    <th>Vacuum Truck</th>
+                                    <th>Road Tank</th>
+                                    <th>Total</th>
                                     <th>Catatan</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($recentCrudeRecords as $record)
+                                    @php
+                                        $vacuumTruck = (float) ($record->vacuum_truck ?? 0);
+                                        $roadTank = (float) ($record->road_tank ?? 0);
+                                        $totalCrude = $vacuumTruck + $roadTank;
+                                    @endphp
+
                                     <tr>
                                         <td>{{ optional($record->record_date)->format('d-m-Y') }}</td>
-                                        <td>{{ number_format((float) $record->production, 4, ',', '.') }}</td>
+                                        <td>{{ number_format($vacuumTruck, 4, ',', '.') }}</td>
+                                        <td>{{ number_format($roadTank, 4, ',', '.') }}</td>
+                                        <td>{{ number_format($totalCrude, 4, ',', '.') }}</td>
                                         <td>{{ $record->notes ?: '-' }}</td>
                                     </tr>
                                 @endforeach
@@ -268,6 +306,7 @@
                 <div class="op-card-desc">Data VITOL terbaru berdasarkan tahun dan bulan.</div>
             </div>
         </div>
+
         <div class="op-card-body">
             @if($recentVitolRecords->count())
                 <div class="op-table-wrap">
@@ -306,14 +345,83 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
         const gridColor = isDarkMode ? 'rgba(148,163,184,0.16)' : 'rgba(15,23,42,0.08)';
         const tickColor = isDarkMode ? '#cbd5e1' : '#475569';
 
+        function baseChartOptions() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: tickColor,
+                            usePointStyle: true,
+                            pointStyle: 'rectRounded',
+                            font: {
+                                size: 12,
+                                weight: '700'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDarkMode ? 'rgba(15,23,42,0.96)' : 'rgba(15,23,42,0.92)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e5e7eb',
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function (context) {
+                                const value = Number(context.raw || 0);
+
+                                return context.dataset.label + ': ' + value.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 4
+                                });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: tickColor,
+                            font: {
+                                size: 11,
+                                weight: '700'
+                            }
+                        },
+                        grid: {
+                            color: gridColor
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: tickColor,
+                            font: {
+                                size: 11,
+                                weight: '700'
+                            }
+                        },
+                        grid: {
+                            color: gridColor
+                        }
+                    }
+                }
+            };
+        }
+
         function buildBarChart(canvasId, labels, data, label, bgColor, borderColor) {
             const el = document.getElementById(canvasId);
-            if (!el) return;
+
+            if (!el) {
+                return;
+            }
 
             new Chart(el, {
                 type: 'bar',
@@ -324,34 +432,22 @@
                         data: data,
                         backgroundColor: bgColor,
                         borderColor: borderColor,
-                        borderWidth: 1.2
+                        borderWidth: 1.2,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        maxBarThickness: 42
                     }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: { color: tickColor }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: tickColor },
-                            grid: { color: gridColor }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: tickColor },
-                            grid: { color: gridColor }
-                        }
-                    }
-                }
+                options: baseChartOptions()
             });
         }
 
         function buildLineChart(canvasId, labels, data, label, bgColor, borderColor) {
             const el = document.getElementById(canvasId);
-            if (!el) return;
+
+            if (!el) {
+                return;
+            }
 
             new Chart(el, {
                 type: 'line',
@@ -365,26 +461,82 @@
                         backgroundColor: bgColor,
                         borderColor: borderColor,
                         pointBackgroundColor: borderColor,
-                        pointBorderColor: borderColor,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         borderWidth: 3
                     }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: { color: tickColor }
+                options: baseChartOptions()
+            });
+        }
+
+        function buildStackedCrudeChart(canvasId, labels, vacuumTruckData, roadTankData) {
+            const el = document.getElementById(canvasId);
+
+            if (!el) {
+                return;
+            }
+
+            new Chart(el, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Vacuum Truck',
+                            data: vacuumTruckData,
+                            backgroundColor: 'rgba(17, 24, 39, 0.92)',
+                            borderColor: 'rgba(3, 7, 18, 1)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            maxBarThickness: 42,
+                            stack: 'crude'
+                        },
+                        {
+                            label: 'Road Tank',
+                            data: roadTankData,
+                            backgroundColor: 'rgba(156, 163, 175, 0.92)',
+                            borderColor: 'rgba(107, 114, 128, 1)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            maxBarThickness: 42,
+                            stack: 'crude'
                         }
-                    },
+                    ]
+                },
+                options: {
+                    ...baseChartOptions(),
                     scales: {
                         x: {
-                            ticks: { color: tickColor },
-                            grid: { color: gridColor }
+                            stacked: true,
+                            ticks: {
+                                color: tickColor,
+                                font: {
+                                    size: 11,
+                                    weight: '700'
+                                }
+                            },
+                            grid: {
+                                color: gridColor
+                            }
                         },
                         y: {
+                            stacked: true,
                             beginAtZero: true,
-                            ticks: { color: tickColor },
-                            grid: { color: gridColor }
+                            ticks: {
+                                color: tickColor,
+                                font: {
+                                    size: 11,
+                                    weight: '700'
+                                }
+                            },
+                            grid: {
+                                color: gridColor
+                            }
                         }
                     }
                 }
@@ -400,13 +552,11 @@
             'rgba(234, 179, 8, 1)'
         );
 
-        buildBarChart(
+        buildStackedCrudeChart(
             'crudeDailyChart',
             @json($crudeDailyChartLabels),
-            @json($crudeDailyChartValues),
-            'Produksi',
-            'rgba(75, 85, 99, 0.78)',
-            'rgba(55, 65, 81, 1)'
+            @json($crudeDailyVacuumTruckValues ?? []),
+            @json($crudeDailyRoadTankValues ?? [])
         );
 
         buildLineChart(
@@ -414,8 +564,8 @@
             @json($gasMonthlyChartLabels),
             @json($gasMonthlyChartValues),
             'Avg Daily MSCF',
-            'rgba(22, 163, 74, 0.18)',
-            'rgba(22, 163, 74, 1)'
+            'rgba(234, 179, 8, 0.18)',
+            'rgba(234, 179, 8, 1)'
         );
 
         buildBarChart(

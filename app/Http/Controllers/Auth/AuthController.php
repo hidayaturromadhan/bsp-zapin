@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationOtpMail;
+use App\Models\EmailVerificationOtp;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -83,6 +86,12 @@ class AuthController extends Controller
             'user_name' => $user->name,
         ]);
 
+        if ($user->role === 'pelapor' && ! $user->email_verified_at) {
+            return redirect()
+                ->route('verification.otp.form')
+                ->with('success', 'Silakan verifikasi email terlebih dahulu.');
+        }
+
         $defaultRedirect = match ($user->role) {
             'admin' => route('admin.dashboard'),
             'reviewer' => route('reviewer.dashboard'),
@@ -121,7 +130,27 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
             'role' => 'pelapor',
             'is_active' => true,
+            'email_verified_at' => null,
         ]);
+
+        $otpCode = (string) random_int(100000, 999999);
+
+        EmailVerificationOtp::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'otp_code' => $otpCode,
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | QUEUE EMAIL OTP
+        |--------------------------------------------------------------------------
+        | Email tidak dikirim langsung saat request registrasi.
+        | Email dimasukkan ke tabel jobs dan akan diproses oleh cron queue worker.
+        |--------------------------------------------------------------------------
+        */
+        Mail::to($user->email)->queue(new EmailVerificationOtpMail($user, $otpCode));
 
         Auth::login($user);
 
@@ -138,7 +167,9 @@ class AuthController extends Controller
             'user_name' => $user->name,
         ]);
 
-        return redirect()->route('wbs.pelapor.dashboard');
+        return redirect()
+            ->route('verification.otp.form')
+            ->with('success', 'Registrasi berhasil. Kode OTP sedang diproses dan akan dikirim ke email Anda.');
     }
 
     public function logout(Request $request)

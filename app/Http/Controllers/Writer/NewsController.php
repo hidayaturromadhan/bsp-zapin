@@ -93,13 +93,11 @@ class NewsController extends Controller
         $category = NewsCategory::query()->findOrFail($data['news_category_id']);
         abort_if($category->slug === 'tjsl', 422, 'Kategori TJSL tidak dikelola dari modul news.');
 
-        $idSlug = trim((string) ($data['id_slug'] ?? '')) !== ''
-            ? trim((string) $data['id_slug'])
-            : Str::slug($data['id_title']);
-
-        if ($idSlug === '') {
-            $idSlug = Str::slug($data['id_title'] . '-' . now()->timestamp);
-        }
+        $idSlug = $this->makeSlug(
+            $data['id_slug'] ?? null,
+            $data['id_title'],
+            now()->timestamp
+        );
 
         $blocksId = $this->normalizeBlocks($request, $uploader);
         $contentId = $this->blocksToHtml($blocksId);
@@ -117,11 +115,7 @@ class NewsController extends Controller
             ? trim((string) $translatedExcerpt)
             : ($data['id_excerpt'] ?? '');
 
-        $enSlug = Str::slug($enTitle);
-
-        if ($enSlug === '') {
-            $enSlug = Str::slug($data['id_title'] . '-en-' . now()->timestamp);
-        }
+        $enSlug = $this->makeSlug(null, $enTitle, 'en-' . now()->timestamp);
 
         $this->validateUniqueSlug('id', $idSlug);
         $this->validateUniqueSlug('en', $enSlug);
@@ -146,7 +140,7 @@ class NewsController extends Controller
             if ($request->hasFile('featured_image')) {
                 $payload['featured_image'] = $uploader->upload(
                     $request->file('featured_image'),
-                    'images/news',
+                    'images/news/featured',
                     2
                 );
             }
@@ -173,24 +167,7 @@ class NewsController extends Controller
                 'content_blocks' => $translatedBlocks,
             ]);
 
-            if ($request->hasFile('gallery_images')) {
-                foreach ($request->file('gallery_images') as $index => $image) {
-                    if (! $image) {
-                        continue;
-                    }
-
-                    NewsImage::create([
-                        'news_id' => $news->id,
-                        'image_path' => $uploader->upload(
-                            $image,
-                            'images/news/gallery',
-                            2
-                        ),
-                        'caption' => null,
-                        'sort_order' => $index + 1,
-                    ]);
-                }
-            }
+            $this->storeGalleryImages($request, $uploader, $news);
 
             if (function_exists('news_log')) {
                 news_log($news->id, 'created', 'News dibuat oleh writer sebagai draft.');
@@ -280,13 +257,13 @@ class NewsController extends Controller
         $category = NewsCategory::query()->findOrFail($data['news_category_id']);
         abort_if($category->slug === 'tjsl', 422, 'Kategori TJSL tidak dikelola dari modul news.');
 
-        $idSlug = trim((string) ($data['id_slug'] ?? '')) !== ''
-            ? trim((string) $data['id_slug'])
-            : Str::slug($data['id_title']);
+        $idSlug = $this->makeSlug(
+            $data['id_slug'] ?? null,
+            $data['id_title'],
+            $news->id
+        );
 
-        if ($idSlug === '') {
-            $idSlug = Str::slug($data['id_title'] . '-' . $news->id);
-        }
+        $oldBlockImages = $this->collectBlockImages($news);
 
         $blocksId = $this->normalizeBlocks($request, $uploader);
         $contentId = $this->blocksToHtml($blocksId);
@@ -304,11 +281,7 @@ class NewsController extends Controller
             ? trim((string) $translatedExcerpt)
             : ($data['id_excerpt'] ?? '');
 
-        $enSlug = Str::slug($enTitle);
-
-        if ($enSlug === '') {
-            $enSlug = Str::slug($data['id_title'] . '-en-' . $news->id);
-        }
+        $enSlug = $this->makeSlug(null, $enTitle, 'en-' . $news->id);
 
         $this->validateUniqueSlug('id', $idSlug, $news->id);
         $this->validateUniqueSlug('en', $enSlug, $news->id);
@@ -332,7 +305,7 @@ class NewsController extends Controller
 
                 $payload['featured_image'] = $uploader->upload(
                     $request->file('featured_image'),
-                    'images/news',
+                    'images/news/featured',
                     2
                 );
             }
@@ -361,26 +334,9 @@ class NewsController extends Controller
                 ]
             );
 
-            if ($request->hasFile('gallery_images')) {
-                $currentMax = (int) $news->images()->max('sort_order');
-
-                foreach ($request->file('gallery_images') as $index => $image) {
-                    if (! $image) {
-                        continue;
-                    }
-
-                    NewsImage::create([
-                        'news_id' => $news->id,
-                        'image_path' => $uploader->upload(
-                            $image,
-                            'images/news/gallery',
-                            2
-                        ),
-                        'caption' => null,
-                        'sort_order' => $currentMax + $index + 1,
-                    ]);
-                }
-            }
+            $this->removeGalleryImages($request, $uploader, $news);
+            $this->cleanupUnusedBlockImages($oldBlockImages, $blocksId, $uploader);
+            $this->storeGalleryImages($request, $uploader, $news);
 
             if (function_exists('news_log')) {
                 news_log($news->id, 'updated', 'News diperbarui oleh writer.');
@@ -623,45 +579,110 @@ class NewsController extends Controller
             'news_category_id' => ['required', 'exists:news_categories,id'],
             'published_at' => ['nullable', 'date'],
 
+            /*
+             * Upload mentah maksimal 8MB.
+             * Setelah lolos validasi, PublicImageUploader akan resize dan convert ke WEBP.
+             */
             'featured_image' => [
                 'nullable',
                 'file',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'mimetypes:image/jpeg,image/png,image/webp',
-                'max:4096',
+                'max:8192',
             ],
 
-            'gallery_images' => ['nullable', 'array'],
+            'gallery_images' => [
+                'nullable',
+                'array',
+                'max:5',
+            ],
+
             'gallery_images.*' => [
                 'nullable',
                 'file',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'mimetypes:image/jpeg,image/png,image/webp',
-                'max:4096',
+                'max:8192',
+            ],
+
+            'remove_gallery_image_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'remove_gallery_image_ids.*' => [
+                'nullable',
+                'integer',
             ],
 
             'id_title' => ['required', 'string', 'max:190'],
             'id_slug' => ['nullable', 'string', 'max:190'],
             'id_excerpt' => ['nullable', 'string', 'max:350'],
 
-            'blocks' => ['nullable', 'array'],
-            'blocks.*.type' => ['nullable', 'in:heading,text,image'],
-            'blocks.*.title' => ['nullable', 'string'],
-            'blocks.*.body' => ['nullable', 'string'],
-            'blocks.*.caption' => ['nullable', 'string'],
-            'blocks.*.existing_image' => ['nullable', 'string'],
+            'blocks' => [
+                'nullable',
+                'array',
+                'max:30',
+            ],
 
-            'block_images' => ['nullable', 'array'],
+            'blocks.*.type' => ['nullable', 'in:heading,text,image'],
+            'blocks.*.title' => ['nullable', 'string', 'max:255'],
+            'blocks.*.body' => ['nullable', 'string', 'max:10000'],
+            'blocks.*.caption' => ['nullable', 'string', 'max:255'],
+            'blocks.*.existing_image' => ['nullable', 'string', 'max:255'],
+
+            'block_images' => [
+                'nullable',
+                'array',
+                'max:10',
+            ],
+
             'block_images.*' => [
                 'nullable',
                 'file',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'mimetypes:image/jpeg,image/png,image/webp',
-                'max:4096',
+                'max:8192',
             ],
+        ], [
+            'news_category_id.required' => 'Kategori berita wajib dipilih.',
+            'news_category_id.exists' => 'Kategori berita tidak valid.',
+
+            'featured_image.image' => 'Gambar utama harus berupa file gambar.',
+            'featured_image.mimes' => 'Gambar utama harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'featured_image.mimetypes' => 'Gambar utama harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'featured_image.max' => 'Gambar utama maksimal 8MB. Sistem akan mengompres otomatis ke WebP.',
+
+            'gallery_images.array' => 'Format gallery tidak valid.',
+            'gallery_images.max' => 'Gallery maksimal 5 gambar.',
+            'gallery_images.*.image' => 'Setiap gambar gallery harus berupa file gambar.',
+            'gallery_images.*.mimes' => 'Gambar gallery harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'gallery_images.*.mimetypes' => 'Gambar gallery harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'gallery_images.*.max' => 'Setiap gambar gallery maksimal 8MB. Sistem akan mengompres otomatis ke WebP.',
+            'remove_gallery_image_ids.array' => 'Format data hapus gallery tidak valid.',
+            'remove_gallery_image_ids.*.integer' => 'Data gambar gallery yang akan dihapus tidak valid.',
+
+            'id_title.required' => 'Judul berita wajib diisi.',
+            'id_title.max' => 'Judul berita maksimal 190 karakter.',
+            'id_slug.max' => 'Slug maksimal 190 karakter.',
+            'id_excerpt.max' => 'Ringkasan maksimal 350 karakter.',
+
+            'blocks.array' => 'Format konten tidak valid.',
+            'blocks.max' => 'Jumlah blok konten maksimal 30 blok.',
+            'blocks.*.type.in' => 'Tipe blok konten tidak valid.',
+            'blocks.*.title.max' => 'Judul/subjudul konten maksimal 255 karakter.',
+            'blocks.*.body.max' => 'Isi setiap blok teks maksimal 10.000 karakter.',
+            'blocks.*.caption.max' => 'Caption gambar maksimal 255 karakter.',
+
+            'block_images.array' => 'Format gambar konten tidak valid.',
+            'block_images.max' => 'Gambar dalam konten maksimal 10 gambar.',
+            'block_images.*.image' => 'Setiap gambar konten harus berupa file gambar.',
+            'block_images.*.mimes' => 'Gambar konten harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'block_images.*.mimetypes' => 'Gambar konten harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'block_images.*.max' => 'Setiap gambar konten maksimal 8MB. Sistem akan mengompres otomatis ke WebP.',
         ]);
     }
 
@@ -675,6 +696,10 @@ class NewsController extends Controller
         }
 
         foreach ($blocks as $index => $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+
             $type = $block['type'] ?? 'text';
 
             if ($type === 'heading') {
@@ -704,9 +729,13 @@ class NewsController extends Controller
             }
 
             if ($type === 'image') {
-                $imagePath = $block['existing_image'] ?? null;
+                $imagePath = trim((string) ($block['existing_image'] ?? ''));
 
                 if ($request->hasFile("block_images.$index")) {
+                    if ($imagePath !== '') {
+                        $uploader->delete($imagePath);
+                    }
+
                     $imagePath = $uploader->upload(
                         $request->file("block_images.$index"),
                         'images/news/blocks',
@@ -714,7 +743,7 @@ class NewsController extends Controller
                     );
                 }
 
-                if ($imagePath) {
+                if ($imagePath !== '') {
                     $result[] = [
                         'type' => 'image',
                         'image' => $imagePath,
@@ -777,6 +806,110 @@ class NewsController extends Controller
         }
 
         return $html;
+    }
+
+
+    private function removeGalleryImages(Request $request, PublicImageUploader $uploader, News $news): void
+    {
+        $imageIds = collect($request->input('remove_gallery_image_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($imageIds->isEmpty()) {
+            return;
+        }
+
+        $images = $news->images()
+            ->whereIn('id', $imageIds->all())
+            ->get();
+
+        foreach ($images as $image) {
+            $uploader->delete($image->image_path);
+            $image->delete();
+        }
+    }
+
+    private function collectBlockImages(News $news): array
+    {
+        $news->loadMissing([
+            'translations' => fn ($q) => $q->where('locale', 'id'),
+        ]);
+
+        $translation = $news->translations->firstWhere('locale', 'id');
+        $blocks = $translation?->content_blocks ?: [];
+
+        return $this->extractBlockImages($blocks);
+    }
+
+    private function extractBlockImages(array $blocks): array
+    {
+        $paths = [];
+
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? null) === 'image' && ! empty($block['image'])) {
+                $paths[] = trim((string) $block['image']);
+            }
+        }
+
+        return array_values(array_unique(array_filter($paths)));
+    }
+
+    private function cleanupUnusedBlockImages(array $oldBlockImages, array $newBlocks, PublicImageUploader $uploader): void
+    {
+        $newBlockImages = $this->extractBlockImages($newBlocks);
+        $unusedImages = array_diff($oldBlockImages, $newBlockImages);
+
+        foreach ($unusedImages as $imagePath) {
+            $uploader->delete($imagePath);
+        }
+    }
+
+    private function storeGalleryImages(Request $request, PublicImageUploader $uploader, News $news): void
+    {
+        if (! $request->hasFile('gallery_images')) {
+            return;
+        }
+
+        $currentMax = (int) $news->images()->max('sort_order');
+
+        foreach ($request->file('gallery_images') as $index => $image) {
+            if (! $image || ! $image->isValid()) {
+                continue;
+            }
+
+            NewsImage::create([
+                'news_id' => $news->id,
+                'image_path' => $uploader->upload(
+                    $image,
+                    'images/news/gallery',
+                    2
+                ),
+                'caption' => null,
+                'sort_order' => $currentMax + $index + 1,
+            ]);
+        }
+    }
+
+    private function makeSlug(?string $inputSlug, string $title, string|int $fallback): string
+    {
+        $slugSource = trim((string) $inputSlug) !== ''
+            ? trim((string) $inputSlug)
+            : $title;
+
+        $slug = Str::slug($slugSource);
+
+        if ($slug === '') {
+            $slug = Str::slug($title . '-' . $fallback);
+        }
+
+        if ($slug === '') {
+            $slug = 'news-' . $fallback;
+        }
+
+        return $slug;
     }
 
     private function validateUniqueSlug(string $locale, string $slug, ?int $excludeNewsId = null): void

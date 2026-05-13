@@ -61,6 +61,78 @@
             color: #94a3b8;
             cursor: not-allowed;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FIX SELECT STYLE FILTER LAPORAN
+        |--------------------------------------------------------------------------
+        | Status select dibuat memakai custom select dari layout WBS agar tampilan
+        | dropdown tidak menggunakan style bawaan browser.
+        |--------------------------------------------------------------------------
+        */
+        .wbs-filter-select {
+            min-width: 255px;
+        }
+
+        .wbs-filter-select .wbs-select-display {
+            min-height: 44px;
+            border-radius: 14px;
+            padding: 11px 44px 11px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .wbs-filter-select.open .wbs-select-display {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3.5px var(--brand-glow);
+        }
+
+        .wbs-filter-select .wbs-select-options {
+            z-index: 9999;
+            top: calc(100% + 8px);
+            padding: 8px;
+            border-radius: 16px;
+            max-height: 290px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .14);
+        }
+
+        .wbs-filter-select .wbs-select-option {
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: background .18s ease, color .18s ease;
+        }
+
+        .wbs-filter-select .wbs-select-option:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+
+        .wbs-filter-select .wbs-select-option.selected {
+            background: var(--brand);
+            color: #ffffff;
+        }
+
+        .wbs-filter-select .wbs-select-chevron {
+            right: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .wbs-filter-select {
+                min-width: 100%;
+                width: 100%;
+            }
+        }
     </style>
 
     <div class="wbs-card">
@@ -69,17 +141,35 @@
                 <div class="wbs-toolbar-left">
                     <div class="wbs-field">
                         <label for="search">Cari</label>
-                        <input type="text" name="search" id="search" class="wbs-input" value="{{ $filters['search'] ?? '' }}" placeholder="No laporan / judul">
+                        <input
+                            type="text"
+                            name="search"
+                            id="search"
+                            class="wbs-input"
+                            value="{{ $filters['search'] ?? '' }}"
+                            placeholder="No laporan / judul"
+                        >
                     </div>
 
                     <div class="wbs-field">
                         <label for="status">Status</label>
-                        <select name="status" id="status" class="wbs-select">
-                            <option value="">Semua Status</option>
-                            @foreach($statusOptions as $value => $label)
-                                <option value="{{ $value }}" {{ ($filters['status'] ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
+
+                        <div class="wbs-custom-select wbs-filter-select">
+                            <select name="status" id="status">
+                                <option value="">Semua Status</option>
+                                @foreach($statusOptions as $value => $label)
+                                    <option value="{{ $value }}" {{ ($filters['status'] ?? '') === $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <span class="wbs-select-chevron" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M6 9l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
 
                     <div class="wbs-field">
@@ -89,7 +179,9 @@
                 </div>
 
                 <div class="wbs-toolbar-right">
-                    <a href="{{ route('wbs.pelapor.reports.create') }}" class="wbs-btn wbs-btn-primary">Buat Laporan Baru</a>
+                    <a href="{{ route('wbs.pelapor.reports.create') }}" class="wbs-btn wbs-btn-primary">
+                        Buat Laporan Baru
+                    </a>
                 </div>
             </div>
         </form>
@@ -115,7 +207,11 @@
                                 <td>{{ $report->report_number }}</td>
                                 <td>{{ $report->category_label }}</td>
                                 <td>{{ $report->title }}</td>
-                                <td><span class="wbs-badge">{{ $report->status_label }}</span></td>
+                                <td>
+                                    <span class="wbs-badge">
+                                        {{ $report->status_label }}
+                                    </span>
+                                </td>
                                 <td>{{ $report->attachments_count }}</td>
                                 <td>{{ optional($report->submitted_at)->format('d-m-Y H:i') ?? '-' }}</td>
                                 <td>
@@ -126,10 +222,14 @@
                                     @endif
                                 </td>
                                 <td style="white-space:nowrap;">
-                                    <a href="{{ route('wbs.pelapor.reports.show', $report->id) }}" class="wbs-btn wbs-btn-light">Detail</a>
+                                    <a href="{{ route('wbs.pelapor.reports.show', $report->id) }}" class="wbs-btn wbs-btn-light">
+                                        Detail
+                                    </a>
 
                                     @if($report->canBeEditedByPelapor())
-                                        <a href="{{ route('wbs.pelapor.reports.edit', $report->id) }}" class="wbs-btn wbs-btn-primary">Edit</a>
+                                        <a href="{{ route('wbs.pelapor.reports.edit', $report->id) }}" class="wbs-btn wbs-btn-primary">
+                                            Edit
+                                        </a>
                                     @endif
                                 </td>
                             </tr>
