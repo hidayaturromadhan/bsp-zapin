@@ -150,7 +150,7 @@
     </div>
 
     <div style="margin-top:16px;">
-        {{ $partners->links() }}
+        {{ $partners->links('vendor.pagination.admin') }}
     </div>
 </div>
 @endsection

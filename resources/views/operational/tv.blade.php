@@ -882,7 +882,10 @@
                     controlslist="nodownload noplaybackrate noremoteplayback"
                     disablepictureinpicture
                 >
-                    <source src="{{ asset('videos/company-profile.mp4') }}" type="video/mp4">
+                    <source
+                        src="{{ asset('videos/compro.mp4') }}?v={{ $tvVideoCacheVersion ?? 'video-cache' }}"
+                        type="video/mp4"
+                    >
                 </video>
 
                 <div class="video-pill">{{ $monthLabel ?? now()->translatedFormat('F Y') }}</div>
@@ -1125,30 +1128,97 @@
 </script>
 
 {{-- ═══════════════════════════════════════════════════════
-     ③ VIDEO — robust autoplay & error recovery
+     ③ VIDEO — cache friendly autoplay
      ═══════════════════════════════════════════════════════ --}}
 <script>
 (function () {
     var video = document.getElementById('companyVideo');
+
     if (!video) { return; }
 
+    var retryTimer = null;
+    var retryCount = 0;
+    var maxRetry = 3;
+
     function tryPlay() {
-        var p = video.play();
-        if (p && typeof p.catch === 'function') {
-            p.catch(function (err) { console.warn('Video autoplay blocked:', err); });
+        if (!video) { return; }
+
+        video.muted = true;
+        video.playsInline = true;
+
+        var promise = video.play();
+
+        if (promise && typeof promise.catch === 'function') {
+            promise.catch(function (err) {
+                console.warn('Video autoplay belum bisa berjalan:', err);
+            });
         }
     }
 
-    video.addEventListener('loadedmetadata', tryPlay);
+    function softRetryPlay() {
+        if (retryTimer || retryCount >= maxRetry) {
+            return;
+        }
 
-    video.addEventListener('stalled', function () { video.load(); tryPlay(); });
+        retryTimer = setTimeout(function () {
+            retryTimer = null;
+            retryCount++;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Penting:
+            |--------------------------------------------------------------------------
+            | Jangan panggil video.load() di sini.
+            | Untuk file besar, video.load() akan memulai ulang request video
+            | dan membuat cache/stream yang sudah berjalan menjadi sia-sia.
+            */
+            tryPlay();
+        }, 2500);
+    }
+
+    video.addEventListener('loadedmetadata', function () {
+        retryCount = 0;
+        tryPlay();
+    });
+
+    video.addEventListener('loadeddata', function () {
+        retryCount = 0;
+        tryPlay();
+    });
+
+    video.addEventListener('canplay', function () {
+        retryCount = 0;
+        tryPlay();
+    });
+
+    video.addEventListener('playing', function () {
+        retryCount = 0;
+    });
+
+    video.addEventListener('waiting', function () {
+        console.warn('Video sedang buffering. Cache tetap dipertahankan.');
+    });
+
+    video.addEventListener('stalled', function () {
+        console.warn('Video stalled. Tidak melakukan reload agar cache video tetap aman.');
+        softRetryPlay();
+    });
 
     video.addEventListener('error', function () {
-        setTimeout(function () { video.load(); tryPlay(); }, 3000);
+        console.error('Video error:', video.error);
+        softRetryPlay();
     });
 
     document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && video.paused) { tryPlay(); }
+        if (!document.hidden && video.paused) {
+            tryPlay();
+        }
+    });
+
+    window.addEventListener('focus', function () {
+        if (video.paused) {
+            tryPlay();
+        }
     });
 
     tryPlay();

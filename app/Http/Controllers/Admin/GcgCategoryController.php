@@ -22,7 +22,7 @@ class GcgCategoryController extends Controller
     {
         $categories = GcgCategory::with(['translations', 'documents'])
             ->orderBy('id')
-            ->paginate(15);
+            ->paginate(10);
 
         return view('admin.gcg.index', compact('categories'));
     }
@@ -44,7 +44,8 @@ class GcgCategoryController extends Controller
 
         DB::transaction(function () use ($request) {
             $category = GcgCategory::create([
-                'is_active' => $request->boolean('is_active', true),
+                // FIX: jika checkbox tidak dicentang, hasilnya false
+                'is_active' => $request->boolean('is_active'),
             ]);
 
             $nameId = $request->input('name');
@@ -101,7 +102,8 @@ class GcgCategoryController extends Controller
 
         DB::transaction(function () use ($request, $gcg) {
             $gcg->update([
-                'is_active' => $request->boolean('is_active', true),
+                // FIX: jika checkbox tidak dicentang, hasilnya false
+                'is_active' => $request->boolean('is_active'),
             ]);
 
             $nameId = $request->input('name');
@@ -146,16 +148,18 @@ class GcgCategoryController extends Controller
         $gcg->load('documents');
 
         foreach ($gcg->documents as $doc) {
-            $pdfPath = public_path('documents/gcg/' . $doc->file_path);
+            $filePath = public_path('documents/gcg/' . $doc->file_path);
+
             if ($doc->cover) {
                 $coverPath = public_path('images/gcg/' . $doc->cover);
+
                 if (file_exists($coverPath)) {
                     unlink($coverPath);
                 }
             }
 
-            if (file_exists($pdfPath)) {
-                unlink($pdfPath);
+            if (file_exists($filePath)) {
+                unlink($filePath);
             }
         }
 
@@ -184,12 +188,14 @@ class GcgCategoryController extends Controller
             $fileSize     = $file->getSize();
 
             $destDir = public_path('documents/gcg');
+
             if (! is_dir($destDir)) {
                 mkdir($destDir, 0755, true);
             }
+
             $file->move($destDir, $fileName);
 
-            $pdfPath = public_path('documents/gcg/' . $fileName);
+            $uploadedFilePath = public_path('documents/gcg/' . $fileName);
 
             $coverName = null;
 
@@ -200,28 +206,32 @@ class GcgCategoryController extends Controller
                 $coverName = Str::uuid() . '.' . $coverExt;
 
                 $coverDir = public_path('images/gcg');
+
                 if (! is_dir($coverDir)) {
                     mkdir($coverDir, 0755, true);
                 }
 
                 $coverFile->move($coverDir, $coverName);
             } else {
-                // Auto generate dari PDF page 1
-                try {
-                    $coverDir = public_path('images/gcg');
-                    if (! is_dir($coverDir)) {
-                        mkdir($coverDir, 0755, true);
+                // Auto generate hanya jika file PDF
+                if ($extension === 'pdf') {
+                    try {
+                        $coverDir = public_path('images/gcg');
+
+                        if (! is_dir($coverDir)) {
+                            mkdir($coverDir, 0755, true);
+                        }
+
+                        $coverName = Str::uuid() . '.jpg';
+                        $coverPath = public_path('images/gcg/' . $coverName);
+
+                        $pdf = new Pdf($uploadedFilePath);
+                        $pdf->setPage(1)
+                            ->setOutputFormat('jpg')
+                            ->saveImage($coverPath);
+                    } catch (\Throwable $e) {
+                        $coverName = null;
                     }
-
-                    $coverName = Str::uuid() . '.jpg';
-                    $coverPath = public_path('images/gcg/' . $coverName);
-
-                    $pdf = new Pdf($pdfPath);
-                    $pdf->setPage(1)
-                        ->setOutputFormat('jpg')
-                        ->saveImage($coverPath);
-                } catch (\Throwable $e) {
-                    $coverName = null;
                 }
             }
 
@@ -232,7 +242,9 @@ class GcgCategoryController extends Controller
                 'file_name'       => $originalName,
                 'file_type'       => $extension,
                 'file_size'       => $fileSize,
-                'is_active'       => $request->boolean('is_active', true),
+
+                // FIX: jika checkbox tidak dicentang, hasilnya false
+                'is_active'       => $request->boolean('is_active'),
             ]);
 
             $titleId = $request->input('title');
@@ -267,7 +279,8 @@ class GcgCategoryController extends Controller
 
         DB::transaction(function () use ($request, $document) {
             $document->update([
-                'is_active' => $request->boolean('is_active', true),
+                // FIX: jika checkbox tidak dicentang, hasilnya false
+                'is_active' => $request->boolean('is_active'),
             ]);
 
             if ($request->hasFile('cover')) {
@@ -284,6 +297,7 @@ class GcgCategoryController extends Controller
                 $coverName = Str::uuid() . '.' . $coverExt;
 
                 $coverDir = public_path('images/gcg');
+
                 if (! is_dir($coverDir)) {
                     mkdir($coverDir, 0755, true);
                 }
@@ -317,13 +331,19 @@ class GcgCategoryController extends Controller
     // ── DESTROY DOCUMENT ───────────────────────────────────────────────────
     public function destroyDocument(GcgCategory $gcg, GcgDocument $document)
     {
-        $pdfPath = public_path('documents/gcg/' . $document->file_path);
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
+        if ((int) $document->gcg_category_id !== (int) $gcg->id) {
+            abort(404);
+        }
+
+        $filePath = public_path('documents/gcg/' . $document->file_path);
+
+        if (file_exists($filePath)) {
+            unlink($filePath);
         }
 
         if ($document->cover) {
             $coverPath = public_path('images/gcg/' . $document->cover);
+
             if (file_exists($coverPath)) {
                 unlink($coverPath);
             }
@@ -339,6 +359,7 @@ class GcgCategoryController extends Controller
     // ── HELPER UNIQUE SLUG ─────────────────────────────────────────────────
     private function uniqueSlug(string $slug, ?int $ignoreTranslationId): string
     {
+        $slug = $slug !== '' ? $slug : 'gcg';
         $original = $slug;
         $i = 1;
 

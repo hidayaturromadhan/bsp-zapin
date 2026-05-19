@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'set.locale' => \App\Http\Middleware\SetLocaleFromRoute::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'pelapor.verified' => \App\Http\Middleware\EnsurePelaporEmailVerified::class,
+            'active.user' => \App\Http\Middleware\EnsureUserIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

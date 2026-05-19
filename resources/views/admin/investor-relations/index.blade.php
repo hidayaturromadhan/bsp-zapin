@@ -70,11 +70,15 @@
                                    class="a-btn a-btn--secondary a-btn--sm">Edit</a>
 
                                 <form action="{{ route('admin.investor-relations.destroy', $doc) }}"
-                                      method="POST"
-                                      onsubmit="return confirm('Hapus dokumen ini?')">
+                                      method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="a-btn a-btn--danger a-btn--sm">Hapus</button>
+                                    <button type="submit"
+                                            class="a-btn a-btn--danger a-btn--sm"
+                                            data-confirm="Hapus dokumen investor ini?"
+                                            data-confirm-text="Dokumen dan file terkait akan dihapus permanen."
+                                            data-confirm-type="delete"
+                                            data-confirm-ok="Ya, hapus dokumen">Hapus</button>
                                 </form>
                             </div>
                         </td>
@@ -98,7 +102,7 @@
 </div>
 
 <div style="margin-top:16px">
-    {{ $documents->links() }}
+    {{ $documents->links('vendor.pagination.admin') }}
 </div>
 
 @endsection

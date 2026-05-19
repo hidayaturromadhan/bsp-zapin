@@ -15,7 +15,9 @@ class TjslController extends Controller
 
         $programs = TjslProgram::query()
             ->with(['translations', 'images', 'author', 'reviewer'])
-            ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($status !== '', function ($q) use ($status) {
+                $q->where('status', $status);
+            })
             ->when($search !== '', function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('year', 'like', "%{$search}%")

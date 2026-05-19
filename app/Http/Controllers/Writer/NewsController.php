@@ -10,6 +10,7 @@ use App\Models\NewsTranslation;
 use App\Models\User;
 use App\Services\NewsAutoTranslator;
 use App\Services\PublicImageUploader;
+use App\Jobs\TranslateNewsToEnglishJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -93,32 +94,16 @@ class NewsController extends Controller
         $category = NewsCategory::query()->findOrFail($data['news_category_id']);
         abort_if($category->slug === 'tjsl', 422, 'Kategori TJSL tidak dikelola dari modul news.');
 
-        $idSlug = $this->makeSlug(
+        $idSlugBase = $this->makeSlug(
             $data['id_slug'] ?? null,
             $data['id_title'],
             now()->timestamp
         );
 
+        $idSlug = $this->makeUniqueSlug('id', $idSlugBase);
+
         $blocksId = $this->normalizeBlocks($request, $uploader);
         $contentId = $this->blocksToHtml($blocksId);
-
-        $translatedTitle = $translator->translateText($data['id_title'], 'id', 'en');
-        $translatedExcerpt = $translator->translateText($data['id_excerpt'] ?? '', 'id', 'en');
-        $translatedBlocks = $translator->translateBlocks($blocksId, 'id', 'en');
-        $translatedContent = $this->blocksToHtml($translatedBlocks);
-
-        $enTitle = trim((string) $translatedTitle) !== ''
-            ? trim((string) $translatedTitle)
-            : $data['id_title'];
-
-        $enExcerpt = trim((string) $translatedExcerpt) !== ''
-            ? trim((string) $translatedExcerpt)
-            : ($data['id_excerpt'] ?? '');
-
-        $enSlug = $this->makeSlug(null, $enTitle, 'en-' . now()->timestamp);
-
-        $this->validateUniqueSlug('id', $idSlug);
-        $this->validateUniqueSlug('en', $enSlug);
 
         try {
             DB::beginTransaction();
@@ -157,27 +142,43 @@ class NewsController extends Controller
                 'content_blocks' => $blocksId,
             ]);
 
+            /*
+            |--------------------------------------------------------------------------
+            | Placeholder EN
+            |--------------------------------------------------------------------------
+            | Dibuat cepat agar data EN tetap ada.
+            | Isi sebenarnya akan di-update oleh TranslateNewsToEnglishJob.
+            |--------------------------------------------------------------------------
+            */
+            $enSlug = $this->makeUniqueSlug(
+                'en',
+                $this->makeSlug(null, $data['id_title'], 'en-' . $news->id),
+                $news->id
+            );
+
             NewsTranslation::create([
                 'news_id' => $news->id,
                 'locale' => 'en',
-                'title' => $enTitle,
+                'title' => $data['id_title'],
                 'slug' => $enSlug,
-                'excerpt' => $enExcerpt ?: null,
-                'content' => $translatedContent,
-                'content_blocks' => $translatedBlocks,
+                'excerpt' => $data['id_excerpt'] ?? null,
+                'content' => $contentId,
+                'content_blocks' => $blocksId,
             ]);
 
             $this->storeGalleryImages($request, $uploader, $news);
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'created', 'News dibuat oleh writer sebagai draft.');
+                news_log($news->id, 'created', 'News dibuat oleh writer sebagai draft. Terjemahan EN masuk antrean queue.');
             }
 
             DB::commit();
 
+            TranslateNewsToEnglishJob::dispatch($news->id);
+
             return redirect()
                 ->route('writer.news.edit', $news)
-                ->with('success', 'News berhasil disimpan sebagai draft.');
+                ->with('success', 'News berhasil disimpan. Terjemahan English sedang diproses otomatis di background.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -257,34 +258,35 @@ class NewsController extends Controller
         $category = NewsCategory::query()->findOrFail($data['news_category_id']);
         abort_if($category->slug === 'tjsl', 422, 'Kategori TJSL tidak dikelola dari modul news.');
 
-        $idSlug = $this->makeSlug(
+        $news->loadMissing([
+            'translations' => fn ($q) => $q->whereIn('locale', ['id', 'en']),
+            'images',
+            'category',
+        ]);
+
+        $translationId = $news->translations->firstWhere('locale', 'id');
+        $translationEn = $news->translations->firstWhere('locale', 'en');
+
+        $idSlugBase = $this->makeSlug(
             $data['id_slug'] ?? null,
             $data['id_title'],
             $news->id
         );
+
+        $idSlug = $this->makeUniqueSlug('id', $idSlugBase, $news->id);
 
         $oldBlockImages = $this->collectBlockImages($news);
 
         $blocksId = $this->normalizeBlocks($request, $uploader);
         $contentId = $this->blocksToHtml($blocksId);
 
-        $translatedTitle = $translator->translateText($data['id_title'], 'id', 'en');
-        $translatedExcerpt = $translator->translateText($data['id_excerpt'] ?? '', 'id', 'en');
-        $translatedBlocks = $translator->translateBlocks($blocksId, 'id', 'en');
-        $translatedContent = $this->blocksToHtml($translatedBlocks);
+        if (! $this->hasNewsEditChanges($request, $news, $data, $idSlug, $blocksId)) {
+            return redirect()
+                ->route('writer.news.edit', $news)
+                ->with('info', 'Tidak ada perubahan data yang perlu disimpan.');
+        }
 
-        $enTitle = trim((string) $translatedTitle) !== ''
-            ? trim((string) $translatedTitle)
-            : $data['id_title'];
-
-        $enExcerpt = trim((string) $translatedExcerpt) !== ''
-            ? trim((string) $translatedExcerpt)
-            : ($data['id_excerpt'] ?? '');
-
-        $enSlug = $this->makeSlug(null, $enTitle, 'en-' . $news->id);
-
-        $this->validateUniqueSlug('id', $idSlug, $news->id);
-        $this->validateUniqueSlug('en', $enSlug, $news->id);
+        $needsTranslation = $this->hasTranslatableChanges($translationId, $data, $blocksId);
 
         try {
             DB::beginTransaction();
@@ -323,30 +325,60 @@ class NewsController extends Controller
                 ]
             );
 
-            NewsTranslation::updateOrCreate(
-                ['news_id' => $news->id, 'locale' => 'en'],
-                [
-                    'title' => $enTitle,
-                    'slug' => $enSlug,
-                    'excerpt' => $enExcerpt ?: null,
-                    'content' => $translatedContent,
-                    'content_blocks' => $translatedBlocks,
-                ]
-            );
+            /*
+            |--------------------------------------------------------------------------
+            | EN tidak ditranslate langsung
+            |--------------------------------------------------------------------------
+            | Kalau konten ID berubah, EN sementara disamakan dulu dengan ID,
+            | lalu job akan mengisi hasil translate di background.
+            |--------------------------------------------------------------------------
+            */
+            if ($needsTranslation) {
+                $enSlug = $translationEn?->slug;
+
+                if (! $enSlug) {
+                    $enSlug = $this->makeUniqueSlug(
+                        'en',
+                        $this->makeSlug(null, $data['id_title'], 'en-' . $news->id),
+                        $news->id
+                    );
+                }
+
+                NewsTranslation::updateOrCreate(
+                    ['news_id' => $news->id, 'locale' => 'en'],
+                    [
+                        'title' => $data['id_title'],
+                        'slug' => $enSlug,
+                        'excerpt' => $data['id_excerpt'] ?? null,
+                        'content' => $contentId,
+                        'content_blocks' => $blocksId,
+                    ]
+                );
+            }
 
             $this->removeGalleryImages($request, $uploader, $news);
             $this->cleanupUnusedBlockImages($oldBlockImages, $blocksId, $uploader);
             $this->storeGalleryImages($request, $uploader, $news);
 
             if (function_exists('news_log')) {
-                news_log($news->id, 'updated', 'News diperbarui oleh writer.');
+                $logMessage = $needsTranslation
+                    ? 'News diperbarui oleh writer. Terjemahan EN masuk antrean queue.'
+                    : 'News diperbarui oleh writer tanpa translate ulang.';
+
+                news_log($news->id, 'updated', $logMessage);
             }
 
             DB::commit();
 
+            if ($needsTranslation) {
+                TranslateNewsToEnglishJob::dispatch($news->id);
+            }
+
             return redirect()
                 ->route('writer.news.edit', $news)
-                ->with('success', 'Perubahan news berhasil disimpan.');
+                ->with('success', $needsTranslation
+                    ? 'Perubahan news berhasil disimpan. Terjemahan English sedang diproses otomatis di background.'
+                    : 'Perubahan news berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -579,10 +611,6 @@ class NewsController extends Controller
             'news_category_id' => ['required', 'exists:news_categories,id'],
             'published_at' => ['nullable', 'date'],
 
-            /*
-             * Upload mentah maksimal 8MB.
-             * Setelah lolos validasi, PublicImageUploader akan resize dan convert ke WEBP.
-             */
             'featured_image' => [
                 'nullable',
                 'file',
@@ -808,7 +836,6 @@ class NewsController extends Controller
         return $html;
     }
 
-
     private function removeGalleryImages(Request $request, PublicImageUploader $uploader, News $news): void
     {
         $imageIds = collect($request->input('remove_gallery_image_ids', []))
@@ -893,6 +920,122 @@ class NewsController extends Controller
         }
     }
 
+    private function hasNewsEditChanges(
+        Request $request,
+        News $news,
+        array $data,
+        string $idSlug,
+        array $blocksId
+    ): bool {
+        $translationId = $news->translations->firstWhere('locale', 'id');
+
+        if ((int) $news->news_category_id !== (int) $data['news_category_id']) {
+            return true;
+        }
+
+        $incomingPublishedAt = !empty($data['published_at'])
+            ? Carbon::parse($data['published_at'], config('app.timezone', 'Asia/Jakarta'))->format('Y-m-d H:i:s')
+            : optional($news->published_at)->format('Y-m-d H:i:s');
+
+        $currentPublishedAt = optional($news->published_at)->format('Y-m-d H:i:s');
+
+        if ($incomingPublishedAt !== $currentPublishedAt) {
+            return true;
+        }
+
+        if (trim((string) ($translationId?->title ?? '')) !== trim((string) ($data['id_title'] ?? ''))) {
+            return true;
+        }
+
+        if (trim((string) ($translationId?->slug ?? '')) !== trim((string) $idSlug)) {
+            return true;
+        }
+
+        if (trim((string) ($translationId?->excerpt ?? '')) !== trim((string) ($data['id_excerpt'] ?? ''))) {
+            return true;
+        }
+
+        $currentBlocks = $translationId?->content_blocks ?: [];
+
+        if ($this->normalizeArrayForCompare($currentBlocks) !== $this->normalizeArrayForCompare($blocksId)) {
+            return true;
+        }
+
+        if ($request->hasFile('featured_image')) {
+            return true;
+        }
+
+        if ($this->hasValidUploadedFiles($request, 'gallery_images')) {
+            return true;
+        }
+
+        if ($this->hasValidUploadedFiles($request, 'block_images')) {
+            return true;
+        }
+
+        $removeGalleryImageIds = collect($request->input('remove_gallery_image_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($removeGalleryImageIds->isNotEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function hasTranslatableChanges(?NewsTranslation $translationId, array $data, array $blocksId): bool
+    {
+        if (! $translationId) {
+            return true;
+        }
+
+        if (trim((string) ($translationId->title ?? '')) !== trim((string) ($data['id_title'] ?? ''))) {
+            return true;
+        }
+
+        if (trim((string) ($translationId->excerpt ?? '')) !== trim((string) ($data['id_excerpt'] ?? ''))) {
+            return true;
+        }
+
+        $currentBlocks = $translationId->content_blocks ?: [];
+
+        if ($this->normalizeArrayForCompare($currentBlocks) !== $this->normalizeArrayForCompare($blocksId)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function hasValidUploadedFiles(Request $request, string $key): bool
+    {
+        if (! $request->hasFile($key)) {
+            return false;
+        }
+
+        $files = $request->file($key);
+
+        if (! is_array($files)) {
+            return $files && $files->isValid();
+        }
+
+        foreach ($files as $file) {
+            if ($file && $file->isValid()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeArrayForCompare(array $value): array
+    {
+        return json_decode(json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true) ?: [];
+    }
+
     private function makeSlug(?string $inputSlug, string $title, string|int $fallback): string
     {
         $slugSource = trim((string) $inputSlug) !== ''
@@ -912,7 +1055,21 @@ class NewsController extends Controller
         return $slug;
     }
 
-    private function validateUniqueSlug(string $locale, string $slug, ?int $excludeNewsId = null): void
+    private function makeUniqueSlug(string $locale, string $slug, ?int $excludeNewsId = null): string
+    {
+        $baseSlug = trim((string) $slug) !== '' ? trim((string) $slug) : 'news';
+        $finalSlug = $baseSlug;
+        $counter = 2;
+
+        while ($this->slugExists($locale, $finalSlug, $excludeNewsId)) {
+            $finalSlug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $finalSlug;
+    }
+
+    private function slugExists(string $locale, string $slug, ?int $excludeNewsId = null): bool
     {
         $query = NewsTranslation::query()
             ->where('locale', $locale)
@@ -922,9 +1079,7 @@ class NewsController extends Controller
             $query->where('news_id', '!=', $excludeNewsId);
         }
 
-        if ($query->exists()) {
-            abort(422, "Slug ({$slug}) sudah dipakai untuk locale {$locale}.");
-        }
+        return $query->exists();
     }
 
     private function makeWhatsappLink(?string $phone, string $message): ?string

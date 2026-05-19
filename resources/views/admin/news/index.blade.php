@@ -154,7 +154,7 @@
 </div>
 
 <div style="margin-top:16px">
-    {{ $news->links() }}
+    {{ $news->links('vendor.pagination.admin') }}
 </div>
 
 @endsection

@@ -41,7 +41,11 @@ class GcgHighlightItemController extends Controller
             'label_id'   => $labelId,
             'label_en'   => $labelEn,
             'sort_order' => $request->input('sort_order', 0),
-            'is_active'  => $request->boolean('is_active', true),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, hasilnya false.
+            // Jangan pakai boolean('is_active', true), karena akan selalu aktif.
+            'is_active'  => $request->boolean('is_active'),
         ]);
 
         return redirect()
@@ -69,7 +73,10 @@ class GcgHighlightItemController extends Controller
             'label_id'   => $labelId,
             'label_en'   => $labelEn,
             'sort_order' => $request->input('sort_order', 0),
-            'is_active'  => $request->boolean('is_active', true),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, hasilnya false.
+            'is_active'  => $request->boolean('is_active'),
         ]);
 
         return redirect()

@@ -15,7 +15,7 @@ class SliderController extends Controller
         $sliders = Slider::query()
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.sliders.index', compact('sliders'));
     }
@@ -34,11 +34,13 @@ class SliderController extends Controller
             'title' => ['nullable', 'string', 'max:190'],
             'link_url' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['nullable', 'boolean'],
+            'is_active' => ['nullable'],
             'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         $title = trim((string) ($data['title'] ?? ''));
+        $linkUrl = trim((string) ($data['link_url'] ?? ''));
+
         $titleEn = $title !== ''
             ? $translator->translateText($title, 'id', 'en')
             : null;
@@ -50,11 +52,11 @@ class SliderController extends Controller
         );
 
         Slider::create([
-            'title' => $title ?: null,
+            'title' => $title !== '' ? $title : null,
             'title_en' => $titleEn ?: null,
-            'link_url' => $data['link_url'] ?? null,
-            'sort_order' => $data['sort_order'] ?? 0,
-            'is_active' => (bool) ($data['is_active'] ?? false),
+            'link_url' => $linkUrl !== '' ? $linkUrl : null,
+            'sort_order' => (int) ($data['sort_order'] ?? 0),
+            'is_active' => $this->resolveCheckbox($request, 'is_active'),
             'image_path' => $imagePath,
         ]);
 
@@ -78,20 +80,21 @@ class SliderController extends Controller
             'title' => ['nullable', 'string', 'max:190'],
             'link_url' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['nullable', 'boolean'],
+            'is_active' => ['nullable'],
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         $title = trim((string) ($data['title'] ?? ''));
+        $linkUrl = trim((string) ($data['link_url'] ?? ''));
 
         $payload = [
-            'title' => $title ?: null,
+            'title' => $title !== '' ? $title : null,
             'title_en' => $title !== ''
                 ? $translator->translateText($title, 'id', 'en')
                 : null,
-            'link_url' => $data['link_url'] ?? null,
-            'sort_order' => $data['sort_order'] ?? 0,
-            'is_active' => (bool) ($data['is_active'] ?? false),
+            'link_url' => $linkUrl !== '' ? $linkUrl : null,
+            'sort_order' => (int) ($data['sort_order'] ?? 0),
+            'is_active' => $this->resolveCheckbox($request, 'is_active'),
         ];
 
         if ($request->hasFile('image')) {
@@ -120,5 +123,16 @@ class SliderController extends Controller
         return redirect()
             ->route('admin.sliders.index')
             ->with('success', 'Slider berhasil dihapus.');
+    }
+
+    private function resolveCheckbox(Request $request, string $key): bool
+    {
+        $value = $request->input($key);
+
+        if (is_array($value)) {
+            $value = end($value);
+        }
+
+        return in_array($value, ['1', 1, true, 'true', 'on', 'yes'], true);
     }
 }

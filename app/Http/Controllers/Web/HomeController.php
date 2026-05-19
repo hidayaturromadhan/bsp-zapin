@@ -16,24 +16,76 @@ class HomeController extends Controller
     {
         $locale = in_array($locale, ['id', 'en'], true) ? $locale : 'id';
 
-        $cacheKey = 'web_home_page_data_' . $locale;
+        /*
+        |--------------------------------------------------------------------------
+        | Slider
+        |--------------------------------------------------------------------------
+        | Slider tidak dicache agar update dari admin langsung tampil di home.
+        */
+        $sliders = Slider::query()
+            ->select([
+                'id',
+                'title',
+                'title_en',
+                'image_path',
+                'link_url',
+                'sort_order',
+                'is_active',
+            ])
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Partners
+        |--------------------------------------------------------------------------
+        | Partner juga tidak dicache agar perubahan aktif/nonaktif, logo, nama,
+        | dan kategori langsung tampil di halaman home.
+        */
+        $customerPartners = Partner::query()
+            ->select([
+                'id',
+                'name',
+                'logo_path',
+                'website_url',
+                'category',
+                'sort_order',
+                'is_active',
+            ])
+            ->where('is_active', true)
+            ->where('category', Partner::CATEGORY_CUSTOMER)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $businessPartners = Partner::query()
+            ->select([
+                'id',
+                'name',
+                'logo_path',
+                'website_url',
+                'category',
+                'sort_order',
+                'is_active',
+            ])
+            ->where('is_active', true)
+            ->where('category', Partner::CATEGORY_BUSINESS_PARTNER)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | News Cache
+        |--------------------------------------------------------------------------
+        | Berita tetap dicache karena tidak perlu berubah secepat slider/partner.
+        */
+        $cacheKey = 'web_home_news_data_' . $locale;
 
         $data = Cache::remember($cacheKey, now()->addMinutes($this->cacheMinutes), function () use ($locale) {
             $locales = array_values(array_unique([$locale, 'id', 'en']));
-
-            $sliders = Slider::query()
-                ->select([
-                    'id',
-                    'title',
-                    'title_en',
-                    'image_path',
-                    'sort_order',
-                    'is_active',
-                ])
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get();
 
             $latestNews = News::query()
                 ->select([
@@ -120,53 +172,18 @@ class HomeController extends Controller
                 ->limit(3)
                 ->get();
 
-            $customerPartners = Partner::query()
-                ->select([
-                    'id',
-                    'name',
-                    'logo_path',
-                    'website_url',
-                    'category',
-                    'sort_order',
-                    'is_active',
-                ])
-                ->where('is_active', true)
-                ->where('category', Partner::CATEGORY_CUSTOMER)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get();
-
-            $businessPartners = Partner::query()
-                ->select([
-                    'id',
-                    'name',
-                    'logo_path',
-                    'website_url',
-                    'category',
-                    'sort_order',
-                    'is_active',
-                ])
-                ->where('is_active', true)
-                ->where('category', Partner::CATEGORY_BUSINESS_PARTNER)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get();
-
             return [
-                'sliders' => $sliders,
                 'latestNews' => $latestNews,
                 'featuredNews' => $featuredNews,
-                'customerPartners' => $customerPartners,
-                'businessPartners' => $businessPartners,
             ];
         });
 
         return view('web.home', [
-            'sliders' => $data['sliders'],
+            'sliders' => $sliders,
             'latestNews' => $data['latestNews'],
             'featuredNews' => $data['featuredNews'],
-            'customerPartners' => $data['customerPartners'],
-            'businessPartners' => $data['businessPartners'],
+            'customerPartners' => $customerPartners,
+            'businessPartners' => $businessPartners,
             'locale' => $locale,
             'metaTitle' => $locale === 'id'
                 ? 'BSP Zapin - Beranda'

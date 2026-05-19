@@ -23,17 +23,6 @@
     </a>
 </div>
 
-{{-- Alert --}}
-@if(session('success'))
-    <div class="a-alert a-alert--success">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        {{ session('success') }}
-    </div>
-@endif
-
 {{-- Table --}}
 <div class="a-card">
     <div class="a-card-head">
@@ -85,10 +74,14 @@
                                     </svg>
                                     Edit
                                 </a>
-                                <form action="{{ route('admin.gcg.destroy', $cat) }}" method="POST"
-                                      onsubmit="return confirm('Hapus kategori ini beserta semua dokumennya?')">
+                                <form action="{{ route('admin.gcg.destroy', $cat) }}" method="POST">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="a-btn a-btn--danger a-btn--sm">
+                                    <button type="submit"
+                                            class="a-btn a-btn--danger a-btn--sm"
+                                            data-confirm="Hapus kategori ini?"
+                                            data-confirm-text="Semua dokumen di dalamnya juga akan ikut terhapus."
+                                            data-confirm-type="delete"
+                                            data-confirm-ok="Ya, hapus kategori">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="3 6 5 6 21 6"/>
                                             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -124,7 +117,7 @@
 
 {{-- Pagination --}}
 <div style="margin-top:16px">
-    {{ $categories->links() }}
+    {{ $categories->links('vendor.pagination.admin') }}
 </div>
 
 @endsection

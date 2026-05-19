@@ -152,3 +152,10 @@
     AddType font/woff .woff
     AddType font/woff2 .woff2
 </IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(mp4|webm|mov|m4v)$">
+        Header set Cache-Control "public, max-age=2592000, immutable"
+        Header set Accept-Ranges "bytes"
+    </FilesMatch>
+</IfModule>

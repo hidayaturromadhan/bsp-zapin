@@ -85,7 +85,7 @@
 </div>
 
 <div style="margin-top:16px">
-    {{ $items->links() }}
+    {{ $items->links('vendor.pagination.admin') }}
 </div>
 
 @endsection

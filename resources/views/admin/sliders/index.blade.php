@@ -355,7 +355,7 @@
         </div>
 
         <div class="admin-pagination">
-            {{ $sliders->links() }}
+            {{ $sliders->links('vendor.pagination.admin') }}
         </div>
     </div>
 </div>

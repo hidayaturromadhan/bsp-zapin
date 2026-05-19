@@ -11,6 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    {{-- SweetAlert2 --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <style>
         :root {
             --g900: #0f2906;
@@ -881,139 +884,78 @@
             .a-stats-grid { grid-template-columns: 1fr; }
         }
 
-        /* Toast Alerts */
-        .a-toast-stack {
-            position: fixed;
-            top: calc(var(--header-h) + 16px);
-            right: 20px;
-            z-index: 500;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: min(380px, calc(100vw - 24px));
-            pointer-events: none;
+        /* ═══════════════════════════════
+           SWEETALERT2 CUSTOMIZATION
+           Sesuaikan warna & font dengan tema BSP Zapin
+        ═══════════════════════════════ */
+        .swal2-popup {
+            font-family: var(--font) !important;
+            border-radius: 18px !important;
+            padding: 28px 32px !important;
         }
 
-        .a-toast {
-            --toast-accent: #166534;
-            position: relative;
-            display: grid;
-            grid-template-columns: 40px 1fr auto;
-            gap: 12px;
-            align-items: flex-start;
-            padding: 14px 14px 14px 12px;
-            border-radius: 16px;
-            background: rgba(255,255,255,.96);
-            border: 1px solid rgba(255,255,255,.7);
-            box-shadow: 0 18px 40px rgba(15,23,42,.14), 0 4px 12px rgba(15,23,42,.08);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            overflow: hidden;
-            pointer-events: auto;
-            transform-origin: top right;
-            animation: aToastIn .42s cubic-bezier(.22,.61,.36,1) forwards;
+        .swal2-title {
+            font-family: var(--font) !important;
+            font-weight: 800 !important;
+            font-size: 17px !important;
+            color: var(--text) !important;
         }
 
-        .a-toast.is-hiding {
-            animation: aToastOut .28s cubic-bezier(.55,.06,.68,.19) forwards;
+        .swal2-html-container {
+            font-family: var(--font) !important;
+            font-size: 13.5px !important;
+            color: var(--text2) !important;
         }
 
-        .a-toast::before {
-            content: '';
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 4px;
-            background: var(--toast-accent);
+        /* Toast SweetAlert2 */
+        .swal2-container.swal2-top-end {
+            padding-top: calc(var(--header-h) + 12px) !important;
         }
 
-        .a-toast::after {
-            content: '';
-            position: absolute;
-            inset: auto 0 0 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--toast-accent), transparent 82%);
-            transform-origin: left center;
-            animation: aToastTimer linear forwards;
-            animation-duration: var(--toast-duration, 5200ms);
+        .swal2-popup.swal2-toast {
+            border-radius: 14px !important;
+            padding: 14px 18px !important;
+            box-shadow: 0 8px 30px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06) !important;
         }
 
-        .a-toast:hover::after {
-            animation-play-state: paused;
+        .swal2-popup.swal2-toast .swal2-title {
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            margin: 0 !important;
         }
 
-        .a-toast-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--toast-accent);
-            background: color-mix(in srgb, var(--toast-accent) 10%, white);
-            flex-shrink: 0;
+        /* Tombol konfirmasi — warna hijau BSP */
+        .swal2-confirm {
+            background-color: var(--g800) !important;
+            border-radius: 9px !important;
+            font-family: var(--font) !important;
+            font-weight: 700 !important;
+            font-size: 13.5px !important;
+            padding: 9px 20px !important;
+            box-shadow: none !important;
         }
 
-        .a-toast-body {
-            min-width: 0;
+        .swal2-confirm:hover {
+            background-color: var(--g700) !important;
         }
 
-        .a-toast-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--text);
-            line-height: 1.35;
-            margin-bottom: 2px;
+        /* Tombol cancel */
+        .swal2-cancel {
+            border-radius: 9px !important;
+            font-family: var(--font) !important;
+            font-weight: 700 !important;
+            font-size: 13.5px !important;
+            padding: 9px 20px !important;
+            box-shadow: none !important;
         }
 
-        .a-toast-text {
-            font-size: 13px;
-            color: var(--text2);
-            line-height: 1.55;
-            word-break: break-word;
+        /* Tombol deny */
+        .swal2-deny {
+            border-radius: 9px !important;
+            font-family: var(--font) !important;
+            font-weight: 700 !important;
+            font-size: 13.5px !important;
         }
-
-        .a-toast-close {
-            appearance: none;
-            border: none;
-            background: transparent;
-            color: var(--text3);
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
-            margin-top: -2px;
-        }
-
-        .a-toast-close:hover {
-            background: var(--line2);
-            color: var(--text);
-            transform: scale(1.04);
-        }
-
-        .a-toast--success { --toast-accent: #166534; }
-        .a-toast--error   { --toast-accent: #b42318; }
-        .a-toast--warning { --toast-accent: #b45309; }
-        .a-toast--info    { --toast-accent: #1d4ed8; }
-
-        @keyframes aToastIn {
-            from { opacity: 0; transform: translateY(-10px) scale(.96); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @keyframes aToastOut {
-            from { opacity: 1; transform: translateY(0) scale(1); max-height: 220px; margin-bottom: 0; }
-            to   { opacity: 0; transform: translateY(-8px) scale(.96); max-height: 0; margin-bottom: -4px; }
-        }
-
-        @keyframes aToastTimer {
-            from { transform: scaleX(1); }
-            to   { transform: scaleX(0); }
-        }
-
     </style>
 </head>
 <body>
@@ -1076,7 +1018,7 @@
                 <span class="a-nav-label">Utama</span>
 
                 <a href="{{ route('admin.dashboard') }}"
-                class="a-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="7" height="7"/>
@@ -1092,10 +1034,10 @@
             {{-- ================= NEWS (SEMUA ROLE) ================= --}}
             @if(is_admin_panel_user())
             <div class="a-nav-section">
-                <span class="a-nav-label">Konten</span>
+                <span class="a-nav-label">Media Publikasi</span>
 
                 <a href="{{ route('admin.news.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
@@ -1111,10 +1053,10 @@
             @if(is_admin())
 
             <div class="a-nav-section">
-                <span class="a-nav-label">Konten Lanjutan</span>
+                <span class="a-nav-label">Master Data</span>
 
-                <a href="{{ route('admin.pages.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                <!-- <a href="{{ route('admin.pages.index') }}"
+                   class="a-nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
@@ -1125,7 +1067,7 @@
                         </svg>
                     </div>
                     <span class="a-nav-item-text">Pages</span>
-                </a>
+                </a> -->
 
                 {{-- GROUP: GCG --}}
                 <div class="a-nav-group">
@@ -1145,12 +1087,12 @@
                     <div class="a-nav-group-children {{ request()->routeIs('admin.gcg.*') || request()->routeIs('admin.gcg-highlight-items.*') ? 'is-open' : '' }}" data-group-children="gcg">
                         <div class="a-nav-group-inner">
                             <a href="{{ route('admin.gcg.index') }}"
-                            class="a-nav-child {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
+                               class="a-nav-child {{ request()->routeIs('admin.gcg.*') ? 'active' : '' }}">
                                 <span class="a-nav-child-dot"></span>
                                 GCG
                             </a>
                             <a href="{{ route('admin.gcg-highlight-items.index') }}"
-                            class="a-nav-child {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
+                               class="a-nav-child {{ request()->routeIs('admin.gcg-highlight-items.*') ? 'active' : '' }}">
                                 <span class="a-nav-child-dot"></span>
                                 GCG Highlight
                             </a>
@@ -1179,12 +1121,12 @@
                     <div class="a-nav-group-children {{ request()->routeIs('admin.investor-relations.*') || request()->routeIs('admin.investor-highlight-items.*') ? 'is-open' : '' }}" data-group-children="investor">
                         <div class="a-nav-group-inner">
                             <a href="{{ route('admin.investor-relations.index') }}"
-                            class="a-nav-child {{ request()->routeIs('admin.investor-relations.*') ? 'active' : '' }}">
+                               class="a-nav-child {{ request()->routeIs('admin.investor-relations.*') ? 'active' : '' }}">
                                 <span class="a-nav-child-dot"></span>
                                 Investor Relations
                             </a>
                             <a href="{{ route('admin.investor-highlight-items.index') }}"
-                            class="a-nav-child {{ request()->routeIs('admin.investor-highlight-items.*') ? 'active' : '' }}">
+                               class="a-nav-child {{ request()->routeIs('admin.investor-highlight-items.*') ? 'active' : '' }}">
                                 <span class="a-nav-child-dot"></span>
                                 Investor Highlight
                             </a>
@@ -1193,7 +1135,7 @@
                 </div>
 
                 <a href="{{ route('admin.tjsl.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.tjsl.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.tjsl.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12c0-2.76 1.12-5.26 2.93-7.07"/>
@@ -1205,7 +1147,7 @@
                 </a>
 
                 <a href="{{ route('admin.sliders.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="2" y="7" width="20" height="14" rx="2"/>
@@ -1217,7 +1159,7 @@
                 </a>
 
                 <a href="{{ route('admin.profile-pages.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.profile-pages.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.profile-pages.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -1232,7 +1174,7 @@
                 <span class="a-nav-label">Relasi</span>
 
                 <a href="{{ route('admin.partners.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
+                   class="a-nav-item {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -1245,18 +1187,21 @@
                 </a>
             </div>
 
+            {{-- ================= SISTEM (ADMIN ONLY) ================= --}}
             <div class="a-nav-section">
-                <span class="a-nav-label">Konfigurasi</span>
+                <span class="a-nav-label">Sistem</span>
 
-                <a href="{{ route('admin.menus.index') }}"
-                class="a-nav-item {{ request()->routeIs('admin.menus.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.users.index') }}"
+                   class="a-nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <div class="a-nav-icon">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-1.93 7.07M4.93 4.93A10 10 0 0 0 3 12a10 10 0 0 0 1.93 7.07M10.5 2.08A10 10 0 0 1 12 2a10 10 0 0 1 1.5.08M10.5 21.92A10 10 0 0 1 12 22a10 10 0 0 1 1.5-.08"/>
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                     </div>
-                    <span class="a-nav-item-text">Menu</span>
+                    <span class="a-nav-item-text">Manajemen User</span>
                 </a>
             </div>
 
@@ -1266,119 +1211,17 @@
     </aside>
 
     <main class="a-main">
-
-        <div class="a-toast-stack" id="aToastStack">
-            @if(session('success'))
-                <div class="a-toast a-toast--success" data-toast data-duration="4200">
-                    <div class="a-toast-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 6 9 17l-5-5"/>
-                        </svg>
-                    </div>
-                    <div class="a-toast-body">
-                        <div class="a-toast-title">Berhasil</div>
-                        <div class="a-toast-text">{{ session('success') }}</div>
-                    </div>
-                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="a-toast a-toast--error" data-toast data-duration="5600">
-                    <div class="a-toast-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="9"/>
-                            <path d="M12 8v5"/>
-                            <path d="M12 16h.01"/>
-                        </svg>
-                    </div>
-                    <div class="a-toast-body">
-                        <div class="a-toast-title">Gagal</div>
-                        <div class="a-toast-text">{{ session('error') }}</div>
-                    </div>
-                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('warning'))
-                <div class="a-toast a-toast--warning" data-toast data-duration="5200">
-                    <div class="a-toast-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3 2 20h20L12 3z"/>
-                            <path d="M12 9v4"/>
-                            <path d="M12 17h.01"/>
-                        </svg>
-                    </div>
-                    <div class="a-toast-body">
-                        <div class="a-toast-title">Perhatian</div>
-                        <div class="a-toast-text">{{ session('warning') }}</div>
-                    </div>
-                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('info'))
-                <div class="a-toast a-toast--info" data-toast data-duration="5000">
-                    <div class="a-toast-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="9"/>
-                            <path d="M12 10v6"/>
-                            <path d="M12 7h.01"/>
-                        </svg>
-                    </div>
-                    <div class="a-toast-body">
-                        <div class="a-toast-title">Informasi</div>
-                        <div class="a-toast-text">{{ session('info') }}</div>
-                    </div>
-                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="a-toast a-toast--error" data-toast data-duration="6400">
-                    <div class="a-toast-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="9"/>
-                            <path d="M12 8v5"/>
-                            <path d="M12 16h.01"/>
-                        </svg>
-                    </div>
-                    <div class="a-toast-body">
-                        <div class="a-toast-title">Validasi gagal</div>
-                        <div class="a-toast-text">{{ $errors->first() }}</div>
-                    </div>
-                    <button type="button" class="a-toast-close" data-toast-close aria-label="Tutup notifikasi">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-        </div>
-
         @yield('content')
     </main>
 
 </div>
 
+{{-- SweetAlert2 JS --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
 <script>
 (function () {
+    /* ── Sidebar Toggle ── */
     var sidebar = document.getElementById('aSidebar');
     var toggle  = document.getElementById('aSidebarToggle');
     var overlay = document.getElementById('aOverlay');
@@ -1440,41 +1283,246 @@
     });
 })();
 
-/* ── Toast ── */
+/* ── SweetAlert2 Toast Notifications ── */
 (function () {
-    function hideToast(toast) {
-        if (!toast || toast.classList.contains('is-hiding')) return;
-        toast.classList.add('is-hiding');
-        window.setTimeout(function () {
-            if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 280);
+    /**
+     * Konfigurasi dasar Toast SweetAlert2.
+     * Muncul di pojok kanan atas, di bawah topbar.
+     */
+    var Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4500,
+        timerProgressBar: true,
+        didOpen: function (toastEl) {
+            toastEl.addEventListener('mouseenter', Swal.stopTimer);
+            toastEl.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    /* Mapping helper */
+    function fireToast(icon, title, message, timer) {
+        Toast.fire({
+            icon: icon,
+            title: title,
+            text: message || undefined,
+            timer: timer || 4500
+        });
     }
 
-    document.querySelectorAll('[data-toast]').forEach(function (toast) {
-        var duration = Number(toast.getAttribute('data-duration') || 5200);
-        toast.style.setProperty('--toast-duration', duration + 'ms');
+    /* ── Flash session dari Laravel ── */
+    @if(session('success'))
+        fireToast('success', 'Berhasil', @json(session('success')), 4200);
+    @endif
 
-        var closeBtn = toast.querySelector('[data-toast-close]');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function () {
-                hideToast(toast);
+    @if(session('error'))
+        fireToast('error', 'Gagal', @json(session('error')), 5600);
+    @endif
+
+    @if(session('warning'))
+        fireToast('warning', 'Perhatian', @json(session('warning')), 5200);
+    @endif
+
+    @if(session('info'))
+        fireToast('info', 'Informasi', @json(session('info')), 5000);
+    @endif
+
+    @if($errors->any())
+        fireToast('error', 'Validasi gagal', @json($errors->first()), 6400);
+    @endif
+
+    /* ── Global helper: window.AdminToast ──
+       Bisa dipanggil dari halaman child blade:
+         AdminToast.success('Data berhasil disimpan')
+         AdminToast.error('Terjadi kesalahan')
+         AdminToast.warning('Periksa kembali data Anda')
+         AdminToast.info('Proses sedang berjalan')
+    ── */
+    window.AdminToast = {
+        success : function(msg, title) { fireToast('success', title || 'Berhasil',  msg); },
+        error   : function(msg, title) { fireToast('error',   title || 'Gagal',     msg); },
+        warning : function(msg, title) { fireToast('warning', title || 'Perhatian', msg); },
+        info    : function(msg, title) { fireToast('info',    title || 'Informasi', msg); }
+    };
+
+    /* ══════════════════════════════════════════════════════════════
+       window.AdminConfirm  — dialog konfirmasi manual
+       Penggunaan dari JS:
+         AdminConfirm.delete(function() { form.submit(); });
+         AdminConfirm.show({ title, text, confirmText }, callback);
+    ══════════════════════════════════════════════════════════════ */
+    window.AdminConfirm = {
+        show: function(opts, onConfirm) {
+            Swal.fire({
+                title            : opts.title        || 'Apakah Anda yakin?',
+                text             : opts.text         || '',
+                icon             : opts.icon         || 'warning',
+                showCancelButton : true,
+                confirmButtonText: opts.confirmText  || 'Ya, lanjutkan',
+                cancelButtonText : opts.cancelText   || 'Batal',
+                reverseButtons   : true,
+                focusCancel      : true,
+                customClass: {
+                    confirmButton: 'swal2-confirm',
+                    cancelButton : 'swal2-cancel'
+                }
+            }).then(function(result) {
+                if (result.isConfirmed && typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            });
+        },
+
+        delete: function(onConfirm, opts) {
+            var o = opts || {};
+            AdminConfirm.show({
+                title      : o.title       || 'Hapus data ini?',
+                text       : o.text        || 'Data yang dihapus tidak dapat dikembalikan.',
+                icon       : 'warning',
+                confirmText: o.confirmText || 'Ya, hapus',
+                cancelText : o.cancelText  || 'Batal'
+            }, onConfirm);
+        }
+    };
+
+    /* ══════════════════════════════════════════════════════════════
+       AUTO-INTERCEPT UNIVERSAL
+       ──────────────────────────────────────────────────────────────
+       Menangkap SEMUA tombol / form yang punya atribut:
+         data-confirm          → judul dialog (wajib ada agar di-intercept)
+         data-confirm-text     → teks deskripsi (opsional)
+         data-confirm-ok       → label tombol konfirmasi (default: "Ya, lanjutkan")
+         data-confirm-cancel   → label tombol batal (default: "Batal")
+         data-confirm-icon     → icon SweetAlert2 (default: "warning")
+         data-confirm-type     → "delete" → icon & warna merah; override icon/warna
+
+       Cara pakai di blade:
+         <button type="submit"
+                 data-confirm="Hapus kategori ini?"
+                 data-confirm-text="Semua dokumennya juga akan ikut terhapus."
+                 data-confirm-type="delete"
+                 data-confirm-ok="Ya, hapus">Hapus</button>
+
+         <button type="submit"
+                 data-confirm="Nonaktifkan akun ini?"
+                 data-confirm-icon="question"
+                 data-confirm-ok="Ya, nonaktifkan">Nonaktifkan</button>
+
+       Override onsubmit / onclick lama:
+         Atribut onsubmit/onclick di form/button diabaikan secara otomatis
+         jika tombolnya punya data-confirm. Tidak perlu dihapus manual.
+    ══════════════════════════════════════════════════════════════ */
+    (function () {
+        /**
+         * Buka dialog SweetAlert2 lalu submit form jika dikonfirmasi.
+         * @param {HTMLElement} triggerEl  — elemen yang diklik (button atau form)
+         * @param {HTMLFormElement} form   — form yang akan di-submit
+         */
+        function intercept(triggerEl, form) {
+            var isDelete = triggerEl.dataset.confirmType === 'delete';
+
+            var title  = triggerEl.dataset.confirm       || (isDelete ? 'Hapus data ini?' : 'Apakah Anda yakin?');
+            var text   = triggerEl.dataset.confirmText   || (isDelete ? 'Data yang dihapus tidak dapat dikembalikan.' : '');
+            var okText = triggerEl.dataset.confirmOk     || (isDelete ? 'Ya, hapus' : 'Ya, lanjutkan');
+            var cnText = triggerEl.dataset.confirmCancel || 'Batal';
+            var icon   = triggerEl.dataset.confirmIcon   || (isDelete ? 'warning' : 'warning');
+
+            Swal.fire({
+                title            : title,
+                text             : text || undefined,
+                icon             : icon,
+                showCancelButton : true,
+                confirmButtonText: okText,
+                cancelButtonText : cnText,
+                reverseButtons   : true,
+                focusCancel      : true,
+                /* Tombol hapus: merah. Lainnya: hijau BSP */
+                confirmButtonColor: isDelete ? '#b91c1c' : '#173f08',
+                cancelButtonColor : '#6b7280',
+                customClass: {
+                    popup         : 'swal-admin-popup',
+                    confirmButton : 'swal2-confirm',
+                    cancelButton  : 'swal2-cancel'
+                }
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    /* Tandai agar tidak ter-intercept lagi saat submit */
+                    form.dataset.swalConfirmed = '1';
+                    form.submit();
+                }
             });
         }
 
-        var timer = window.setTimeout(function () {
-            hideToast(toast);
-        }, duration);
+        /**
+         * Pasang listener ke semua elemen dengan [data-confirm].
+         * Dipanggil saat DOM ready dan bisa dipanggil ulang setelah
+         * konten di-render dinamis (mis. setelah AJAX load).
+         */
+        function bindAll() {
+            /* 1. Tombol di dalam form yang punya data-confirm */
+            document.querySelectorAll('button[data-confirm], input[type="submit"][data-confirm]').forEach(function (btn) {
+                if (btn._swalBound) return;
+                btn._swalBound = true;
 
-        toast.addEventListener('mouseenter', function () {
-            window.clearTimeout(timer);
-        });
+                btn.addEventListener('click', function (e) {
+                    var form = btn.closest('form');
+                    if (!form) return;
 
-        toast.addEventListener('mouseleave', function () {
-            timer = window.setTimeout(function () {
-                hideToast(toast);
-            }, 1800);
-        });
-    });
+                    /* Jika form sudah dikonfirmasi, biarkan submit normal */
+                    if (form.dataset.swalConfirmed === '1') {
+                        delete form.dataset.swalConfirmed;
+                        return;
+                    }
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    intercept(btn, form);
+                });
+            });
+
+            /* 2. Form sendiri yang punya data-confirm (onsubmit pattern lama) */
+            document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+                if (form._swalBound) return;
+                form._swalBound = true;
+
+                form.addEventListener('submit', function (e) {
+                    if (form.dataset.swalConfirmed === '1') {
+                        delete form.dataset.swalConfirmed;
+                        return;
+                    }
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    intercept(form, form);
+                });
+            });
+
+            /* 3. Override onsubmit lama (return confirm(...)) pada form yang
+                  berisi tombol [data-confirm] — agar tidak double-dialog */
+            document.querySelectorAll('button[data-confirm]').forEach(function (btn) {
+                var form = btn.closest('form');
+                if (form && form.onsubmit) {
+                    /* Hapus handler lama; intercept sudah di-handle via click */
+                    form.onsubmit = null;
+                }
+            });
+
+            /* 4. Override onclick lama pada button yang punya data-confirm */
+            document.querySelectorAll('button[data-confirm]').forEach(function (btn) {
+                if (btn.onclick) btn.onclick = null;
+            });
+        }
+
+        /* Jalankan saat DOM ready */
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindAll);
+        } else {
+            bindAll();
+        }
+
+        /* Expose agar bisa dipanggil ulang dari luar jika perlu */
+        window.AdminConfirmBind = bindAll;
+    })();
 })();
 </script>
 

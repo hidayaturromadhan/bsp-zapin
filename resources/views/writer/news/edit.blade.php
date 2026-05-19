@@ -973,7 +973,7 @@
         <div>
             <h1 class="wn-title">Edit News</h1>
             <div class="wn-subtitle">
-                Perbarui konten, susun ulang block dengan drag, dan kirim ulang ke reviewer.
+                Perbarui konten, susun ulang block dengan drag, dan simpan perubahan.
             </div>
         </div>
 
@@ -986,6 +986,36 @@
         </a>
     </div>
 
+
+    @if(session('success'))
+        <div class="a-alert a-alert--success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="a-alert a-alert--success">
+            {{ session('info') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="a-alert a-alert--error">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="a-alert a-alert--error">
+            <strong>Validasi gagal.</strong>
+            <ul style="margin:8px 0 0;padding-left:18px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form
         method="POST"
         action="{{ route('writer.news.update', $news) }}"
@@ -993,7 +1023,7 @@
         id="writer-news-form"
         class="js-confirm-submit"
         data-title="Simpan perubahan news?"
-        data-text="Perubahan akan disimpan dan berita akan dikirim ulang ke reviewer."
+        data-text="Perubahan akan langsung disimpan. Terjemahan English diproses otomatis melalui Queue/Job."
         data-confirm="Ya, Simpan"
         data-type="save"
         data-icon="question"
@@ -1339,7 +1369,7 @@
 
                     <div class="wn-actions">
                         <button type="submit" class="wn-btn wn-btn--primary">
-                            Simpan & Kirim Ulang ke Reviewer
+                            Simpan Perubahan
                         </button>
                     </div>
                 </div>
@@ -1773,14 +1803,113 @@
         });
     }
 
-    if (form) {
-        form.addEventListener('submit', function () {
-            reindexBlocks();
-        });
+if (form) {
+    let initialFormSnapshot = '';
+
+    function normalizeFormValue(value) {
+        return String(value ?? '').replace(/\r\n/g, '\n').trim();
     }
 
-    initCategoryCustomSelect();
-    reindexBlocks();
+    function buildFormSnapshot() {
+        reindexBlocks();
+
+        const data = [];
+        const fields = form.querySelectorAll('input, textarea, select');
+
+        fields.forEach(function (field) {
+            if (!field.name) {
+                return;
+            }
+
+            if (field.name === '_token') {
+                return;
+            }
+
+            if (field.type === 'file') {
+                const files = Array.from(field.files || []);
+
+                data.push({
+                    name: field.name,
+                    type: 'file',
+                    value: files.map(function (file) {
+                        return {
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            lastModified: file.lastModified,
+                        };
+                    }),
+                });
+
+                return;
+            }
+
+            if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) {
+                data.push({
+                    name: field.name,
+                    type: field.type,
+                    value: '',
+                    checked: false,
+                });
+
+                return;
+            }
+
+            data.push({
+                name: field.name,
+                type: field.type || field.tagName.toLowerCase(),
+                value: normalizeFormValue(field.value),
+                checked: field.checked || false,
+            });
+        });
+
+        data.sort(function (a, b) {
+            return (a.name + JSON.stringify(a.value)).localeCompare(b.name + JSON.stringify(b.value));
+        });
+
+        return JSON.stringify(data);
+    }
+
+    function showNoChangeMessage() {
+        const message = 'Tidak ada perubahan data yang perlu disimpan.';
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Tidak Ada Perubahan',
+                text: message,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#173f08',
+            });
+
+            return;
+        }
+
+        alert(message);
+    }
+
+    window.setTimeout(function () {
+        initialFormSnapshot = buildFormSnapshot();
+    }, 250);
+
+    form.addEventListener('submit', function (event) {
+        const currentSnapshot = buildFormSnapshot();
+
+        if (initialFormSnapshot && currentSnapshot === initialFormSnapshot) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            showNoChangeMessage();
+
+            return false;
+        }
+
+        reindexBlocks();
+    }, true);
+}
+
+initCategoryCustomSelect();
+reindexBlocks();
 })();
 </script>
 @endsection

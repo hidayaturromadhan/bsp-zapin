@@ -13,7 +13,10 @@ class InvestorHighlightItemController extends Controller
 
     public function index()
     {
-        $items = InvestorHighlightItem::orderBy('sort_order')->orderBy('id')->paginate(20);
+        $items = InvestorHighlightItem::query()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->paginate(20);
 
         return view('admin.investor-highlight-items.index', compact('items'));
     }
@@ -26,16 +29,22 @@ class InvestorHighlightItemController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'label_id'    => 'required|string|max:255',
-            'sort_order'  => 'nullable|integer|min:0',
-            'is_active'   => 'nullable|boolean',
+            'label_id'   => 'required|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+            'is_active'  => 'nullable|boolean',
         ]);
 
+        $labelId = $request->input('label_id');
+
         InvestorHighlightItem::create([
-            'label_id'    => $request->label_id,
-            'label_en'    => $this->translator->translateText($request->label_id),
-            'sort_order'  => (int) $request->input('sort_order', 0),
-            'is_active'   => $request->boolean('is_active', true),
+            'label_id'   => $labelId,
+            'label_en'   => $this->translator->translateText($labelId),
+            'sort_order' => (int) $request->input('sort_order', 0),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, field is_active tidak dikirim browser.
+            // boolean('is_active') akan menghasilkan false.
+            'is_active'  => $request->boolean('is_active'),
         ]);
 
         return redirect()
@@ -53,16 +62,21 @@ class InvestorHighlightItemController extends Controller
     public function update(Request $request, InvestorHighlightItem $investorHighlightItem)
     {
         $request->validate([
-            'label_id'    => 'required|string|max:255',
-            'sort_order'  => 'nullable|integer|min:0',
-            'is_active'   => 'nullable|boolean',
+            'label_id'   => 'required|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+            'is_active'  => 'nullable|boolean',
         ]);
 
+        $labelId = $request->input('label_id');
+
         $investorHighlightItem->update([
-            'label_id'    => $request->label_id,
-            'label_en'    => $this->translator->translateText($request->label_id),
-            'sort_order'  => (int) $request->input('sort_order', 0),
-            'is_active'   => $request->boolean('is_active', true),
+            'label_id'   => $labelId,
+            'label_en'   => $this->translator->translateText($labelId),
+            'sort_order' => (int) $request->input('sort_order', 0),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, simpan sebagai false.
+            'is_active'  => $request->boolean('is_active'),
         ]);
 
         return redirect()

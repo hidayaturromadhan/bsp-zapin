@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\GcgHighlightItemController;
 use App\Http\Controllers\Admin\InvestorDocumentController;
 use App\Http\Controllers\Admin\InvestorHighlightItemController;
 use App\Http\Controllers\Admin\ProfilePageController as AdminProfilePageController;
+use App\Http\Controllers\Admin\UserManagementController;
 
 // Operational
 use App\Http\Controllers\Operational\DashboardController as OperationalDashboardController;
@@ -158,7 +159,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 | ADMIN DASHBOARD
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:admin'])
+Route::middleware(['auth.session','active.user', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -170,7 +171,7 @@ Route::middleware(['auth.session', 'role:admin'])
 | OPERATIONAL PANEL
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:operational'])
+Route::middleware(['auth','active.user', 'role:operational'])
     ->prefix('operational')
     ->name('operational.')
     ->group(function () {
@@ -222,7 +223,7 @@ Route::middleware(['auth', 'role:operational'])
 | REVIEWER PANEL
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:reviewer'])
+Route::middleware(['auth.session', 'active.user','role:reviewer'])
     ->prefix('reviewer')
     ->name('reviewer.')
     ->group(function () {
@@ -243,7 +244,7 @@ Route::middleware(['auth.session', 'role:reviewer'])
 | WRITER PANEL
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:writer'])
+Route::middleware(['auth.session', 'active.user','role:writer'])
     ->prefix('writer')
     ->name('writer.')
     ->group(function () {
@@ -287,7 +288,7 @@ Route::middleware(['auth.session', 'role:writer'])
 | ADMIN NEWS (READ ONLY)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:admin'])
+Route::middleware(['auth.session','active.user', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -301,7 +302,7 @@ Route::middleware(['auth.session', 'role:admin'])
 | WBS NOTIFICATIONS (GLOBAL - ADMIN & PELAPOR)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:pelapor,wbs_admin'])
+Route::middleware(['auth.session','active.user', 'role:pelapor, wbs_admin'])
     ->prefix('wbs/notifications')
     ->name('wbs.notifications.')
     ->group(function () {
@@ -314,7 +315,7 @@ Route::middleware(['auth.session', 'role:pelapor,wbs_admin'])
 | WBS PELAPOR
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:pelapor', 'pelapor.verified'])
+Route::middleware(['auth.session', 'role:pelapor', 'active.user', 'pelapor.verified'])
     ->prefix('wbs')
     ->name('wbs.')
     ->group(function () {
@@ -335,7 +336,7 @@ Route::middleware(['auth.session', 'role:pelapor', 'pelapor.verified'])
 | WBS ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:wbs_admin,wbs_officer'])
+Route::middleware(['auth.session', 'active.user', 'role:wbs_admin'])
     ->prefix('wbs/admin')
     ->name('wbs.admin.')
     ->group(function () {
@@ -356,10 +357,20 @@ Route::middleware(['auth.session', 'role:wbs_admin,wbs_officer'])
 | ADMIN ONLY MODULES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:admin'])
+Route::middleware(['auth.session','active.user', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+        Route::put('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+        Route::put('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
         Route::get('/partners', [AdminPartnerController::class, 'index'])->name('partners.index');
         Route::get('/partners/create', [AdminPartnerController::class, 'create'])->name('partners.create');
         Route::post('/partners', [AdminPartnerController::class, 'store'])->name('partners.store');
@@ -404,6 +415,12 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::get('/tjsl', [AdminTjslController::class, 'index'])->name('tjsl.index');
         Route::get('/tjsl/{tjsl}', [AdminTjslController::class, 'show'])->name('tjsl.show');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Admin GCG
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/gcg', [GcgCategoryController::class, 'index'])->name('gcg.index');
         Route::get('/gcg/create', [GcgCategoryController::class, 'create'])->name('gcg.create');
         Route::post('/gcg', [GcgCategoryController::class, 'store'])->name('gcg.store');
@@ -412,13 +429,45 @@ Route::middleware(['auth.session', 'role:admin'])
         Route::patch('/gcg/{gcg}', [GcgCategoryController::class, 'update'])->name('gcg.patch');
         Route::delete('/gcg/{gcg}', [GcgCategoryController::class, 'destroy'])->name('gcg.destroy');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Admin GCG Documents
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/gcg/{gcg}/documents', [GcgCategoryController::class, 'storeDocument'])
+            ->name('gcg.documents.store');
+
+        Route::put('/gcg/{gcg}/documents/{document}', [GcgCategoryController::class, 'updateDocument'])
+            ->name('gcg.documents.update');
+
+        Route::patch('/gcg/{gcg}/documents/{document}', [GcgCategoryController::class, 'updateDocument'])
+            ->name('gcg.documents.patch');
+
+        Route::delete('/gcg/{gcg}/documents/{document}', [GcgCategoryController::class, 'destroyDocument'])
+            ->name('gcg.documents.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin GCG Categories Alias
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/gcg-categories', [GcgCategoryController::class, 'index'])->name('gcg-categories.index');
         Route::get('/gcg-categories/create', [GcgCategoryController::class, 'create'])->name('gcg-categories.create');
         Route::post('/gcg-categories', [GcgCategoryController::class, 'store'])->name('gcg-categories.store');
-        Route::get('/gcg-categories/{gcgCategory}/edit', [GcgCategoryController::class, 'edit'])->name('gcg-categories.edit');
-        Route::put('/gcg-categories/{gcgCategory}', [GcgCategoryController::class, 'update'])->name('gcg-categories.update');
-        Route::patch('/gcg-categories/{gcgCategory}', [GcgCategoryController::class, 'update'])->name('gcg-categories.patch');
-        Route::delete('/gcg-categories/{gcgCategory}', [GcgCategoryController::class, 'destroy'])->name('gcg-categories.destroy');
+        Route::get('/gcg-categories/{gcg}/edit', [GcgCategoryController::class, 'edit'])->name('gcg-categories.edit');
+        Route::put('/gcg-categories/{gcg}', [GcgCategoryController::class, 'update'])->name('gcg-categories.update');
+        Route::patch('/gcg-categories/{gcg}', [GcgCategoryController::class, 'update'])->name('gcg-categories.patch');
+        Route::delete('/gcg-categories/{gcg}', [GcgCategoryController::class, 'destroy'])->name('gcg-categories.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin GCG Highlight Items
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/gcg-highlight-items', [GcgHighlightItemController::class, 'index'])->name('gcg-highlight-items.index');
         Route::get('/gcg-highlight-items/create', [GcgHighlightItemController::class, 'create'])->name('gcg-highlight-items.create');

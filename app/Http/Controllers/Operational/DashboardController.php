@@ -15,27 +15,18 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    private int $dashboardCacheMinutes = 10;
+    private int $tvDataCacheMinutes = 2;
+    private int $tvVideoCacheDays = 7;
+
     public function index(Request $request)
     {
         $selectedMonth = (int) ($request->input('month') ?: now()->month);
         $selectedYear = (int) ($request->input('year') ?: now()->year);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cache Key V2
-        |--------------------------------------------------------------------------
-        | Dibuat versi baru supaya cache lama yang masih menyimpan struktur crude lama
-        | tidak ikut terbaca.
-        |--------------------------------------------------------------------------
-        */
-        $cacheKey = 'operational_dashboard_v2_' . $selectedYear . '_' . $selectedMonth;
+        $cacheKey = 'operational_dashboard_v3_' . $selectedYear . '_' . $selectedMonth;
 
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($selectedMonth, $selectedYear) {
-            /*
-            |--------------------------------------------------------------------------
-            | FLOW GAS
-            |--------------------------------------------------------------------------
-            */
+        $data = Cache::remember($cacheKey, now()->addMinutes($this->dashboardCacheMinutes), function () use ($selectedMonth, $selectedYear) {
             $gasBaseQuery = FlowGasDailyRecord::query()->where('type', 'gas');
 
             $gasMonthlyRecords = (clone $gasBaseQuery)
@@ -129,17 +120,6 @@ class DashboardController extends Controller
                 ->map(fn ($value) => round((float) $value, 4))
                 ->values();
 
-            /*
-            |--------------------------------------------------------------------------
-            | CRUDE OIL
-            |--------------------------------------------------------------------------
-            | Struktur terbaru:
-            | - vacuum_truck
-            | - road_tank
-            |
-            | Total produksi = vacuum_truck + road_tank
-            |--------------------------------------------------------------------------
-            */
             $crudeBaseQuery = CrudeDailyRecord::query();
 
             $crudeMonthlyRecords = (clone $crudeBaseQuery)
@@ -193,14 +173,7 @@ class DashboardController extends Controller
                 ->limit(8)
                 ->get();
 
-            /*
-            |--------------------------------------------------------------------------
-            | VITOL
-            |--------------------------------------------------------------------------
-            */
-            $vitolBaseQuery = VitolRecord::query();
-
-            $vitolYearlyRecords = (clone $vitolBaseQuery)
+            $vitolSelectedYearRecords = VitolRecord::query()
                 ->where('year', $selectedYear)
                 ->orderBy('month')
                 ->orderBy('id')
@@ -210,18 +183,36 @@ class DashboardController extends Controller
                     return $record;
                 });
 
-            $vitolTotalRecords = $vitolYearlyRecords->count();
-            $vitolTotalQuantity = (float) $vitolYearlyRecords->sum('quantity');
+            $vitolTotalRecords = $vitolSelectedYearRecords->count();
+            $vitolTotalQuantity = (float) $vitolSelectedYearRecords->sum('quantity');
 
-            $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month_label')->values();
+            $vitolLast12Records = VitolRecord::query()
+                ->orderByDesc('year')
+                ->orderByDesc('month')
+                ->orderByDesc('id')
+                ->limit(12)
+                ->get()
+                ->sortBy([
+                    ['year', 'asc'],
+                    ['month', 'asc'],
+                    ['id', 'asc'],
+                ])
+                ->values()
+                ->map(function ($record) {
+                    $record->month_label = $this->monthLabel((int) $record->month) . ' ' . $record->year;
+                    return $record;
+                });
 
-            $vitolMonthlyChartValues = $vitolYearlyRecords->map(function ($item) {
+            $vitolMonthlyChartLabels = $vitolLast12Records->pluck('month_label')->values();
+
+            $vitolMonthlyChartValues = $vitolLast12Records->map(function ($item) {
                 return round((float) $item->quantity, 4);
             })->values();
 
             $recentVitolRecords = VitolRecord::query()
                 ->orderByDesc('year')
                 ->orderByDesc('month')
+                ->orderByDesc('id')
                 ->limit(8)
                 ->get()
                 ->map(function ($record) {
@@ -229,11 +220,6 @@ class DashboardController extends Controller
                     return $record;
                 });
 
-            /*
-            |--------------------------------------------------------------------------
-            | OPTIONS
-            |--------------------------------------------------------------------------
-            */
             $totalOperationalItems = $gasTotalRecords + $crudeTotalRecords + $vitolTotalRecords;
 
             $monthOptions = collect(range(1, 12))->mapWithKeys(function ($month) {
@@ -316,20 +302,15 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Cache Key V2
+        | TV Data Cache
         |--------------------------------------------------------------------------
-        | Penting agar TV tidak mengambil cache lama yang belum punya:
-        | crudeDailyVacuumTruckValues dan crudeDailyRoadTankValues.
+        | Grafik dan broadcast dibuat cache pendek agar data tetap update.
+        | Video dibuat cache version panjang lewat tvVideoCacheVersion.
         |--------------------------------------------------------------------------
         */
-        $cacheKey = 'operational_tv_v2_' . $selectedYear . '_' . $selectedMonth;
+        $cacheKey = 'operational_tv_data_v4_' . $selectedYear . '_' . $selectedMonth;
 
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($selectedMonth, $selectedYear) {
-            /*
-            |--------------------------------------------------------------------------
-            | GAS DAILY
-            |--------------------------------------------------------------------------
-            */
+        $data = Cache::remember($cacheKey, now()->addMinutes($this->tvDataCacheMinutes), function () use ($selectedMonth, $selectedYear) {
             $gasDailyChartRaw = FlowGasDailyRecord::query()
                 ->where('type', 'gas')
                 ->select([
@@ -356,11 +337,6 @@ class DashboardController extends Controller
                 ->whereMonth('record_date', $selectedMonth)
                 ->sum('mscf');
 
-            /*
-            |--------------------------------------------------------------------------
-            | GAS MONTHLY
-            |--------------------------------------------------------------------------
-            */
             $gasMonthlyDailySubquery = FlowGasDailyRecord::query()
                 ->where('type', 'gas')
                 ->selectRaw('DATE(record_date) as daily_date')
@@ -390,11 +366,6 @@ class DashboardController extends Controller
                 return round((float) optional($gasMonthlyChartRaw->get($month))->avg_daily_mscf, 4);
             })->values();
 
-            /*
-            |--------------------------------------------------------------------------
-            | CRUDE DAILY - STACKED VACUUM TRUCK & ROAD TANK
-            |--------------------------------------------------------------------------
-            */
             $crudeLast14DaysRecords = CrudeDailyRecord::query()
                 ->orderByDesc('record_date')
                 ->orderByDesc('id')
@@ -419,34 +390,31 @@ class DashboardController extends Controller
                 return (float) ($record->vacuum_truck ?? 0) + (float) ($record->road_tank ?? 0);
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | VITOL MONTHLY
-            |--------------------------------------------------------------------------
-            */
-            $vitolYearlyRecords = VitolRecord::query()
-                ->where('year', $selectedYear)
-                ->orderBy('month')
-                ->orderBy('id')
+            $vitolLast12Records = VitolRecord::query()
+                ->orderByDesc('year')
+                ->orderByDesc('month')
+                ->orderByDesc('id')
+                ->limit(12)
                 ->get()
+                ->sortBy([
+                    ['year', 'asc'],
+                    ['month', 'asc'],
+                    ['id', 'asc'],
+                ])
+                ->values()
                 ->map(function ($record) {
-                    $record->month_label = $this->monthLabel((int) $record->month);
+                    $record->month_label = $this->monthLabel((int) $record->month) . ' ' . $record->year;
                     return $record;
                 });
 
-            $vitolMonthlyChartLabels = $vitolYearlyRecords->pluck('month_label')->values();
+            $vitolMonthlyChartLabels = $vitolLast12Records->pluck('month_label')->values();
 
-            $vitolMonthlyChartValues = $vitolYearlyRecords->map(function ($item) {
+            $vitolMonthlyChartValues = $vitolLast12Records->map(function ($item) {
                 return round((float) $item->quantity, 4);
             })->values();
 
-            $vitolTotalQuantity = (float) $vitolYearlyRecords->sum('quantity');
+            $vitolTotalQuantity = (float) $vitolLast12Records->sum('quantity');
 
-            /*
-            |--------------------------------------------------------------------------
-            | GAS YEARLY
-            |--------------------------------------------------------------------------
-            */
             $gasYearlyChartRaw = FlowGasDailyRecord::query()
                 ->where('type', 'gas')
                 ->selectRaw('YEAR(record_date) as year_number, SUM(COALESCE(mscf, 0)) as total_mscf')
@@ -466,11 +434,6 @@ class DashboardController extends Controller
 
             $monthLabel = Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('F Y');
 
-            /*
-            |--------------------------------------------------------------------------
-            | BROADCAST
-            |--------------------------------------------------------------------------
-            */
             $broadcastItems = BroadcastMessage::query()
                 ->visible()
                 ->orderBy('sort_order')
@@ -509,10 +472,17 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('operational.tv', array_merge($data, [
-            'selectedMonth' => $selectedMonth,
-            'selectedYear' => $selectedYear,
-        ]));
+        $videoCache = $this->tvVideoCacheData();
+
+        return response()
+            ->view('operational.tv', array_merge($data, [
+                'selectedMonth' => $selectedMonth,
+                'selectedYear' => $selectedYear,
+                'tvVideoCacheVersion' => $videoCache['version'],
+                'tvVideoCacheMaxAge' => $videoCache['max_age'],
+            ]))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function publicTv(Request $request, string $token)
@@ -530,6 +500,27 @@ class DashboardController extends Controller
         ])->save();
 
         return $this->tv($request);
+    }
+
+    private function tvVideoCacheData(): array
+    {
+        $videoRelativePath = 'videos/company-profile.mp4';
+        $videoPublicPath = public_path($videoRelativePath);
+
+        $maxAge = $this->tvVideoCacheDays * 24 * 60 * 60;
+
+        $version = file_exists($videoPublicPath)
+            ? 'video-' . filemtime($videoPublicPath)
+            : Cache::remember(
+                'operational_tv_video_cache_version_fallback_v1',
+                now()->addDays($this->tvVideoCacheDays),
+                fn () => 'video-' . now()->format('Ymd')
+            );
+
+        return [
+            'version' => $version,
+            'max_age' => $maxAge,
+        ];
     }
 
     private function monthLabel(int $month): string

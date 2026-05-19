@@ -29,7 +29,7 @@ class PartnerController extends Controller
             END")
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $categories = Partner::categoryOptions();
@@ -73,7 +73,12 @@ class PartnerController extends Controller
             'category' => $data['category'],
             'website_url' => $data['website_url'] ?? null,
             'sort_order' => $nextSortOrder,
-            'is_active' => (bool) ($data['is_active'] ?? false),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, browser tidak mengirim is_active.
+            // request()->boolean('is_active') akan menghasilkan false.
+            'is_active' => $request->boolean('is_active'),
+
             'logo_path' => $logoPath,
         ]);
 
@@ -105,7 +110,11 @@ class PartnerController extends Controller
             'name' => $data['name'],
             'category' => $data['category'],
             'website_url' => $data['website_url'] ?? null,
-            'is_active' => (bool) ($data['is_active'] ?? false),
+
+            // FIX:
+            // Jika checkbox tidak dicentang, simpan sebagai false.
+            // Jika checkbox dicentang dengan value="1", simpan sebagai true.
+            'is_active' => $request->boolean('is_active'),
         ];
 
         if ($oldCategory !== $data['category']) {

@@ -51,6 +51,7 @@ class InvestorDocumentController extends Controller
             $fileSize     = $file->getSize();
 
             $destDir = public_path('documents/investor-relations');
+
             if (! is_dir($destDir)) {
                 mkdir($destDir, 0755, true);
             }
@@ -67,6 +68,7 @@ class InvestorDocumentController extends Controller
                 $coverName = Str::uuid() . '.' . $coverExt;
 
                 $coverDir = public_path('images/investor-relations');
+
                 if (! is_dir($coverDir)) {
                     mkdir($coverDir, 0755, true);
                 }
@@ -75,6 +77,7 @@ class InvestorDocumentController extends Controller
             } else {
                 try {
                     $coverDir = public_path('images/investor-relations');
+
                     if (! is_dir($coverDir)) {
                         mkdir($coverDir, 0755, true);
                     }
@@ -99,7 +102,11 @@ class InvestorDocumentController extends Controller
                 'file_type'  => $extension,
                 'file_size'  => $fileSize,
                 'sort_order' => (int) $request->input('sort_order', 0),
-                'is_active'  => $request->boolean('is_active', true),
+
+                // FIX:
+                // Jika checkbox tidak dicentang, browser tidak mengirim is_active.
+                // Maka boolean('is_active') akan menjadi false.
+                'is_active'  => $request->boolean('is_active'),
             ]);
 
             $titleId   = $request->input('title');
@@ -152,7 +159,10 @@ class InvestorDocumentController extends Controller
             $investorRelation->update([
                 'year'       => $request->input('year'),
                 'sort_order' => (int) $request->input('sort_order', 0),
-                'is_active'  => $request->boolean('is_active', true),
+
+                // FIX:
+                // Jika checkbox tidak dicentang, simpan sebagai false.
+                'is_active'  => $request->boolean('is_active'),
             ]);
 
             if ($request->hasFile('cover')) {
@@ -169,6 +179,7 @@ class InvestorDocumentController extends Controller
                 $coverName = Str::uuid() . '.' . $coverExt;
 
                 $coverDir = public_path('images/investor-relations');
+
                 if (! is_dir($coverDir)) {
                     mkdir($coverDir, 0755, true);
                 }
@@ -211,12 +222,14 @@ class InvestorDocumentController extends Controller
     public function destroy(InvestorDocument $investorRelation)
     {
         $pdfPath = public_path('documents/investor-relations/' . $investorRelation->file_path);
+
         if (file_exists($pdfPath)) {
             unlink($pdfPath);
         }
 
         if ($investorRelation->cover) {
             $coverPath = public_path('images/investor-relations/' . $investorRelation->cover);
+
             if (file_exists($coverPath)) {
                 unlink($coverPath);
             }
