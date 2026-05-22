@@ -2,8 +2,8 @@
   <img src="public/images/logo.png" alt="BSP Zapin Logo" width="140" />
 
   <h1>BSP Zapin</h1>
-  <p><strong>Corporate Website and Internal Management System</strong></p>
-  <p>Built with Laravel 12 &middot; Tailwind CSS 4 &middot; Vite</p>
+  <p><strong>Corporate Website, CMS, Operational Monitoring, and Whistleblowing System</strong></p>
+  <p>Built with Laravel 12 &middot; Tailwind CSS 4 &middot; Vite &middot; MySQL</p>
 
   <br />
 
@@ -11,7 +11,7 @@
   ![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white)
   ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
   ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql&logoColor=white)
-  ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+  ![Queue](https://img.shields.io/badge/Queue-Database_Driver-blue?style=flat-square)
 </div>
 
 ---
@@ -19,17 +19,23 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Features](#features)
+- [Main Features](#main-features)
 - [System Architecture](#system-architecture)
 - [User Roles](#user-roles)
 - [Technology Stack](#technology-stack)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Configuration](#configuration)
+- [Environment Configuration](#environment-configuration)
 - [Running the Application](#running-the-application)
+- [Production Deployment](#production-deployment)
+- [Queue and Cron Job](#queue-and-cron-job)
+- [SEO and Google Search Console](#seo-and-google-search-console)
 - [Module Documentation](#module-documentation)
+- [Security Notes](#security-notes)
 - [Directory Structure](#directory-structure)
 - [Database Schema](#database-schema)
+- [Maintenance Commands](#maintenance-commands)
+- [Common Production Issues](#common-production-issues)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -37,232 +43,462 @@
 
 ## Overview
 
-BSP Zapin is a full-stack web application serving as both a public-facing corporate website and a comprehensive internal management platform. The system integrates content management, operational data tracking, compliance reporting, and investor relations into a single unified platform.
+BSP Zapin is a full-stack Laravel 12 web application built for PT Bumi Siak Pusako Zapin. The system acts as a public corporate website, internal content management system, operational monitoring platform, and Whistleblowing System.
 
-The application supports bilingual content (Indonesian and English), a role-based access control system with multiple user types, and a dedicated Whistleblower System (WBS) for anonymous compliance reporting.
+The application supports bilingual public content using Indonesian and English locale prefixes. Public pages are accessible through `/id` and `/en`. Internal modules are separated by user role, including Admin, Writer, Reviewer, Operational, WBS Admin, WBS Officer, and Pelapor.
+
+The system includes CMS management, news publication workflow, operational data charts, fullscreen TV display, WBS report lifecycle, email notifications, PDF export, Excel export, image upload optimization, queue-based background processing, and SEO support through sitemap and robots configuration.
 
 ---
 
-## Features
+## Main Features
 
 ### Public Website
 
-The public-facing website is fully bilingual and accessible under locale-prefixed URLs (`/id/` and `/en/`).
+The public website is available in Indonesian and English.
 
-**Homepage and Navigation**
-The homepage displays dynamic hero sliders, company highlights, and partner logos managed entirely through the admin panel. Navigation menus are configurable from the admin interface, supporting nested menu structures.
+Main public routes include:
 
-**Company Profile**
-The profile section presents the company's organizational information through CMS-managed pages with multilingual translation support.
+```txt
+/id
+/en
+/id/media-publikasi
+/en/media-publikasi
+/id/wbs
+/en/wbs
+/id/gcg
+/en/gcg
+/id/operasional
+/en/operasional
+/id/hubungan-investor
+/en/hubungan-investor
+/id/tjsl
+/en/tjsl
+/sitemap.xml
+/robots.txt
+```
 
-**News and Media Publication**
-A complete news portal with categorization, bilingual translations, featured images, and a content versioning system. News articles follow an editorial workflow before publication.
+Public website features:
 
-**TJSL (Tanggung Jawab Sosial dan Lingkungan)**
-Dedicated section for Corporate Social Responsibility programs with image galleries, multilingual descriptions, and an editorial approval workflow.
-
-**GCG (Good Corporate Governance)**
-Document library organized by category. Visitors can browse and download governance documents directly from the website.
-
-**Investor Relations**
-Investor document repository with highlight items and structured document categories for shareholder communications.
-
-**Operational Data Display**
-A public page presenting summarized operational performance data for transparency.
-
-**WBS Portal**
-Public-facing Whistleblower System landing page where users can register, log in, and submit compliance reports.
-
-**Legal Pages**
-Privacy Policy and Terms of Service pages managed through the CMS.
-
-**XML Sitemap**
-Auto-generated sitemap at `/sitemap.xml` covering all pages and news articles for search engine indexing.
+- Dynamic homepage slider.
+- Company profile pages.
+- Bilingual CMS pages.
+- News and media publication.
+- TJSL program publication.
+- GCG document library.
+- Investor relations document repository.
+- Operational public summary.
+- WBS public landing page.
+- Legal pages such as privacy policy and terms.
+- Auto-generated XML sitemap for Google indexing.
+- SEO meta title, description, and image support.
 
 ---
 
 ### Admin Panel
 
-Accessible at `/admin`, this panel is reserved for users with the `admin` role.
+Accessible through:
 
-**Dashboard**
-A summary dashboard providing an overview of content and system activity.
+```txt
+/admin
+```
 
-**News Management**
-Full CRUD management for news articles including multilingual content, image uploads, category assignment, and editorial status tracking. Admins can review content submitted by writers and published after reviewer approval.
+Reserved for users with the `admin` role.
 
-**Page Management**
-CMS for static pages with content versioning. Previous content versions can be restored at any time, and bundle snapshots allow rollback to grouped content states.
+Admin features:
 
-**Profile Pages**
-Dedicated CMS management for the company profile section with bilingual translation support.
-
-**Slider Management**
-Upload and manage homepage hero sliders with bilingual titles and image control.
-
-**Partner Management**
-Add, edit, and categorize company partners displayed on the public website.
-
-**Menu Management**
-Configure navigation menus with hierarchical parent-child relationships.
-
-**TJSL Management**
-Oversight of all TJSL programs submitted through the writer workflow, including program images and translation management.
-
-**GCG Category and Document Management**
-Create and manage GCG document categories with multilingual labels. Upload governance documents and assign cover images and PDF files per category.
-
-**GCG Highlight Items**
-Manage featured highlight items displayed prominently on the GCG public page.
-
-**Investor Relations Management**
-Upload and organize investor documents with translations. Manage investor highlight items shown on the investor relations landing page.
+- Dashboard summary.
+- News management.
+- Page management.
+- Profile page management.
+- Slider management.
+- Partner management.
+- Menu management.
+- TJSL management.
+- GCG category and document management.
+- GCG highlight management.
+- Investor document management.
+- Investor highlight management.
+- User management.
+- Role and active status control.
+- CMS content management with multilingual support.
 
 ---
 
-### Operational Panel
+### News Management
 
-Accessible at `/operational`, reserved for users with the `operational` role.
+The news module supports:
 
-**Dashboard**
-An analytics-heavy dashboard presenting operational data across three commodity streams: Flow Gas, Crude Oil, and Vitol. Each stream displays monthly summaries, category breakdowns, and interactive charts (daily, monthly, and yearly views).
+- Featured image upload.
+- Content image blocks.
+- Bilingual translation.
+- Auto-translate to English using background jobs.
+- Writer and reviewer workflow.
+- News preview.
+- Public news detail page.
+- Category filter.
+- Search filter.
+- Year filter.
+- Featured news.
+- Latest news.
+- Sitemap indexing.
+- Audit log for editorial workflow.
 
-**TV Display Mode**
-A fullscreen display-optimized view (`/operational/tv`) designed to be shown on large monitors in operational control rooms. Displays live charts and a broadcast message ticker. The view auto-cycles through panels and presents up-to-date production summaries.
+News workflow:
 
-**Flow Gas Daily Records**
-Input and manage daily flow gas readings per category. Supports MSCF, MMBTU, and Fix volume fields. Data is exported to monthly Excel reports.
-
-**Crude Oil Daily Records**
-Daily crude oil production entry with field-level tracking. The last 14 days of records are prominently displayed in chart and table formats.
-
-**Vitol Records**
-Monthly Vitol quantity tracking per year. Data is aggregated and presented in yearly summary charts.
-
-**Broadcast Messages**
-Manage scrolling ticker messages displayed on the TV view. Messages can be labeled, toggled active or inactive, and ordered by priority.
-
-**Monthly Flow Gas Export**
-Export complete monthly flow gas data to Excel format for reporting purposes.
+```txt
+Draft
+    -> Submitted / In Review
+    -> Approved or Rejected by Reviewer
+    -> Published by Admin
+    -> Archived if no longer active
+```
 
 ---
 
 ### Writer Panel
 
-Accessible at `/writer`, reserved for users with the `writer` role.
+Accessible through:
 
-**Dashboard**
-Overview of articles and programs assigned to or created by the writer.
+```txt
+/writer
+```
 
-**News Authoring**
-Writers can create, draft, edit, and submit news articles for editorial review. The workflow enforces that articles pass through reviewer approval before reaching admin publication.
+Reserved for users with the `writer` role.
 
-**TJSL Authoring**
-Writers can create and manage TJSL program entries with image galleries and bilingual content.
+Writer features:
+
+- Writer dashboard.
+- Create news article.
+- Edit news article.
+- Submit article for review.
+- Manage content blocks.
+- Upload featured image.
+- Upload content images.
+- Create and manage TJSL program entries.
+- See reviewer feedback if content is rejected.
 
 ---
 
 ### Reviewer Panel
 
-Accessible at `/reviewer`, reserved for users with the `reviewer` role.
+Accessible through:
 
-**Dashboard**
-An overview of articles pending review.
+```txt
+/reviewer
+```
 
-**News Review**
-Reviewers can approve or reject news articles submitted by writers. Rejections include feedback notes visible to the author.
+Reserved for users with the `reviewer` role.
 
-**TJSL Review**
-Reviewers oversee TJSL program submissions before they are finalized.
+Reviewer features:
 
----
-
-### Whistleblower System (WBS)
-
-The WBS is a dedicated compliance reporting module with two separate user roles: Pelapor (reporter) and WBS Admin/Officer.
-
-**Pelapor (Reporter) Portal**
-
-Reporters register and authenticate independently of the main application. Once logged in, they can:
-
-- Submit new compliance reports with the following violation categories: Corruption, Bribery, Gratification, Conflict of Interest, Theft, Fraud, Legal or Regulatory Violation.
-- Attach supporting documents or files to reports.
-- Track the status of submitted reports through the following lifecycle: Laporan Masuk, Ditelaah, Perlu Klarifikasi, Dalam Proses, Dalam Investigasi, Selesai, Ditutup, Di Luar Ruang Lingkup.
-- Edit reports that are in the "Laporan Masuk" or "Perlu Klarifikasi" status.
-- Receive notifications for status updates on their reports.
-
-**WBS Admin / Officer Portal**
-
-WBS administrators and officers manage the full lifecycle of compliance reports:
-
-- View all submitted reports with filtering by status and keyword search.
-- Update report status and leave admin notes throughout the investigation lifecycle.
-- Generate PDF exports of individual reports.
-- Access a notification center for new and updated reports.
-
-**Email Notifications**
-
-Automated email notifications are sent to the configured WBS admin email address upon new report submission.
+- Reviewer dashboard.
+- Review submitted news.
+- Preview content before publication.
+- Approve or reject news.
+- Review TJSL submissions.
+- Provide notes or correction feedback.
+- Read-only detail page for news and TJSL content.
 
 ---
 
-### Authentication
+### Operational Panel
 
-**Standard Login**
-Email and password authentication with rate limiting (5 attempts per minute). Inactive accounts are blocked from logging in.
+Accessible through:
 
-**Google OAuth**
-Single Sign-On via Google, powered by Laravel Socialite. Restricted to rate-limited redirect and callback routes.
+```txt
+/operational
+```
 
-**Single Device Session**
-Each user account is enforced to one active session at a time. Logging in from a second device is blocked until the existing session expires or is detected as gone.
+Reserved for users with the `operational` role.
 
-**Session Heartbeat**
-A background heartbeat mechanism keeps track of active sessions and detects stale connections, enabling automatic session release.
+Operational features:
 
-**Inactivity Timeout**
-Sessions are invalidated after a configurable period of inactivity, defaulting to 3 minutes.
+- Operational dashboard.
+- Flow gas daily records.
+- Crude oil daily records.
+- Vitol monthly records.
+- Monthly and yearly chart visualization.
+- Flow gas category summary.
+- Crude oil last 14 days chart.
+- Vitol last 12 records chart.
+- Broadcast message management.
+- Monthly flow gas Excel export.
+- Fullscreen operational TV display.
+
+---
+
+### Operational TV Display
+
+Accessible through:
+
+```txt
+/operational/tv
+```
+
+The TV display is designed for large screens and monitoring rooms.
+
+TV display features:
+
+- Fullscreen layout.
+- Gas daily chart.
+- Gas monthly chart.
+- Gas yearly chart.
+- Crude oil stacked chart.
+- Vitol monthly chart based on the last 12 records.
+- Broadcast ticker.
+- Company profile video section.
+- Month and year label.
+- Optimized video loading and browser cache behavior.
+- Public TV token support for display-only access.
+
+For production, video files are stored under:
+
+```txt
+public_html/videos
+```
+
+Recommended video format:
+
+```txt
+MP4
+H.264
+AAC
+720p or 1080p
+Web Optimized / Fast Start enabled
+```
+
+---
+
+### Whistleblowing System
+
+The Whistleblowing System is accessible through:
+
+```txt
+/wbs
+```
+
+The module is separated into two major areas:
+
+```txt
+/wbs/pelapor
+/wbs/admin
+```
+
+WBS supports confidential reporting for compliance-related cases.
+
+#### Pelapor Features
+
+Users with the `pelapor` role can:
+
+- Register as a reporter.
+- Verify email address.
+- Login to WBS portal.
+- Submit new report.
+- Upload supporting attachments.
+- Track report status.
+- Edit report while status allows.
+- Receive notification when report status is updated.
+- View report history.
+- Read admin response and follow-up result.
+
+Report categories include:
+
+```txt
+Corruption
+Bribery
+Gratification
+Conflict of Interest
+Theft
+Fraud
+Legal or Regulatory Violation
+Other Compliance Violation
+```
+
+Report lifecycle:
+
+```txt
+Laporan Masuk
+    -> Ditelaah
+    -> Perlu Klarifikasi
+    -> Dalam Proses
+    -> Dalam Investigasi
+    -> Selesai
+    -> Ditutup
+    -> Di Luar Ruang Lingkup
+```
+
+#### WBS Admin / Officer Features
+
+Users with `wbs_admin` or `wbs_officer` role can:
+
+- View all reports.
+- Filter reports by status, category, reporter, month, and year.
+- Search reports by keyword.
+- View report detail.
+- Update report status.
+- Add admin notes.
+- Add follow-up result.
+- Export individual report to PDF.
+- Export filtered report list to PDF.
+- Receive notification for new reports.
+- Notify reporter when report status changes.
+
+PDF exports are generated using DomPDF and saved under:
+
+```txt
+public_html/generated/wbs/reports
+```
+
+---
+
+### Email Notifications
+
+The system uses Laravel Mail for email notifications.
+
+Email notification features:
+
+- New WBS report notification to WBS admin.
+- Report update notification to reporter.
+- Forgot password email.
+- Queue-based email sending.
+- SMTP support for Titan Email or other mail providers.
+
+Queue is used so email sending does not slow down user requests.
+
+---
+
+### Auto Translate News
+
+News translation can be processed in the background using Laravel Queue.
+
+The system can dispatch translation jobs after submitting or updating news content.
+
+Main job example:
+
+```txt
+App\Jobs\TranslateNewsToEnglishJob
+```
+
+This job processes Indonesian news content and generates English translation data into `news_translations`.
+
+---
+
+### Sitemap and SEO
+
+The application includes an XML sitemap route:
+
+```txt
+/sitemap.xml
+```
+
+The sitemap includes:
+
+- Homepage `/id` and `/en`.
+- Static public menu pages.
+- CMS pages.
+- Published news articles.
+- Bilingual URL entries.
+- Last modified date.
+- Change frequency.
+- Priority value.
+
+Recommended robots file:
+
+```txt
+User-agent: *
+Allow: /
+
+Sitemap: https://bspz.co.id/sitemap.xml
+```
+
+Google Search Console can be used to submit:
+
+```txt
+https://bspz.co.id/sitemap.xml
+```
 
 ---
 
 ## System Architecture
 
-```
-Public Website (/id, /en)
-    Homepage, Profile, News, TJSL, GCG, Investor Relations,
-    Operational Display, WBS Portal, Legal Pages
+```txt
+Public Website
+    /id
+    /en
+    Homepage
+    Profile
+    News
+    TJSL
+    GCG
+    Investor Relations
+    Operational Public Page
+    WBS Landing Page
+    Legal Pages
+    Sitemap
 
-Admin Panel (/admin)
-    Dashboard, News, Pages, Profile Pages, Sliders,
-    Partners, Menus, TJSL, GCG, Investor Relations
+Admin Panel
+    /admin
+    Dashboard
+    CMS
+    News
+    Pages
+    Sliders
+    Partners
+    Menus
+    Profile
+    TJSL
+    GCG
+    Investor
+    User Management
 
-Operational Panel (/operational)
-    Dashboard, TV Display, Flow Gas, Crude, Vitol, Broadcast
+Writer Panel
+    /writer
+    News Authoring
+    TJSL Authoring
 
-Writer Panel (/writer)
-    Dashboard, News, TJSL
+Reviewer Panel
+    /reviewer
+    News Review
+    TJSL Review
+    Preview
 
-Reviewer Panel (/reviewer)
-    Dashboard, News, TJSL
+Operational Panel
+    /operational
+    Dashboard
+    Flow Gas
+    Crude Oil
+    Vitol
+    Broadcast
+    TV Display
 
-WBS Panel (/wbs)
-    Pelapor: Dashboard, Reports, Notifications
-    Admin/Officer: Dashboard, Reports, Notifications
+WBS Panel
+    /wbs
+    Pelapor Portal
+    WBS Admin Portal
+    Reports
+    Attachments
+    Notifications
+    PDF Export
+
+Background Jobs
+    Queue Email
+    News Auto Translate
 ```
 
 ---
 
 ## User Roles
 
-| Role | Panel Access | Description |
+| Role | Access | Description |
 |---|---|---|
-| `admin` | `/admin` | Full content and system management |
-| `operational` | `/operational` | Data entry and operational monitoring |
-| `writer` | `/writer` | Content authoring and submission |
+| `admin` | `/admin` | Full CMS and system management |
+| `operational` | `/operational` | Operational data input and monitoring |
+| `writer` | `/writer` | News and TJSL authoring |
 | `reviewer` | `/reviewer` | Content review and approval |
-| `pelapor` | `/wbs/pelapor` | WBS compliance report submission |
-| `wbs_admin` | `/wbs/admin` | WBS report management and investigation |
-| `wbs_officer` | `/wbs/admin` | WBS report management (co-access with wbs_admin) |
+| `pelapor` | `/wbs/pelapor` | WBS report submission and tracking |
+| `wbs_admin` | `/wbs/admin` | WBS report management |
+| `wbs_officer` | `/wbs/admin` | WBS report handling and follow-up |
 
 ---
 
@@ -270,179 +506,370 @@ WBS Panel (/wbs)
 
 | Layer | Technology |
 |---|---|
-| Backend Framework | Laravel 12 (PHP 8.2+) |
-| Frontend Build | Vite 7, Tailwind CSS 4 |
-| Authentication | Laravel built-in auth + Laravel Socialite (Google) |
-| PDF Generation | barryvdh/laravel-dompdf |
-| Excel Export | maatwebsite/excel (PhpSpreadsheet) |
+| Backend Framework | Laravel 12 |
+| PHP Version | PHP 8.2+ |
+| Frontend Build | Vite |
+| CSS Framework | Tailwind CSS 4 |
+| Database | MySQL / MariaDB |
+| Authentication | Laravel Auth + Google OAuth |
+| Queue | Laravel Queue Database Driver |
+| Mail | Laravel Mail SMTP |
+| PDF Export | barryvdh/laravel-dompdf |
+| Excel Export | maatwebsite/excel |
 | Image Processing | intervention/image |
 | PDF to Image | spatie/pdf-to-image |
-| Database | MySQL 8.0 (or compatible) |
-| Queue | Laravel Queue (database driver) |
-| Email | Laravel Mail (configurable via SMTP) |
+| Charts | JavaScript chart library |
+| Hosting | Shared Hosting / cPanel / Rumahweb |
+| SEO | Sitemap XML + robots.txt + Google Search Console |
 
 ---
 
 ## Requirements
 
-- PHP 8.2 or higher
-- Composer 2.x
-- Node.js 18+ and npm
-- MySQL 8.0 or MariaDB 10.6+
-- PHP extensions: `ext-gd`, `ext-mbstring`, `ext-pdo`, `ext-xml`, `ext-zip`
+Minimum requirements:
+
+```txt
+PHP 8.2 or higher
+Composer 2.x
+Node.js 18 or higher
+npm
+MySQL 8.0 or MariaDB 10.6+
+Apache or Nginx
+cPanel compatible hosting
+```
+
+Required PHP extensions:
+
+```txt
+ext-gd
+ext-mbstring
+ext-pdo
+ext-xml
+ext-zip
+ext-curl
+ext-fileinfo
+ext-openssl
+```
+
+Recommended PHP settings:
+
+```ini
+upload_max_filesize = 20M
+post_max_size = 25M
+max_execution_time = 180
+memory_limit = 256M
+```
 
 ---
 
 ## Installation
 
-### 1. Clone the Repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/hidayaturromadhan/bsp-zapin.git
 cd bsp-zapin
 ```
 
-### 2. Automated Setup
-
-A Composer setup script is provided that handles all installation steps:
+### 2. Install PHP Dependencies
 
 ```bash
-composer run setup
-```
-
-This command performs the following steps in sequence:
-
-1. Installs PHP dependencies via Composer
-2. Copies `.env.example` to `.env` if not already present
-3. Generates the application encryption key
-4. Runs database migrations
-5. Installs Node.js dependencies
-6. Builds frontend assets for production
-
-### 3. Manual Setup (Alternative)
-
-If you prefer to run each step individually:
-
-```bash
-# Install PHP dependencies
 composer install
-
-# Copy environment file
-cp .env.example .env
-
-# Generate application key
-php artisan key:generate
-
-# Run database migrations
-php artisan migrate
-
-# Install Node.js dependencies
-npm install
-
-# Build frontend assets
-npm run build
 ```
 
----
+### 3. Copy Environment File
 
-## Configuration
+```bash
+cp .env.example .env
+```
 
-Open the `.env` file and configure the following sections:
+### 4. Generate Application Key
 
-**Database**
+```bash
+php artisan key:generate
+```
+
+### 5. Configure Database
+
+Edit `.env`:
 
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=bsp_zapin
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
+DB_USERNAME=root
+DB_PASSWORD=
 ```
 
-**Application URL**
+### 6. Run Migration
+
+```bash
+php artisan migrate
+```
+
+### 7. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+### 8. Build Frontend Assets
+
+```bash
+npm run build
+```
+
+---
+
+## Environment Configuration
+
+Recommended `.env` configuration:
 
 ```env
+APP_NAME="BSP Zapin"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
 APP_URL=http://localhost:8000
 APP_LOCALE=id
-```
+APP_FALLBACK_LOCALE=id
 
-**Mail**
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bsp_zapin
+DB_USERNAME=root
+DB_PASSWORD=
 
-```env
+QUEUE_CONNECTION=database
+
 MAIL_MAILER=smtp
-MAIL_HOST=your.smtp.host
+MAIL_HOST=smtp.example.com
 MAIL_PORT=587
-MAIL_USERNAME=your@email.com
-MAIL_PASSWORD=your_password
+MAIL_USERNAME=noreply@example.com
+MAIL_PASSWORD=
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@yourdomain.com
+MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME="BSP Zapin"
-```
 
-**Google OAuth**
+WBS_ADMIN_EMAIL=wbs@bspz.co.id
 
-```env
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 ```
 
-**Whistleblower System**
+For production:
 
 ```env
-WBS_ADMIN_EMAIL=wbs-admin@yourdomain.com
-```
-
-**Queue**
-
-```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://bspz.co.id
 QUEUE_CONNECTION=database
 ```
-
-For production, it is recommended to use a persistent queue driver such as `redis` and to run queue workers as a managed process.
 
 ---
 
 ## Running the Application
 
-### Development Mode
-
-The following command starts all development services concurrently: the Laravel development server, queue listener, log viewer (Pail), and Vite development server.
+### Development Server
 
 ```bash
-composer run dev
+php artisan serve
 ```
 
-Individual services can also be started separately:
+### Vite Development Server
 
 ```bash
-# Laravel development server
-php artisan serve
-
-# Vite development server (for hot module replacement)
 npm run dev
+```
 
-# Queue listener
-php artisan queue:listen --tries=1 --timeout=0
+### Queue Worker
 
-# Log viewer
-php artisan pail --timeout=0
+```bash
+php artisan queue:work
+```
+
+### Log Viewer
+
+```bash
+php artisan pail
 ```
 
 ### Production Build
 
 ```bash
 npm run build
+php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-### Running Tests
+---
+
+## Production Deployment
+
+This project is deployed on shared hosting with this structure:
+
+```txt
+/home/bspz7193/laravel       Laravel project files
+/home/bspz7193/public_html   Public document root
+```
+
+Because the Laravel project is outside `public_html`, the application public path must be set to `public_html`.
+
+In `bootstrap/app.php`:
+
+```php
+$app->usePublicPath('/home/bspz7193/public_html');
+```
+
+Recommended production commands:
 
 ```bash
-composer run test
+cd /home/bspz7193/laravel
+
+/usr/local/bin/ea-php82 artisan optimize:clear
+/usr/local/bin/ea-php82 artisan config:clear
+/usr/local/bin/ea-php82 artisan cache:clear
+/usr/local/bin/ea-php82 artisan view:clear
+
+/usr/local/bin/ea-php82 artisan config:cache
+/usr/local/bin/ea-php82 artisan route:cache
+/usr/local/bin/ea-php82 artisan view:cache
+```
+
+Required writable directories:
+
+```txt
+storage
+bootstrap/cache
+public_html/generated
+public_html/uploads
+public_html/images
+public_html/videos
+```
+
+Permission setup:
+
+```bash
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+```
+
+If shared hosting blocks write access, use carefully:
+
+```bash
+chmod -R 777 storage
+chmod -R 777 bootstrap/cache
+```
+
+---
+
+## Queue and Cron Job
+
+The application uses Laravel Queue with database driver.
+
+Queue features:
+
+- WBS email notification.
+- WBS report update email.
+- News auto translate job.
+- Background processing for long-running tasks.
+
+On shared hosting, queue is executed using Cron Job.
+
+Example cPanel cron command:
+
+```bash
+cd /home/bspz7193/laravel && /usr/local/bin/ea-php82 artisan queue:work database --queue=default --stop-when-empty --tries=3 --timeout=180 >> /home/bspz7193/public_html/storage/logs/queue-cron.log 2>&1
+```
+
+Recommended cron interval:
+
+```txt
+Every minute
+```
+
+Equivalent cron schedule:
+
+```txt
+* * * * *
+```
+
+To check failed jobs:
+
+```bash
+php artisan queue:failed
+```
+
+To retry failed jobs:
+
+```bash
+php artisan queue:retry all
+```
+
+To clear failed jobs:
+
+```bash
+php artisan queue:flush
+```
+
+---
+
+## SEO and Google Search Console
+
+The project supports Google indexing through:
+
+```txt
+/sitemap.xml
+/robots.txt
+```
+
+Recommended production robots file:
+
+```txt
+User-agent: *
+Allow: /
+
+Sitemap: https://bspz.co.id/sitemap.xml
+```
+
+Google Search Console setup:
+
+1. Add property for domain:
+
+```txt
+bspz.co.id
+```
+
+2. Add TXT DNS verification record.
+3. Wait for DNS propagation.
+4. Submit sitemap:
+
+```txt
+sitemap.xml
+```
+
+5. Request indexing for important pages:
+
+```txt
+https://bspz.co.id/id
+https://bspz.co.id/en
+https://bspz.co.id/id/media-publikasi
+https://bspz.co.id/id/wbs
+https://bspz.co.id/id/gcg
+```
+
+DNS records required:
+
+```txt
+A      bspz.co.id       Hosting IP
+CNAME  www              bspz.co.id
+TXT    google-site-verification=...
+TXT    SPF for email provider
 ```
 
 ---
@@ -451,40 +878,25 @@ composer run test
 
 ### News Editorial Workflow
 
-1. A `writer` creates a news article and saves it as `draft`.
-2. The writer submits the article, setting the status to `in_review`.
-3. A `reviewer` approves or rejects the article. Rejected articles return to `rejected` status with notes.
-4. An `admin` performs final publication, moving approved articles to `published` status.
-5. Published articles can later be moved to `archived`.
+1. Writer creates news as draft.
+2. Writer submits news to reviewer.
+3. Reviewer approves or rejects.
+4. Admin publishes approved news.
+5. Published news appears on public website.
+6. News may be archived when no longer active.
+7. Translation job may generate English content automatically.
+8. Sitemap includes published public news.
 
-Audit logs are maintained for every status transition, recording the acting user and timestamp.
-
-### Content Versioning
-
-Static pages support content versioning. Each save creates a new version record. Administrators can:
-
-- View the full version history of any page.
-- Restore the page to any previous version.
-- Restore a bundle snapshot (a grouped set of versions representing a specific content state).
-
-### Operational TV Display
-
-The TV display mode is designed for large screens in control rooms. It presents:
-
-- Daily and monthly gas flow charts.
-- Crude oil production trends for the last 14 days.
-- Vitol monthly quantity summaries.
-- A horizontally scrolling broadcast message ticker.
-- A real-time clock.
-
-The view is full-screen with no navigation and auto-refreshes at configurable intervals.
+---
 
 ### WBS Report Lifecycle
 
-```
+WBS reports follow this lifecycle:
+
+```txt
 Laporan Masuk
     -> Ditelaah
-    -> Perlu Klarifikasi  (reporter may edit and resubmit)
+    -> Perlu Klarifikasi
     -> Dalam Proses
     -> Dalam Investigasi
     -> Selesai
@@ -492,113 +904,467 @@ Laporan Masuk
     -> Di Luar Ruang Lingkup
 ```
 
-Reporters can edit their report only while it is in `Laporan Masuk` or `Perlu Klarifikasi` status. All other statuses lock the report for the reporter.
+Reporter can edit report only on allowed statuses:
 
-### Internationalization
+```txt
+Laporan Masuk
+Perlu Klarifikasi
+```
 
-All public-facing content uses locale-prefixed URLs. Supported locales are `id` (Indonesian) and `en` (English). Requests without a locale prefix are redirected to `/id` by default.
+Admin can update:
 
-Content models that support translations include: News, Pages, GCG Categories, GCG Documents, Investor Documents, and TJSL Programs. Each translatable model has a corresponding `_translations` table with a `locale` column.
+```txt
+Status
+Admin Notes
+Follow Up Result
+Processed Date
+Closed Date
+```
+
+PDF export includes:
+
+```txt
+Report number
+Report status
+Category
+Title
+Incident date
+Location
+Estimated loss
+Description
+Involved parties
+Chronology
+Reporter identity masked
+Admin notes
+Follow-up result
+Attachments list
+Signature block
+Confidential watermark
+```
+
+---
+
+### Operational Data
+
+Operational module manages:
+
+```txt
+Flow Gas
+Crude Oil
+Vitol
+Broadcast Message
+Operational TV
+```
+
+Chart data includes:
+
+```txt
+Gas daily chart
+Gas monthly average chart
+Gas yearly chart
+Crude last 14 days chart
+Vitol last 12 records chart
+```
+
+---
+
+### Upload Management
+
+Uploads are handled using public path configuration.
+
+Production upload target:
+
+```txt
+/home/bspz7193/public_html
+```
+
+Upload directories include:
+
+```txt
+images/news/featured
+images/news/content
+images/partners
+uploads/wbs/reports
+generated/wbs/reports
+videos
+```
+
+Image processing uses:
+
+```txt
+intervention/image
+```
+
+---
+
+### PDF Export
+
+PDF export uses:
+
+```txt
+barryvdh/laravel-dompdf
+```
+
+PDF modules include:
+
+```txt
+Individual WBS report export
+Filtered WBS report export
+```
+
+Recommended DomPDF production config:
+
+```php
+'public_path' => '/home/bspz7193/public_html',
+
+'options' => [
+    'font_dir' => storage_path('fonts'),
+    'font_cache' => storage_path('fonts'),
+    'temp_dir' => storage_path('framework/cache'),
+    'chroot' => [
+        base_path(),
+        '/home/bspz7193/public_html',
+        storage_path(),
+    ],
+    'enable_remote' => true,
+]
+```
+
+---
+
+## Security Notes
+
+Important security features:
+
+- Role-based access control.
+- Login rate limiting.
+- Active user check.
+- Session middleware.
+- Single-device session concept.
+- Inactivity timeout.
+- CSRF protection on forms.
+- Server-side validation.
+- WBS reporter data protection.
+- Masked reporter identity in PDF.
+- Upload validation.
+- Queue-based email sending.
+- Production debug disabled.
+- Public directory separation.
+- Sitemap only for public pages.
+
+Production `.env` must use:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://bspz.co.id
+```
+
+Sensitive files must not be publicly accessible:
+
+```txt
+.env
+.git
+composer.json
+storage/logs
+vendor
+database
+```
+
+Recommended checks:
+
+```bash
+curl -I https://bspz.co.id/.env
+curl -I https://bspz.co.id/.git/config
+curl -I https://bspz.co.id/composer.json
+curl -I https://bspz.co.id/storage/logs/laravel.log
+```
+
+Expected result:
+
+```txt
+403 Forbidden
+404 Not Found
+```
 
 ---
 
 ## Directory Structure
 
-```
+```txt
 bsp-zapin/
 |-- app/
-|   |-- Helpers/              Global helper functions and menu helpers
+|   |-- Helpers/
 |   |-- Http/
 |   |   |-- Controllers/
-|   |   |   |-- Admin/        Admin panel controllers
-|   |   |   |-- Auth/         Authentication (login, register, Google OAuth)
-|   |   |   |-- Operational/  Operational data controllers
-|   |   |   |-- Reviewer/     Reviewer panel controllers
-|   |   |   |-- Web/          Public website controllers
-|   |   |   |-- Wbs/          Whistleblower system controllers
-|   |   |   |-- Writer/       Writer panel controllers
-|   |   |-- Middleware/       Role-based access, session management
-|   |-- Mail/                 Mailable classes (WBS notifications)
-|   |-- Models/               Eloquent models
-|   |-- Services/             Service classes (WBS notification service)
+|   |   |   |-- Admin/
+|   |   |   |-- Auth/
+|   |   |   |-- Operational/
+|   |   |   |-- Reviewer/
+|   |   |   |-- Web/
+|   |   |   |-- Wbs/
+|   |   |   |-- Writer/
+|   |   |-- Middleware/
+|   |-- Jobs/
+|   |-- Mail/
+|   |-- Models/
+|   |-- Providers/
+|   |-- Services/
+|-- bootstrap/
+|   |-- app.php
 |-- config/
-|   |-- wbs.php               WBS-specific configuration
+|   |-- app.php
+|   |-- dompdf.php
+|   |-- queue.php
+|   |-- services.php
+|   |-- wbs.php
 |-- database/
-|   |-- migrations/           All database migrations
-|   |-- seeders/              Database seeders
+|   |-- migrations/
+|   |-- seeders/
 |-- public/
-|   |-- images/               Publicly accessible static images
+|   |-- images/
+|   |-- videos/
 |-- resources/
 |   |-- views/
-|   |   |-- admin/            Admin panel Blade templates
-|   |   |-- auth/             Authentication page templates
-|   |   |-- operational/      Operational panel templates (dashboard, tv)
-|   |   |-- reviewer/         Reviewer panel templates
-|   |   |-- wbs/              WBS panel templates
-|   |   |-- web/              Public website templates
-|   |   |-- writer/           Writer panel templates
+|   |   |-- admin/
+|   |   |-- auth/
+|   |   |-- operational/
+|   |   |-- reviewer/
+|   |   |-- web/
+|   |   |-- wbs/
+|   |   |-- writer/
 |-- routes/
-|   |-- web.php               All application routes
+|   |-- web.php
+|   |-- console.php
 |-- storage/
-|   |-- app/                  File uploads
-|   |-- logs/                 Application logs
+|   |-- app/
+|   |-- framework/
+|   |-- logs/
+|-- tests/
+|-- composer.json
+|-- package.json
+|-- vite.config.js
 ```
 
 ---
 
 ## Database Schema
 
-The application uses the following primary tables:
+Main tables include:
 
 | Table | Description |
 |---|---|
-| `users` | User accounts with role and session tracking |
-| `sliders` | Homepage hero sliders with bilingual titles |
-| `news_categories` | News categorization |
-| `news` | News articles with editorial workflow fields |
-| `news_translations` | Bilingual news content (id, en) |
-| `news_images` | Image attachments for news articles |
-| `news_audit_logs` | Editorial workflow audit trail |
+| `users` | User accounts, role, active status, and session data |
+| `sliders` | Homepage slider data |
+| `partners` | Partner and customer logos |
+| `menus` | Dynamic navigation menu |
 | `pages` | Static CMS pages |
-| `page_translations` | Bilingual page content |
-| `content_versions` | Page content version history |
-| `menus` | Navigation menu entries with parent-child hierarchy |
-| `partners` | Company partner records with category |
+| `page_translations` | Page translation content |
+| `content_versions` | CMS version history |
+| `news_categories` | News categories |
+| `news` | News article main records |
+| `news_translations` | Bilingual news content |
+| `news_images` | News image attachments |
+| `news_audit_logs` | Editorial workflow logs |
+| `tjsl_programs` | TJSL program records |
+| `tjsl_program_translations` | TJSL translation content |
+| `tjsl_program_images` | TJSL gallery images |
 | `gcg_categories` | GCG document categories |
-| `gcg_category_translations` | Bilingual GCG category labels |
-| `gcg_documents` | Governance documents with PDF and cover |
-| `gcg_document_translations` | Bilingual GCG document metadata |
-| `gcg_highlight_items` | Featured GCG highlights |
-| `investor_documents` | Investor relations documents |
-| `investor_document_translations` | Bilingual investor document metadata |
-| `investor_highlight_items` | Featured investor highlights |
-| `tjsl_programs` | CSR program records |
-| `tjsl_program_translations` | Bilingual TJSL program content |
-| `tjsl_program_images` | Image galleries for TJSL programs |
-| `flow_gas_categories` | Gas flow measurement categories |
-| `flow_gas_daily_records` | Daily gas flow readings |
-| `crude_daily_records` | Daily crude oil production data |
-| `vitol_records` | Monthly Vitol quantity records |
+| `gcg_category_translations` | GCG category translations |
+| `gcg_documents` | GCG document files |
+| `gcg_document_translations` | GCG document translations |
+| `gcg_highlight_items` | GCG highlight content |
+| `investor_documents` | Investor document files |
+| `investor_document_translations` | Investor document translations |
+| `investor_highlight_items` | Investor highlight content |
+| `flow_gas_categories` | Flow gas categories |
+| `flow_gas_daily_records` | Daily gas records |
+| `crude_daily_records` | Daily crude oil records |
+| `vitol_records` | Monthly Vitol records |
 | `broadcast_messages` | TV display ticker messages |
-| `wbs_reports` | Whistleblower compliance reports |
-| `wbs_report_attachments` | Supporting files for WBS reports |
-| `wbs_notifications` | WBS internal notification records |
+| `operational_display_tokens` | Public TV display tokens |
+| `wbs_reports` | WBS report records |
+| `wbs_report_attachments` | WBS report attachments |
+| `wbs_notifications` | WBS notification records |
+| `jobs` | Laravel queued jobs |
+| `failed_jobs` | Failed queued jobs |
+| `password_reset_tokens` | Password reset tokens |
+| `sessions` | Session records |
+
+---
+
+## Maintenance Commands
+
+Clear all cache:
+
+```bash
+php artisan optimize:clear
+```
+
+Rebuild cache:
+
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+Run migration:
+
+```bash
+php artisan migrate
+```
+
+Run queue:
+
+```bash
+php artisan queue:work
+```
+
+Check failed jobs:
+
+```bash
+php artisan queue:failed
+```
+
+Retry failed jobs:
+
+```bash
+php artisan queue:retry all
+```
+
+Build frontend:
+
+```bash
+npm run build
+```
+
+Run code formatter:
+
+```bash
+./vendor/bin/pint
+```
+
+---
+
+## Common Production Issues
+
+### Images not showing after upload
+
+Make sure `public_path()` points to:
+
+```txt
+/home/bspz7193/public_html
+```
+
+Check:
+
+```bash
+php artisan tinker
+public_path();
+```
+
+Expected output:
+
+```txt
+/home/bspz7193/public_html
+```
+
+---
+
+### PDF export error 500
+
+Check:
+
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+Common fixes:
+
+```bash
+mkdir -p storage/fonts
+mkdir -p storage/framework/cache
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+php artisan optimize:clear
+```
+
+Make sure `config/dompdf.php` has correct `public_path`.
+
+---
+
+### Queue not processing
+
+Check cron job:
+
+```bash
+* * * * * cd /home/bspz7193/laravel && /usr/local/bin/ea-php82 artisan queue:work database --queue=default --stop-when-empty --tries=3 --timeout=180 >> /home/bspz7193/public_html/storage/logs/queue-cron.log 2>&1
+```
+
+Check failed jobs:
+
+```bash
+php artisan queue:failed
+```
+
+---
+
+### Google indexing not appearing
+
+Make sure these are accessible:
+
+```txt
+https://bspz.co.id/sitemap.xml
+https://bspz.co.id/robots.txt
+```
+
+Then submit sitemap in Google Search Console.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please follow these steps:
+Recommended contribution workflow:
 
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/your-feature-name`).
-3. Make your changes and ensure tests pass (`composer run test`).
-4. Apply code style formatting (`./vendor/bin/pint`).
-5. Commit your changes with a clear message.
-6. Push to your fork and open a Pull Request.
+1. Fork repository.
+2. Create feature branch.
+
+```bash
+git checkout -b feature/feature-name
+```
+
+3. Make changes.
+4. Run formatter.
+
+```bash
+./vendor/bin/pint
+```
+
+5. Run tests if available.
+
+```bash
+php artisan test
+```
+
+6. Commit changes.
+
+```bash
+git commit -m "Add feature description"
+```
+
+7. Push branch.
+
+```bash
+git push origin feature/feature-name
+```
+
+8. Create pull request.
 
 ---
 
 ## License
 
-This project is open-source software licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This project is developed for PT Bumi Siak Pusako Zapin.
+
+If this repository is used internally or for company-specific deployment, make sure all credentials, database dumps, `.env` files, private documents, and production assets are not committed to the repository.
